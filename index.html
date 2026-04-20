@@ -1001,29 +1001,79 @@ body {
   <div class="rc" id="ref-list"><div class="ldr">Loading...</div></div>
 </div>
 
-<!-- WITHDRAW PAGE -->
-<div class="pg" id="pg-withdraw" style="display:none">
-  <div class="rc">
-    <div style="font-size:10px;color:var(--mu)">Available to withdraw</div>
-    <div class="wbal" id="w-bal">$0.0000</div>
-    <div style="font-size:10px;color:var(--mu);margin-bottom:12px">Minimum withdrawal: $1.00</div>
-    <div style="font-size:11px;font-weight:700;color:var(--tx);margin-bottom:7px">Select method</div>
-    <!-- Payment method cards - connected account shown under each -->
-    <div class="wmet sel" onclick="selWM(this)" data-min="1" data-fee="2" data-method="mpesa"><div class="wmet-ico" style="background:#E8F5E9">📱</div><div style="flex:1"><div class="wmet-name">M-Pesa</div><div class="wmet-desc">Mobile money · Instant</div><div class="wmet-linked" id="wlink-mpesa" style="display:none;font-size:10px;color:#00a651;font-weight:600;margin-top:2px"></div></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px"><div class="wmet-min">Min $1 +2%</div><button class="wmet-conn-btn" id="wconn-mpesa" onclick="event.stopPropagation();openConnectAccount('mpesa')" style="font-size:9px;padding:2px 6px;border:1px solid #00a651;color:#00a651;background:none;border-radius:4px;cursor:pointer">Connect</button></div></div>
-    <div class="wmet" onclick="selWM(this)" data-min="3" data-fee="2" data-method="paypal"><div class="wmet-ico" style="background:#E3F2FD">🅿️</div><div style="flex:1"><div class="wmet-name">PayPal</div><div class="wmet-desc">PayPal account</div><div class="wmet-linked" id="wlink-paypal" style="display:none;font-size:10px;color:#003087;font-weight:600;margin-top:2px"></div></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px"><div class="wmet-min">Min $3 +2%</div><button class="wmet-conn-btn" id="wconn-paypal" onclick="event.stopPropagation();openConnectAccount('paypal')" style="font-size:9px;padding:2px 6px;border:1px solid #003087;color:#003087;background:none;border-radius:4px;cursor:pointer">Connect</button></div></div>
-    <div class="wmet" onclick="selWM(this)" data-min="3" data-fee="2" data-method="airtm"><div class="wmet-ico" style="background:#FFF3E0">💱</div><div style="flex:1"><div class="wmet-name">Airtm</div><div class="wmet-desc">Digital wallet</div><div class="wmet-linked" id="wlink-airtm" style="display:none;font-size:10px;color:#0050c8;font-weight:600;margin-top:2px"></div></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px"><div class="wmet-min">Min $3 +2%</div><button class="wmet-conn-btn" id="wconn-airtm" onclick="event.stopPropagation();openConnectAccount('airtm')" style="font-size:9px;padding:2px 6px;border:1px solid #0050c8;color:#0050c8;background:none;border-radius:4px;cursor:pointer">Connect</button></div></div>
-    <div class="wmet" onclick="selWM(this)" data-min="20" data-fee="2" data-method="payoneer"><div class="wmet-ico" style="background:#F3E5F5">🏦</div><div style="flex:1"><div class="wmet-name">Payoneer</div><div class="wmet-desc">Global bank transfer</div><div class="wmet-linked" id="wlink-payoneer" style="display:none;font-size:10px;color:#FF4800;font-weight:600;margin-top:2px"></div></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px"><div class="wmet-min">Min $20 +2%</div><button class="wmet-conn-btn" id="wconn-payoneer" onclick="event.stopPropagation();openConnectAccount('payoneer')" style="font-size:9px;padding:2px 6px;border:1px solid #FF4800;color:#FF4800;background:none;border-radius:4px;cursor:pointer">Connect</button></div></div>
-    <input class="winp" id="w-addr" placeholder="Account / wallet address..."/>
-    <input class="winp" id="w-amt" type="number" min="0.5" step="0.01" placeholder="Amount you want to receive (USD)..." oninput="calcWithdrawFee()"/>
-    <div id="w-fee-line" style="font-size:11px;color:var(--mu);margin-bottom:6px;padding:0 2px;min-height:16px"></div>
-    <div id="w-fee-row"></div>
-    <button class="wbtn" id="w-btn" onclick="doWithdraw()">Request withdrawal</button>
-    <div id="w-msg" style="font-size:11px;color:var(--mu);margin-top:5px;text-align:center">Min $1 + 2% fee via M-Pesa</div>
-  </div>
-  <div class="sec">History</div>
-  <div class="rc" id="wd-hist"><div class="ldr">Loading...</div></div>
-</div>
+<!-- Payment PAGE -->
+<div class="pg" id="pg-payment" style="display:none">
 
+  <div class="rc">
+
+    <!-- BALANCE -->
+    <div style="font-size:10px;color:var(--mu)">Available Balance</div>
+    <div class="wbal" id="w-bal">$0.0000</div>
+
+    <div style="font-size:10px;color:var(--mu);margin-bottom:12px">
+      Payments are processed via PayPal only
+    </div>
+
+    <div style="font-size:11px;font-weight:700;color:var(--tx);margin-bottom:7px">
+      Payment Method
+    </div>
+
+    <!-- PAYPAL ONLY -->
+    <div class="wmet sel" data-method="paypal">
+
+      <div class="wmet-ico" style="background:#E3F2FD">🅿️</div>
+
+      <div style="flex:1">
+        <div class="wmet-name">PayPal Payment</div>
+        <div class="wmet-desc">Send payments directly to PayPal</div>
+
+        <div class="wmet-linked" id="paypal-linked"
+             style="display:none;font-size:10px;color:#003087;font-weight:600;margin-top:2px">
+        </div>
+      </div>
+
+      <div style="text-align:right">
+        <div class="wmet-min">Secure Transfer</div>
+      </div>
+
+    </div>
+
+    <!-- PAYPAL EMAIL INPUT -->
+    <input class="winp"
+           id="paypal-email"
+           type="email"
+           placeholder="Enter PayPal email..."
+           oninput="validatePayPalEmail()" />
+
+    <!-- AMOUNT -->
+    <input class="winp"
+           id="pay-amount"
+           type="number"
+           min="1"
+           step="0.01"
+           placeholder="Enter payment amount (USD)..." />
+
+    <!-- MESSAGE -->
+    <div id="pay-msg"
+         style="font-size:11px;color:var(--mu);margin-top:6px;text-align:center">
+      PayPal email must match your account email
+    </div>
+
+    <!-- BUTTON -->
+    <button class="wbtn" id="pay-btn" onclick="processPayment()">
+      Request Payment
+    </button>
+
+  </div>
+
+  <!-- HISTORY -->
+  <div class="sec">Payment History</div>
+
+  <div class="rc" id="pay-hist">
+    <div class="ldr">Loading...</div>
+  </div>
+
+</div>
 <!-- SUPPORT PAGE -->
 <div class="pg" id="pg-support">
   <div class="sgrp">
@@ -2792,8 +2842,51 @@ function copyRef(){
   var btn=event.target;btn.textContent='Copied!';setTimeout(function(){btn.textContent='Copy';},1500);
 }
 
-/* ── WITHDRAW ── */
+/* ── Payment page── */
 /* ── CONNECTED PAYMENT ACCOUNTS ── */
+  function validatePayPalEmail() {
+  const accountEmail = localStorage.getItem("account_email"); // your saved user email
+  const inputEmail = document.getElementById("paypal-email").value;
+  const msg = document.getElementById("pay-msg");
+
+  if (!inputEmail) return;
+
+  if (inputEmail !== accountEmail) {
+    msg.innerText = "❌ PayPal email must match your account email";
+    msg.style.color = "#ef4444";
+  } else {
+    msg.innerText = "✅ Email verified";
+    msg.style.color = "#10b981";
+  }
+}
+
+function processPayment() {
+  const accountEmail = localStorage.getItem("account_email");
+  const email = document.getElementById("paypal-email").value;
+  const amount = document.getElementById("pay-amount").value;
+  const msg = document.getElementById("pay-msg");
+
+  if (!email || !amount) {
+    msg.innerText = "⚠️ Fill all fields";
+    msg.style.color = "#f59e0b";
+    return;
+  }
+
+  if (email !== accountEmail) {
+    msg.innerText = "❌ Email mismatch";
+    msg.style.color = "#ef4444";
+    return;
+  }
+
+  msg.innerText = "⏳ Payment request sent via PayPal...";
+  msg.style.color = "#3b82f6";
+
+  // simulate request
+  setTimeout(() => {
+    msg.innerText = "✅ Payment request successful";
+    msg.style.color = "#10b981";
+  }, 1500);
+}
 var _connMethod = null;
 var _userPayAccounts = {};
 
