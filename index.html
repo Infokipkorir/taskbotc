@@ -1617,173 +1617,122 @@ input:focus {
 
 <!-- Content -->
 <div class="ct" id="main-ct">
-
-<!-- TASKS PAGE -->
-<div class="pg active" id="pg-tasks">
-  <div class="sg">
-    <div class="sc"><div class="lbl">Done this week</div><div class="val" id="s-done">0</div></div>
-    <div class="sc"><div class="lbl">Total earned</div><div class="val" id="s-earn">$0.00</div></div>
-    <div class="sc"><div class="lbl">Referrals</div><div class="val" id="s-refs">0</div></div>
-  </div>
-  <div class="frow">
-    <button class="fbtn active" onclick="filterTasks('all',this)">All</button>
-    <button class="fbtn" onclick="filterTasks('quick',this)">Quick</button>
-    <button class="fbtn" onclick="filterTasks('survey',this)">Survey</button>
-    <button class="fbtn" onclick="filterTasks('social',this)">Social</button>
-    <button class="fbtn" onclick="filterTasks('video',this)">Video</button>
-    <button class="fbtn" onclick="filterTasks('app',this)">App</button>
-  </div>
-  <div id="tasks-list"><div class="ldr">Loading tasks...</div></div>
-</div>
-
 <!-- MY TASKS PAGE -->
 <div class="pg" id="pg-mytasks">
   <div class="sec">My submissions</div>
-  <div class="rc" id="my-subs"><div class="ldr">Loading...</div></div>
+  <div class="rc" id="my-subs">
+    <div class="ldr">Loading...</div>
+  </div>
 </div>
-  
-  <div id="tm-steps-list" style="display:flex;flex-direction:column;gap:8px"></div>
-      </div>
-<!-- TASK SUBMIT MODAL — Timebucks-style proof enforcement -->
+
+<!-- TASK MODAL -->
 <div class="mwrap" id="task-modal">
+
   <div class="modal" style="padding:0;overflow:hidden;max-height:92vh;display:flex;flex-direction:column">
 
     <!-- HEADER -->
-    <div id="tm-header" style="padding:16px 18px 12px;border-bottom:1px solid var(--b);flex-shrink:0">
+    <div id="tm-header" style="padding:16px 18px;border-bottom:1px solid var(--b);">
+
       <div style="display:flex;align-items:flex-start;gap:12px">
-        <div id="tm-cat-ico" style="width:40px;height:40px;border-radius:10px;background:var(--bl);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">⚡</div>
-        <div style="flex:1;min-width:0">
-          <div class="mt" id="tm-title" style="font-size:15px;font-weight:800;line-height:1.3;margin-bottom:2px"></div>
-          <div class="ms" id="tm-sub" style="font-size:12px"></div>
+
+        <div id="tm-cat-ico"
+             style="width:40px;height:40px;border-radius:10px;background:var(--bl);
+             display:flex;align-items:center;justify-content:center;font-size:20px;">
+          ⚡
         </div>
-        <button onclick="closeTaskModal()" style="background:none;border:none;font-size:20px;color:var(--mu);cursor:pointer;line-height:1;flex-shrink:0;padding:0">&#215;</button>
+
+        <div style="flex:1;min-width:0">
+          <div class="mt" id="tm-title"></div>
+          <div class="ms" id="tm-sub"></div>
+        </div>
+
+        <button onclick="closeTaskModal()"
+                style="background:none;border:none;font-size:20px;color:var(--mu);cursor:pointer">
+          ×
+        </button>
+
       </div>
-      <!-- Timer bar -->
-      <div class="dtimer" id="tm-dual" style="display:none;margin-top:12px;background:var(--bg2);border-radius:8px;padding:8px 12px">
-        <div class="dtc"><div class="dtl">Remaining</div><div class="dtv rem" id="tm-rem">2:00:00</div></div>
+
+      <!-- TIMER -->
+      <div class="dtimer" id="tm-dual" style="display:none;margin-top:12px;">
+        <div class="dtc">
+          <div class="dtl">Remaining</div>
+          <div class="dtv rem" id="tm-rem">2:00:00</div>
+        </div>
+
         <div class="dtd"></div>
-        <div class="dtc"><div class="dtl">Spent</div><div class="dtv spt" id="tm-spt">0:00:00</div></div>
+
+        <div class="dtc">
+          <div class="dtl">Spent</div>
+          <div class="dtv spt" id="tm-spt">0:00:00</div>
+        </div>
       </div>
+
     </div>
 
-    <!-- SCROLLABLE BODY -->
+    <!-- BODY -->
     <div style="overflow-y:auto;flex:1;padding:16px 18px">
 
-      <!-- STEPS SECTION -->
-      <div id="tm-steps-block" style="margin-bottom:16px">
-        <div style="font-size:10px;font-weight:800;color:var(--mu);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px">How to complete</div>
+      <!-- STEPS -->
+      <div style="margin-bottom:16px">
+        <div style="font-size:10px;font-weight:800;color:var(--mu);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px">
+          How to complete
+        </div>
+
         <div id="tm-steps-list" style="display:flex;flex-direction:column;gap:8px"></div>
       </div>
 
-      <!-- PROOF SECTION - injected by acceptTask() -->
+      <!-- TASK CONTENT -->
       <div id="tm-body"></div>
 
-    </div>
-    <div style="padding:12px 18px;border-top:1px solid var(--b);flex-shrink:0">
-      <!-- validation error -->
-      <div id="tm-val-err" style="display:none;background:#FEE2E2;border:1px solid #FCA5A5;border-radius:8px;padding:9px 12px;margin-bottom:10px;font-size:12px;font-weight:600;color:#991B1B"></div>
-      <!-- progress bar for upload -->
-      <div id="tm-upload-prog" style="display:none;margin-bottom:10px">
-        <div style="font-size:11px;color:var(--blue);font-weight:600;margin-bottom:4px" id="tm-upload-label">Uploading...</div>
-        <div style="height:4px;background:var(--b);border-radius:4px;overflow:hidden"><div id="tm-upload-bar" style="height:100%;background:var(--blue);width:0%;transition:width .3s"></div></div>
-      </div>
-      <div style="display:flex;gap:8px">
-        <button class="mcan" onclick="cancelTaskFromModal()" style="flex:1">Cancel Task</button>
-        <button class="msub" id="tm-submit" onclick="submitTask()" style="flex:2">Submit Proof</button>
-      </div>
-      <div style="text-align:center;margin-top:8px">
-        <button onclick="reportTaskProblem()" style="background:none;border:none;font-size:10px;color:var(--mu);cursor:pointer;text-decoration:underline">Report a problem</button>
-      </div>
-    </div>
-</div>
-</div>
+      <!-- PROOF INFO -->
+      <div style="margin-top:14px;border-top:1px solid var(--b);padding-top:12px">
 
-<!-- timer row inside header -->
-<div class="dtimer" id="tm-dual" style="display:none;margin-top:12px;background:rgba(0,0,0,.18);border-radius:10px;padding:8px 14px">
-  <div class="dtc"><div class="dtl" style="color:rgba(255,255,255,.65)">Remaining</div><div class="dtv rem" id="tm-rem" style="color:#fff">2:00:00</div></div>
-  <div class="dtd" style="background:rgba(255,255,255,.25)"></div>
-  <div class="dtc"><div class="dtl" style="color:rgba(255,255,255,.65)">Spent</div><div class="dtv spt" id="tm-spt" style="color:#fff">0:00:00</div></div>
-</div>
-</div>
+        <!-- error -->
+        <div id="tm-val-err"
+             style="display:none;background:#FEE2E2;border:1px solid #FCA5A5;
+             border-radius:8px;padding:9px 12px;margin-bottom:10px;
+             font-size:12px;font-weight:600;color:#991B1B"></div>
 
-<!-- Scrollable body -->
-<div style="max-height:62vh;overflow-y:auto;padding:16px 18px">
-
-  <!-- Steps block (hidden until populated) -->
-  <div id="tm-steps-block" style="display:none;margin-bottom:14px">
-    <div style="font-size:10px;font-weight:800;color:var(--mu);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px">How to complete</div>
-  </div> <!-- ✅ closes tm-steps-block -->
-
-  <!-- Task stats row -->
-  <div id="tm-stats" style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap"></div>
-
-  <!-- Recent completions strip -->
-  <div id="tm-recent" style="display:none;margin-bottom:14px">
-    <div style="font-size:10px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Recent earners</div>
-    <div id="tm-recent-list" style="display:flex;gap:6px;flex-wrap:wrap"></div>
-  </div>
-
-  <!-- Divider -->
-  <div style="border-top:1.5px solid var(--b);margin-bottom:14px"></div>
-
-  <!-- Proof section header -->
-  <div style="font-size:11px;font-weight:800;color:var(--mu);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Proof of completion</div>
-  <div style="font-size:12px;color:var(--tx);margin-bottom:12px;line-height:1.55" id="tm-proof-desc">Submit proof below to receive your reward.</div>
-
-  <!-- Min-time banner (injected by JS) --><div class="mwrap" id="task-modal">
-  <div class="modal" style="padding:0;overflow:hidden;max-height:92vh;display:flex;flex-direction:column">
-
-    <!-- HEADER -->
-    <div id="tm-header" style="padding:16px 18px 12px;border-bottom:1px solid var(--b);flex-shrink:0">
-      <div style="display:flex;align-items:flex-start;gap:12px">
-        <div id="tm-cat-ico" style="width:40px;height:40px;border-radius:10px;background:var(--bl);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">⚡</div>
-        <div style="flex:1;min-width:0">
-          <div class="mt" id="tm-title" style="font-size:15px;font-weight:800;line-height:1.3;margin-bottom:2px"></div>
-          <div class="ms" id="tm-sub" style="font-size:12px"></div>
-        </div>
-        <button onclick="closeTaskModal()" style="background:none;border:none;font-size:20px;color:var(--mu);cursor:pointer;line-height:1;flex-shrink:0;padding:0">&#215;</button>
-      </div>
-      <!-- Timer bar -->
-      <div class="dtimer" id="tm-dual" style="display:none;margin-top:12px;background:var(--bg2);border-radius:8px;padding:8px 12px">
-        <div class="dtc"><div class="dtl">Remaining</div><div class="dtv rem" id="tm-rem">2:00:00</div></div>
-        <div class="dtd"></div>
-        <div class="dtc"><div class="dtl">Spent</div><div class="dtv spt" id="tm-spt">0:00:00</div></div>
-      </div>
-    </div>
-
-    <!-- SCROLLABLE BODY -->
-    <div style="overflow-y:auto;flex:1;padding:16px 18px">
-
-      <!-- STEPS SECTION -->
-      <div id="tm-steps-block" style="margin-bottom:16px">
-        <div style="font-size:10px;font-weight:800;color:var(--mu);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px">How to complete</div>
-        <div id="tm-steps-list" style="display:flex;flex-direction:column;gap:8px"></div>
-      </div>
-
-      <!-- PROOF SECTION -->
-      <div id="tm-body"></div>
-
-      <!-- FOOTER inside scroll — not pinned -->
-      <div style="padding:12px 0 4px;border-top:1px solid var(--b);margin-top:14px">
-        <div id="tm-val-err" style="display:none;background:#FEE2E2;border:1px solid #FCA5A5;border-radius:8px;padding:9px 12px;margin-bottom:10px;font-size:12px;font-weight:600;color:#991B1B"></div>
+        <!-- upload -->
         <div id="tm-upload-prog" style="display:none;margin-bottom:10px">
-          <div style="font-size:11px;color:var(--blue);font-weight:600;margin-bottom:4px" id="tm-upload-label">Uploading...</div>
-          <div style="height:4px;background:var(--b);border-radius:4px;overflow:hidden"><div id="tm-upload-bar" style="height:100%;background:var(--blue);width:0%;transition:width .3s"></div></div>
+          <div id="tm-upload-label"
+               style="font-size:11px;color:var(--blue);font-weight:600;margin-bottom:4px">
+            Uploading...
+          </div>
+
+          <div style="height:4px;background:var(--b);border-radius:4px;overflow:hidden">
+            <div id="tm-upload-bar"
+                 style="height:100%;background:var(--blue);width:0%;transition:width .3s"></div>
+          </div>
         </div>
+
+        <!-- buttons -->
         <div style="display:flex;gap:8px">
-          <button class="mcan" onclick="cancelTaskFromModal()" style="flex:1">Cancel Task</button>
-          <button class="msub" id="tm-submit" onclick="submitTask()" style="flex:2">Submit Proof</button>
+          <button class="mcan" onclick="cancelTaskFromModal()" style="flex:1">
+            Cancel Task
+          </button>
+
+          <button class="msub" id="tm-submit" onclick="submitTask()" style="flex:2">
+            Submit Proof
+          </button>
         </div>
+
         <div style="text-align:center;margin-top:8px">
-          <button onclick="reportTaskProblem()" style="background:none;border:none;font-size:10px;color:var(--mu);cursor:pointer;text-decoration:underline">Report a problem</button>
+          <button onclick="reportTaskProblem()"
+                  style="background:none;border:none;font-size:10px;
+                  color:var(--mu);cursor:pointer;text-decoration:underline">
+            Report a problem
+          </button>
         </div>
+
       </div>
 
-    </div><!-- closes scrollable body -->
+    </div>
 
   </div>
-  </div>
-  
+
+</div>
 <!-- REFERRALS PAGE -->
 <div class="pg" id="pg-referrals">
   <div class="rc">
