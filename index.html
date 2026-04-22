@@ -992,97 +992,154 @@ input:focus {
 
 /* ── PROFILE (MODERN CARD STYLE) ── */
 
-.prof-hd{
-  background:var(--card);
-  border:1px solid var(--b);
-  border-radius:var(--rl2);
+/* PAGE */
+.pg{
+  padding:14px;
+  background:#f8fafc;
+}
+
+/* CARD */
+.card{
+  background:#fff;
+  border:1px solid #e5e7eb;
+  border-radius:14px;
+  padding:14px;
+  margin-bottom:12px;
+  box-shadow:0 1px 3px rgba(0,0,0,0.04);
+}
+
+/* HEADER CARD */
+.prof-card{
+  background:#fff;
+  border:1px solid #e5e7eb;
+  border-radius:16px;
   padding:20px;
   text-align:center;
   margin-bottom:12px;
-  box-shadow:0 1px 0 rgba(0,0,0,0.02);
 }
 
+/* AVATAR */
 .prof-av{
-  width:64px;
-  height:64px;
+  width:70px;
+  height:70px;
   border-radius:50%;
+  background:#2563eb;
+  color:#fff;
   display:flex;
   align-items:center;
   justify-content:center;
-  font-size:22px;
   font-weight:800;
-  color:#fff;
+  font-size:22px;
   margin:0 auto 10px;
-  background:var(--blue);
 }
 
+/* TEXT */
 .prof-name{
   font-size:16px;
   font-weight:800;
-  color:var(--tx);
+  color:#111827;
 }
 
 .prof-email{
   font-size:12px;
-  color:var(--mu);
+  color:#6b7280;
   margin-top:3px;
 }
 
 .prof-lvl{
   display:inline-block;
+  margin-top:8px;
   font-size:11px;
-  background:#e3f2fd;
-  color:#0277bd;
+  background:#e0f2fe;
+  color:#0369a1;
   padding:4px 10px;
   border-radius:999px;
   font-weight:700;
-  margin-top:8px;
 }
 
-.vbadge{
-  font-size:10px;
-  padding:3px 8px;
-  border-radius:999px;
+/* CARD HEAD */
+.card-head{
+  font-size:11px;
   font-weight:700;
-  border:1px solid;
+  color:#6b7280;
+  margin-bottom:10px;
+  text-transform:uppercase;
 }
 
-.vbadge.ok{
-  background:#e8f5e9;
-  color:#2e7d32;
-  border-color:#a5d6a7;
+/* ROW */
+.row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:10px 0;
+  border-bottom:1px solid #f1f5f9;
+  gap:10px;
 }
 
-.vbadge.no{
-  background:#ffebee;
-  color:#c62828;
-  border-color:#ef9a9a;
-}
-/* ── SUPPORT CARD CONTAINER ── */
-.support-card {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  max-height: 520px;
-  background: #ffffff;
-  border-radius: 16px;
-  overflow: hidden;
-  box-shadow: 0 6px 18px rgba(0,0,0,.08);
-  border: 1px solid #e5e7eb;
+.row:last-child{
+  border-bottom:none;
 }
 
-/* ── HEADER ── */
-.support-header {
-  padding: 12px 16px;
-  background: #0d6efd;
-  color: #fff;
-  font-size: 14px;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+/* LABEL */
+.lbl{
+  font-size:13px;
+  color:#111827;
+  font-weight:500;
 }
 
+.sub{
+  font-size:11px;
+  color:#6b7280;
+}
+
+/* INPUT */
+.inp{
+  padding:6px 10px;
+  border:1px solid #d1d5db;
+  border-radius:8px;
+  font-size:12px;
+  width:150px;
+}
+
+.inp:focus{
+  outline:none;
+  border-color:#2563eb;
+}
+
+/* BUTTONS */
+.btn-blue{
+  background:#2563eb;
+  color:#fff;
+  border:none;
+  padding:6px 12px;
+  border-radius:8px;
+  font-size:11px;
+  font-weight:700;
+  cursor:pointer;
+}
+
+.btn-blue:hover{
+  background:#1d4ed8;
+}
+
+.btn-save{
+  width:100%;
+  background:#2563eb;
+  color:#fff;
+  border:none;
+  padding:12px;
+  border-radius:10px;
+  font-size:13px;
+  font-weight:800;
+  cursor:pointer;
+  margin-top:6px;
+}
+
+/* VALUE */
+.val-green{
+  color:#16a34a;
+  font-weight:800;
+}
 /* ── CHAT BODY ── */
 .chat-wrap {
   flex: 1;
@@ -2205,60 +2262,79 @@ input:focus {
   
 <!-- PROFILE PAGE -->
 <div class="pg" id="pg-profile">
-  <div class="prof-hd">
+
+  <!-- HEADER CARD -->
+  <div class="prof-card">
     <div class="prof-av" id="prof-av">TU</div>
     <div class="prof-name" id="prof-name">User</div>
-    <div class="prof-email" id="prof-email"></div>
+    <div class="prof-email" id="prof-email">user@email.com</div>
     <div class="prof-lvl" id="prof-lvl">Level 1</div>
   </div>
-  <div class="sgrp">
-    <div class="sgrp-head">Account status</div>
-    <div class="srow"><div><div class="srow-lbl">Email verification</div><div class="srow-sub" id="verify-sub">Verify your email</div></div><button id="verify-btn" onclick="doVerifyEmail()" style="padding:4px 10px;background:var(--blue);color:#fff;border:none;border-radius:6px;font-size:10px;font-weight:700;cursor:pointer">Verify</button></div>
-    <div class="srow"><div><div class="srow-lbl">Member since</div></div><span style="font-size:12px;color:var(--mu)" id="prof-joined"></span></div>
-    <div class="srow"><div><div class="srow-lbl">Total earned</div></div><span style="font-size:13px;font-weight:800;color:var(--green)" id="prof-earned">$0.00</span></div>
-    <div class="srow"><div><div class="srow-lbl">Tasks completed</div></div><span style="font-size:13px;font-weight:800" id="prof-tasks">0</span></div>
-  </div>
-  <div class="sgrp">
-    <div class="sgrp-head">Payment methods</div>
-    <div id="pm-list"><div style="padding:10px 14px;font-size:11px;color:var(--mu)">No payment methods yet.</div></div>
-    <div class="srow clickable" onclick="openAddPM()"><div><div class="srow-lbl" style="color:var(--blue)">+ Add payment method</div></div></div>
-  </div>
-  <div class="sgrp">
-    <div class="sgrp-head">Edit profile</div>
-    <div class="srow"><div><div class="srow-lbl">Display name</div></div><input class="sinp" id="prof-nm-inp" placeholder="Your name"/></div>
-    <div class="srow"><div><div class="srow-lbl">Username</div></div><input class="sinp" id="prof-us-inp" placeholder="@username"/></div>
-    <div class="srow"><div><div class="srow-lbl">Country</div></div><input class="sinp" id="prof-co-inp" placeholder="e.g. Kenya"/></div>
-  </div>
-  <div id="prof-msg"></div>
-  <button class="save-btn" onclick="saveProfile()">Save profile</button>
 
-  <!-- WITHDRAW SECTION IN PROFILE (disabled) -->
-  <div class="sgrp" style="margin-top:20px;opacity:0.55;pointer-events:none">
-    <div class="sgrp-head" style="display:flex;align-items:center;gap:8px">Withdrawal
-      <span style="font-size:9px;background:#FED7D7;color:#9B2C2C;padding:2px 7px;border-radius:10px;font-weight:700">COMING SOON</span>
+  <!-- ACCOUNT STATUS -->
+  <div class="card">
+    <div class="card-head">Account Status</div>
+
+    <div class="row">
+      <div>
+        <div class="lbl">Email verification</div>
+        <div class="sub" id="verify-sub">Not verified</div>
+      </div>
+      <button class="btn-blue" onclick="doVerifyEmail()">Verify</button>
     </div>
-    <div style="padding:10px 14px;font-size:12px;color:var(--mu)">
-      <div style="font-size:10px;color:var(--mu);margin-bottom:4px">Available balance</div>
-      <div style="font-size:20px;font-weight:900;color:var(--green);margin-bottom:8px" id="prof-bal">$0.0000</div>
-      <div style="font-size:11px;color:var(--mu);margin-bottom:10px">Withdrawals are temporarily disabled. Connect your accounts below to be ready when payouts launch.</div>
+
+    <div class="row">
+      <span class="lbl">Member since</span>
+      <span id="prof-joined">--</span>
     </div>
-    <!-- Method cards (display only, disabled) -->
-    <div style="padding:0 14px 14px">
-      <div class="wmet sel" style="cursor:default;margin-bottom:7px" data-method="mpesa"><div class="wmet-ico" style="background:#E8F5E9">📱</div><div style="flex:1"><div class="wmet-name">M-Pesa</div><div class="wmet-linked" id="prof-wlink-mpesa" style="font-size:10px;color:#00a651;font-weight:600;margin-top:2px">Not connected</div></div><div class="wmet-min">Min $1 +2%</div></div>
-      <div class="wmet" style="cursor:default;margin-bottom:7px" data-method="paypal"><div class="wmet-ico" style="background:#E3F2FD">🅿️</div><div style="flex:1"><div class="wmet-name">PayPal</div><div class="wmet-linked" id="prof-wlink-paypal" style="font-size:10px;color:#003087;font-weight:600;margin-top:2px">Not connected</div></div><div class="wmet-min">Min $3 +2%</div></div>
-      <div class="wmet" style="cursor:default;margin-bottom:7px" data-method="airtm"><div class="wmet-ico" style="background:#FFF3E0">💱</div><div style="flex:1"><div class="wmet-name">Airtm</div><div class="wmet-linked" id="prof-wlink-airtm" style="font-size:10px;color:#0050c8;font-weight:600;margin-top:2px">Not connected</div></div><div class="wmet-min">Min $3 +2%</div></div>
-      <div class="wmet" style="cursor:default" data-method="payoneer"><div class="wmet-ico" style="background:#F3E5F5">🏦</div><div style="flex:1"><div class="wmet-name">Payoneer</div><div class="wmet-linked" id="prof-wlink-payoneer" style="font-size:10px;color:#FF4800;font-weight:600;margin-top:2px">Not connected</div></div><div class="wmet-min">Min $20 +2%</div></div>
+
+    <div class="row">
+      <span class="lbl">Total earned</span>
+      <span class="val-green" id="prof-earned">$0.00</span>
+    </div>
+
+    <div class="row">
+      <span class="lbl">Tasks completed</span>
+      <span id="prof-tasks">0</span>
     </div>
   </div>
-  <!-- Manage payment accounts (enabled) -->
-  <div class="sgrp" style="margin-top:0">
-    <div class="sgrp-head">Payment accounts</div>
-    <div style="padding:0 14px 14px;font-size:11px;color:var(--mu)">Connect your accounts now. Withdrawals launch soon.</div>
-    <div class="srow clickable" onclick="openConnectAccount('mpesa')"><div><div class="srow-lbl">M-Pesa number</div><div class="srow-sub" id="prof-acct-mpesa">Not connected</div></div><span class="chevron">›</span></div>
-    <div class="srow clickable" onclick="openConnectAccount('paypal')"><div><div class="srow-lbl">PayPal email</div><div class="srow-sub" id="prof-acct-paypal">Not connected</div></div><span class="chevron">›</span></div>
-    <div class="srow clickable" onclick="openConnectAccount('airtm')"><div><div class="srow-lbl">Airtm username</div><div class="srow-sub" id="prof-acct-airtm">Not connected</div></div><span class="chevron">›</span></div>
-    <div class="srow clickable" onclick="openConnectAccount('payoneer')"><div><div class="srow-lbl">Payoneer email</div><div class="srow-sub" id="prof-acct-payoneer">Not connected</div></div><span class="chevron">›</span></div>
+
+  <!-- PAYPAL -->
+  <div class="card">
+    <div class="card-head">PayPal Account</div>
+
+    <div class="row">
+      <div>
+        <div class="lbl">PayPal Email</div>
+        <div class="sub" id="prof-paypal">Not connected</div>
+      </div>
+      <button class="btn-blue" onclick="openPayPalModal()">Connect</button>
+    </div>
   </div>
+
+  <!-- EDIT PROFILE -->
+  <div class="card">
+    <div class="card-head">Edit Profile</div>
+
+    <div class="row">
+      <span class="lbl">Display name</span>
+      <input class="inp" id="prof-nm-inp" placeholder="Your name"/>
+    </div>
+
+    <div class="row">
+      <span class="lbl">Username</span>
+      <input class="inp" id="prof-us-inp" placeholder="@username"/>
+    </div>
+
+    <div class="row">
+      <span class="lbl">Country</span>
+      <input class="inp" id="prof-co-inp" placeholder="e.g. Kenya"/>
+    </div>
+  </div>
+
+  <!-- SAVE -->
+  <button class="btn-save" onclick="saveProfile()">Save Profile</button>
+
 </div>
 
 <!-- SETTINGS PAGE -->
