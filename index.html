@@ -411,48 +411,67 @@ input:focus {
 .vbadge.no{background:var(--rl);color:var(--red);border-color:var(--rb)}
 
 /* ── SUPPORT / CHAT —  */
-  /* ── Message bubbles ── */
+
+/* ── CHAT CONTAINER FRAME ── */
+.chat-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-height: 100vh;
+  background: #efeae2;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+}
+
+/* ── CHAT MESSAGES AREA ── */
+.chat-wrap {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* ── MESSAGE WRAPPER ── */
 .cmsg {
   display: flex;
   flex-direction: column;
-  gap: 2px;
   max-width: 75%;
-  position: relative;
-  margin: 4px 0;
+  animation: fadeIn .2s ease;
 }
 
-/* USER (RIGHT SIDE - GREEN) */
+/* USER RIGHT */
 .cmsg.from-user {
-  align-items: flex-end;
   align-self: flex-end;
+  align-items: flex-end;
 }
 
-/* SUPPORT / AI (LEFT SIDE) */
-.cmsg.from-ai,
-.cmsg.from-admin {
-  align-items: flex-start;
+/* SUPPORT LEFT */
+.cmsg.from-admin,
+.cmsg.from-ai {
   align-self: flex-start;
+  align-items: flex-start;
 }
 
-/* COMMON BUBBLE */
+/* ── MESSAGE BUBBLE ── */
 .cbub {
-  padding: 8px 12px;
-  border-radius: 10px;
-  font-size: 13px;
-  line-height: 1.5;
-  word-break: break-word;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 14px;
+  line-height: 1.4;
+  box-shadow: 0 2px 5px rgba(0,0,0,.08);
   position: relative;
-  box-shadow: 0 1px 2px rgba(0,0,0,.08);
 }
 
-/* ── USER MESSAGE (GREEN) ── */
+/* USER (GREEN) */
 .cmsg.from-user .cbub {
-  background: #22c55e; /* clean green */
-  color: #000000; /* BLACK TEXT (FIXED) */
-  border-bottom-right-radius: 3px;
+  background: #22c55e;
+  color: #000;
+  border-bottom-right-radius: 4px;
 }
 
-/* Tail */
 .cmsg.from-user .cbub::after {
   content: '';
   position: absolute;
@@ -462,15 +481,14 @@ input:focus {
   border-top: 6px solid transparent;
 }
 
-/* ── SUPPORT AGENT (WHITE + BLUE TEXT) ── */
+/* SUPPORT (WHITE + BLUE TEXT) */
 .cmsg.from-admin .cbub {
   background: #ffffff;
-  color: #2563eb; /* BLUE TEXT (FIXED) */
-  border-bottom-left-radius: 3px;
-  border-left: 3px solid #2563eb; /* blue accent */
+  color: #2563eb;
+  border-left: 3px solid #2563eb;
+  border-bottom-left-radius: 4px;
 }
 
-/* Tail */
 .cmsg.from-admin .cbub::after {
   content: '';
   position: absolute;
@@ -480,39 +498,86 @@ input:focus {
   border-top: 6px solid transparent;
 }
 
-/* ── AI MESSAGE (OPTIONAL LIGHT GRAY) ── */
+/* AI */
 .cmsg.from-ai .cbub {
   background: #f1f5f9;
-  color: #111827;
-  border-bottom-left-radius: 3px;
+  color: #111;
 }
 
 /* ── SENDER NAME ── */
 .csender {
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 600;
   margin-bottom: 2px;
-  padding: 0 4px;
 }
 
-/* Support name = blue */
-.cmsg.from-admin .csender {
-  color: #2563eb;
-}
-
-/* User name = green */
-.cmsg.from-user .csender {
-  color: #16a34a;
-}
+.cmsg.from-user .csender { color: #16a34a; }
+.cmsg.from-admin .csender { color: #2563eb; }
 
 /* ── TIME ── */
 .ctime {
   font-size: 10px;
   color: #6b7280;
   margin-top: 2px;
-  padding: 0 4px;
 }
 
+/* ── INPUT AREA (FRAME FIX) ── */
+.chat-input-area {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  background: #f0f2f5;
+  border-top: 1px solid #e5e7eb;
+}
+
+/* INPUT FIELD */
+.chat-inp {
+  flex: 1;
+  border: none;
+  border-radius: 20px;
+  padding: 10px 14px;
+  font-size: 14px;
+  outline: none;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(0,0,0,.08);
+}
+
+.chat-inp:focus {
+  box-shadow: 0 0 0 2px rgba(37,99,235,0.2);
+}
+
+/* SEND BUTTON (FIXED) */
+.send-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: none;
+  background: linear-gradient(135deg,#0d6efd,#2563eb);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: .2s;
+  box-shadow: 0 4px 10px rgba(37,99,235,0.3);
+}
+
+.send-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 14px rgba(37,99,235,0.4);
+}
+
+.send-btn svg {
+  width: 18px;
+  height: 18px;
+  fill: #fff;
+}
+
+/* ── ANIMATION ── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+  }
 /* ── FAQ ── */
 .faq-item{background:var(--card);border:0.5px solid var(--b);border-radius:var(--r);overflow:hidden;margin-bottom:7px}
 .faq-q{padding:12px 14px;font-size:13px;font-weight:700;color:var(--tx);cursor:pointer;display:flex;align-items:center;justify-content:space-between;user-select:none}
