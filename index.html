@@ -1619,10 +1619,22 @@ input:focus {
 <div class="ct" id="main-ct">
 
 <!-- MY TASKS PAGE -->
-<div class="pg" id="pg-mytasks">
-  <div class="sec">My submissions</div>
-  <div class="rc" id="my-subs">
-    <div class="ldr">Loading...</div>
+<div class="mwrap" id="task-modal">
+  <div class="modal">
+
+    <div id="tm-header"></div>
+
+    <div id="tm-steps-block">
+      <div id="tm-steps-list"></div>
+    </div>
+
+    <div id="tm-body"></div>
+
+    <div id="tm-footer">
+      <button onclick="cancelTaskFromModal()">Cancel</button>
+      <button onclick="submitTask()">Submit</button>
+    </div>
+
   </div>
 </div>
 
