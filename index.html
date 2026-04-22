@@ -2009,48 +2009,42 @@ input:focus {
   <div class="rc" id="ref-list"><div class="ldr">Loading...</div></div>
 </div>
 
-<!-- Payment PAGE -->
+     <!-- PAYMENT PAGE -->
 <div class="pg" id="pg-payment" style="display:none">
 
   <div class="rc">
 
     <!-- BALANCE -->
-    <div style="font-size:10px;color:var(--mu)">Available Balance</div>
+    <div style="font-size:11px;color:var(--mu)">Available Balance</div>
     <div class="wbal" id="w-bal">$0.0000</div>
 
-    <div style="font-size:10px;color:var(--mu);margin-bottom:12px">
-      Payments are processed via PayPal only
+    <div style="font-size:11px;color:var(--mu);margin-bottom:14px">
+      Withdrawals are processed via <b>PayPal only</b>
     </div>
 
-    <div style="font-size:11px;font-weight:700;color:var(--tx);margin-bottom:7px">
-      Payment Method
-    </div>
+    <!-- METHOD -->
+    <div class="wmet sel">
 
-    <!-- PAYPAL ONLY -->
-    <div class="wmet sel" data-method="paypal">
-
-      <div class="wmet-ico" style="background:#E3F2FD">🅿️</div>
+      <div class="wmet-ico" style="background:#E3F2FD;color:#0A66C2">🅿️</div>
 
       <div style="flex:1">
-        <div class="wmet-name">PayPal Payment</div>
-        <div class="wmet-desc">Send payments directly to PayPal</div>
+        <div class="wmet-name">PayPal</div>
+        <div class="wmet-desc">Send funds to your PayPal account</div>
 
-        <div class="wmet-linked" id="paypal-linked"
-             style="display:none;font-size:10px;color:#003087;font-weight:600;margin-top:2px">
+        <div id="paypal-linked"
+             style="display:none;font-size:11px;color:#0A66C2;font-weight:700;margin-top:3px">
         </div>
       </div>
 
-      <div style="text-align:right">
-        <div class="wmet-min">Secure Transfer</div>
-      </div>
+      <div class="wmet-min">Instant</div>
 
     </div>
 
-    <!-- PAYPAL EMAIL INPUT -->
+    <!-- PAYPAL EMAIL -->
     <input class="winp"
            id="paypal-email"
            type="email"
-           placeholder="Enter PayPal email..."
+           placeholder="Enter your PayPal email"
            oninput="validatePayPalEmail()" />
 
     <!-- AMOUNT -->
@@ -2059,16 +2053,19 @@ input:focus {
            type="number"
            min="1"
            step="0.01"
-           placeholder="Enter payment amount (USD)..." />
+           placeholder="Minimum withdrawal $1.00" />
 
     <!-- MESSAGE -->
     <div id="pay-msg"
-         style="font-size:11px;color:var(--mu);margin-top:6px;text-align:center">
-      PayPal email must match your account email
+         style="font-size:11px;margin-top:8px;text-align:center;color:var(--mu)">
+      Your PayPal email must match your account email
     </div>
 
     <!-- BUTTON -->
-    <button class="wbtn" id="pay-btn" onclick="processPayment()">
+    <button class="wbtn"
+            id="pay-btn"
+            onclick="processPayment()"
+            disabled>
       Request Payment
     </button>
 
