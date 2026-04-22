@@ -1648,41 +1648,37 @@ input:focus {
 <div class="mwrap" id="task-modal">
   <div class="modal" style="padding:0;overflow:hidden;max-height:92vh;display:flex;flex-direction:column">
 
-    <!-- HEADER -->
     <div id="tm-header" style="padding:16px 18px 12px;border-bottom:1px solid var(--b);flex-shrink:0">
-      <div style="display:flex;align-items:flex-start;gap:12px">
-        <div id="tm-cat-ico" style="width:40px;height:40px;border-radius:10px;background:var(--bl);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">⚡</div>
-        <div style="flex:1;min-width:0">
-          <div class="mt" id="tm-title" style="font-size:15px;font-weight:800;line-height:1.3;margin-bottom:2px"></div>
-          <div class="ms" id="tm-sub" style="font-size:12px"></div>
-        </div>
-        <!-- TASK ACTION BUTTON -->
-<div style="padding:12px 18px;border-bottom:1px solid var(--b);display:flex;gap:10px;align-items:center;justify-content:space-between">
 
-  <div style="font-size:11px;color:var(--mu)">
-    Ready to start this task
+  <div style="display:flex;align-items:flex-start;gap:12px">
+    
+    <div id="tm-cat-ico"
+      style="width:40px;height:40px;border-radius:10px;background:var(--bl);
+      display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">
+      ⚡
+    </div>
+
+    <div style="flex:1;min-width:0">
+      <div class="mt" id="tm-title"></div>
+      <div class="ms" id="tm-sub"></div>
+
+      <!-- ✅ PLACE START BUTTON HERE -->
+      <button id="tm-start-btn"
+        class="tbtn tbtn-accept"
+        style="margin-top:10px"
+        onclick="startTaskFlow(this)">
+        ▶ Start Task
+      </button>
+    </div>
+
+    <button onclick="closeTaskModal()"
+      style="background:none;border:none;font-size:20px;color:var(--mu);
+      cursor:pointer;line-height:1;flex-shrink:0;padding:0">
+      ×
+    </button>
+
   </div>
-
-  <button id="tm-start-btn"
-    onclick="startTaskFlow()"
-    style="
-      padding:8px 14px;
-      background:var(--blue);
-      color:#fff;
-      border:none;
-      border-radius:8px;
-      font-size:12px;
-      font-weight:700;
-      cursor:pointer;
-      display:flex;
-      align-items:center;
-      gap:6px;
-    ">
-
-    ▶ Start Task
-  </button>
-
-</div>
+   </div>
         <button onclick="closeTaskModal()" style="background:none;border:none;font-size:20px;color:var(--mu);cursor:pointer;line-height:1;flex-shrink:0;padding:0">&#215;</button>
       </div>
       <!-- Timer bar -->
