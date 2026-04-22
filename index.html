@@ -1617,6 +1617,7 @@ input:focus {
 
 <!-- Content -->
 <div class="ct" id="main-ct">
+
 <!-- MY TASKS PAGE -->
 <div class="pg" id="pg-mytasks">
   <div class="sec">My submissions</div>
@@ -1625,13 +1626,13 @@ input:focus {
   </div>
 </div>
 
-<!-- TASK MODAL -->
+<!-- TASK MODAL (ONLY ONE INSTANCE) -->
 <div class="mwrap" id="task-modal">
 
   <div class="modal" style="padding:0;overflow:hidden;max-height:92vh;display:flex;flex-direction:column">
 
     <!-- HEADER -->
-    <div id="tm-header" style="padding:16px 18px;border-bottom:1px solid var(--b);">
+    <div id="tm-header" style="padding:16px 18px;border-bottom:1px solid var(--b);flex-shrink:0">
 
       <div style="display:flex;align-items:flex-start;gap:12px">
 
@@ -1642,8 +1643,8 @@ input:focus {
         </div>
 
         <div style="flex:1;min-width:0">
-          <div class="mt" id="tm-title"></div>
-          <div class="ms" id="tm-sub"></div>
+          <div id="tm-title" class="mt"></div>
+          <div id="tm-sub" class="ms"></div>
         </div>
 
         <button onclick="closeTaskModal()"
@@ -1682,50 +1683,39 @@ input:focus {
         <div id="tm-steps-list" style="display:flex;flex-direction:column;gap:8px"></div>
       </div>
 
-      <!-- TASK CONTENT -->
+      <!-- DB / ADMIN TASK CONTENT -->
       <div id="tm-body"></div>
 
-      <!-- PROOF INFO -->
-      <div style="margin-top:14px;border-top:1px solid var(--b);padding-top:12px">
+    </div>
 
-        <!-- error -->
-        <div id="tm-val-err"
-             style="display:none;background:#FEE2E2;border:1px solid #FCA5A5;
-             border-radius:8px;padding:9px 12px;margin-bottom:10px;
-             font-size:12px;font-weight:600;color:#991B1B"></div>
+    <!-- FOOTER -->
+    <div style="padding:12px 18px;border-top:1px solid var(--b);flex-shrink:0">
 
-        <!-- upload -->
-        <div id="tm-upload-prog" style="display:none;margin-bottom:10px">
-          <div id="tm-upload-label"
-               style="font-size:11px;color:var(--blue);font-weight:600;margin-bottom:4px">
-            Uploading...
-          </div>
+      <div id="tm-val-err" style="display:none"></div>
 
-          <div style="height:4px;background:var(--b);border-radius:4px;overflow:hidden">
-            <div id="tm-upload-bar"
-                 style="height:100%;background:var(--blue);width:0%;transition:width .3s"></div>
-          </div>
+      <div id="tm-upload-prog" style="display:none;margin-bottom:10px">
+        <div id="tm-upload-label">Uploading...</div>
+        <div style="height:4px;background:var(--b);border-radius:4px;overflow:hidden">
+          <div id="tm-upload-bar"
+               style="height:100%;background:var(--blue);width:0%;transition:width .3s"></div>
         </div>
+      </div>
 
-        <!-- buttons -->
-        <div style="display:flex;gap:8px">
-          <button class="mcan" onclick="cancelTaskFromModal()" style="flex:1">
-            Cancel Task
-          </button>
+      <div style="display:flex;gap:8px">
+        <button class="mcan" onclick="cancelTaskFromModal()" style="flex:1">
+          Cancel Task
+        </button>
 
-          <button class="msub" id="tm-submit" onclick="submitTask()" style="flex:2">
-            Submit Proof
-          </button>
-        </div>
+        <button class="msub" id="tm-submit" onclick="submitTask()" style="flex:2">
+          Submit Proof
+        </button>
+      </div>
 
-        <div style="text-align:center;margin-top:8px">
-          <button onclick="reportTaskProblem()"
-                  style="background:none;border:none;font-size:10px;
-                  color:var(--mu);cursor:pointer;text-decoration:underline">
-            Report a problem
-          </button>
-        </div>
-
+      <div style="text-align:center;margin-top:8px">
+        <button onclick="reportTaskProblem()"
+                style="background:none;border:none;font-size:10px;color:var(--mu);cursor:pointer;text-decoration:underline">
+          Report a problem
+        </button>
       </div>
 
     </div>
