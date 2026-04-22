@@ -1211,56 +1211,152 @@ input:focus {
 .faq-a{font-size:12px;color:var(--mu);line-height:1.6;max-height:0;overflow:hidden;transition:max-height .3s ease,padding .3s ease;padding:0 14px}
 .faq-a.open{max-height:300px;padding:0 14px 12px}
 
-/* ── NOTIFICATIONS ── */
-.notif-item{background:var(--card);border:0.5px solid var(--b);border-left:3px solid var(--blue);border-radius:var(--r);padding:11px 13px;margin-bottom:7px;cursor:pointer;transition:opacity .2s}
-.notif-item.read{opacity:.65;border-left-color:var(--hi)}
-.notif-title{font-size:12px;font-weight:700;color:var(--tx)}
-.notif-msg{font-size:11px;color:var(--mu);margin-top:3px;line-height:1.4}
-.notif-date{font-size:10px;color:var(--hi);margin-top:5px}
-.nt-info{border-left-color:var(--blue)!important}
-.nt-success{border-left-color:var(--green)!important}
-.nt-warning{border-left-color:var(--or)!important}
-.nt-urgent{border-left-color:var(--red)!important}
+/* ── NOTIFICATION CARD (UPGRADED) ── */
+.notif-item{
+  background:#ffffff;
+  border:1px solid #e5e7eb;
+  border-left:4px solid var(--blue);
+  border-radius:12px;
+  padding:12px 14px;
+  margin-bottom:10px;
+  cursor:pointer;
+  transition:all .2s ease;
+  box-shadow:0 1px 2px rgba(0,0,0,0.04);
+}
 
-/* Unread badge */
-.notif-badge{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;background:var(--red);color:#fff;font-size:10px;font-weight:800;border-radius:999px;padding:0 5px;margin-left:6px;vertical-align:middle}
+/* hover effect */
+.notif-item:hover{
+  transform:translateY(-1px);
+  box-shadow:0 4px 10px rgba(0,0,0,0.06);
+}
 
-/* Sender row */
-.notif-sender{display:flex;align-items:center;gap:5px;margin-bottom:4px}
-.notif-sender-name{font-size:10px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.4px}
-.notif-verified{display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;background:#F5A623;border-radius:50%;flex-shrink:0}
-.notif-verified svg{width:8px;height:8px;fill:#fff}
+/* read state */
+.notif-item.read{
+  opacity:.65;
+  border-left-color:#cbd5e1;
+  background:#fafafa;
+}
 
-/* Unread dot */
-.notif-unread-dot{width:8px;height:8px;background:var(--blue);border-radius:50%;flex-shrink:0;margin-left:auto}
+/* title */
+.notif-title{
+  font-size:13px;
+  font-weight:700;
+  color:#111827;
+}
 
-/* Actions row */
-.notif-actions{display:flex;gap:14px;margin-top:8px;padding-top:7px;border-top:0.5px solid var(--b)}
-.notif-action-btn{display:flex;align-items:center;gap:4px;font-size:10px;font-weight:600;color:var(--mu);background:none;border:none;cursor:pointer;padding:0;transition:color .15s}
-.notif-action-btn:hover{color:var(--tx)}
-.notif-action-btn.liked{color:var(--red)}
-.notif-action-btn svg{width:12px;height:12px}
-/* ── POLICY PAGES ── */
-.policy-wrap{background:var(--card);border:0.5px solid var(--b);border-radius:var(--rl2);padding:16px}
-.policy-title{font-size:16px;font-weight:800;color:var(--tx);margin-bottom:4px}
-.policy-updated{font-size:11px;color:var(--mu);margin-bottom:14px}
-.policy-h2{font-size:13px;font-weight:800;color:var(--tx);margin:14px 0 5px}
-.policy-p{font-size:12px;color:var(--mu);line-height:1.6;margin-bottom:8px}
+/* message */
+.notif-msg{
+  font-size:12px;
+  color:#6b7280;
+  margin-top:4px;
+  line-height:1.5;
+}
 
-/* ── DRAWER ── */
-.dov{position:absolute;inset:0;background:rgba(0,0,0,.35);z-index:20;display:none}
-.drawer{position:absolute;left:0;top:0;bottom:0;width:240px;background:var(--card);border-right:0.5px solid var(--b);display:flex;flex-direction:column;z-index:21;transform:translateX(-100%);transition:transform .2s ease}
-.drawer.open{transform:translateX(0)}
-.dhead{padding:14px 13px;border-bottom:0.5px solid var(--b)}
-.dav{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff;flex-shrink:0}
-.dnav{padding:7px;flex:1;overflow-y:auto}
-.dgrp{font-size:9px;font-weight:700;color:var(--hi);text-transform:uppercase;letter-spacing:.5px;padding:8px 9px 4px}
-.dit{display:flex;align-items:center;gap:9px;padding:8px 9px;border-radius:var(--r);cursor:pointer;font-size:12px;color:var(--mu);margin-bottom:1px;transition:background .12s;background:none;border:none;width:100%;text-align:left}
-.dit:hover{background:var(--bg);color:var(--tx)}
-.dit svg{width:15px;height:15px;flex-shrink:0}
-.dbd{margin-left:auto;background:var(--red);color:#fff;font-size:9px;padding:1px 5px;border-radius:7px;font-weight:700}
-.dft{padding:12px 13px;border-top:0.5px solid var(--b);font-size:11px;color:var(--mu)}
+/* date */
+.notif-date{
+  font-size:10px;
+  color:#9ca3af;
+  margin-top:6px;
+}
 
+/* types */
+.nt-info{border-left-color:#2563eb!important}
+.nt-success{border-left-color:#16a34a!important}
+.nt-warning{border-left-color:#f59e0b!important}
+.nt-urgent{border-left-color:#dc2626!important}
+
+/* unread blue dot */
+.notif-unread-dot{
+  width:8px;
+  height:8px;
+  background:#2563eb;
+  border-radius:50%;
+  margin-left:auto;
+}
+
+/* badge */
+.notif-badge{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:18px;
+  height:18px;
+  background:#dc2626;
+  color:#fff;
+  font-size:10px;
+  font-weight:800;
+  border-radius:999px;
+  padding:0 6px;
+  margin-left:6px;
+}
+
+/* sender row */
+.notif-sender{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  margin-bottom:5px;
+}
+
+.notif-sender-name{
+  font-size:10px;
+  font-weight:700;
+  color:#6b7280;
+  text-transform:uppercase;
+  letter-spacing:.4px;
+}
+
+/* verified badge */
+.notif-verified{
+  width:14px;
+  height:14px;
+  background:#f59e0b;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.notif-verified svg{
+  width:8px;
+  height:8px;
+  fill:#fff;
+}
+
+/* actions */
+.notif-actions{
+  display:flex;
+  gap:16px;
+  margin-top:10px;
+  padding-top:8px;
+  border-top:1px solid #f1f5f9;
+}
+
+.notif-action-btn{
+  display:flex;
+  align-items:center;
+  gap:4px;
+  font-size:11px;
+  font-weight:600;
+  color:#6b7280;
+  background:none;
+  border:none;
+  cursor:pointer;
+  transition:.15s;
+}
+
+.notif-action-btn:hover{
+  color:#111827;
+}
+
+.notif-action-btn.liked{
+  color:#dc2626;
+}
+
+.notif-action-btn svg{
+  width:13px;
+  height:13px;
+}
  /* ── MODAL OVERLAY ── */
 .mwrap{
   position: fixed;
@@ -2111,26 +2207,24 @@ input:focus {
 
 <!-- NOTIFICATIONS PAGE -->
 <div class="pg" id="pg-notifs">
+
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-    <div style="display:flex;align-items:center">
+    <div style="display:flex;align-items:center;gap:6px">
       <div class="sec" style="margin:0">Notifications</div>
       <span class="notif-badge" id="notif-unread-badge" style="display:none">0</span>
     </div>
-    <button onclick="markAllRead()" style="font-size:11px;color:var(--blue);background:none;border:none;cursor:pointer;font-weight:600">Mark all read</button>
-  </div>
-  <div id="notifs-list"><div class="ldr">Loading...</div></div>
-</div>
 
-<!-- Notif action sheet -->
-<div class="mwrap" id="notif-report-modal">
-  <div class="modal">
-    <div class="mt">Report notification</div>
-    <div class="ms" style="margin-bottom:14px">Why are you reporting this?</div>
-    <button onclick="submitNotifReport('spam')"    class="mbtn" style="margin-bottom:8px;width:100%">Spam</button>
-    <button onclick="submitNotifReport('mislead')" class="mbtn" style="margin-bottom:8px;width:100%">Misleading</button>
-    <button onclick="submitNotifReport('other')"   class="mbtn" style="margin-bottom:16px;width:100%">Other</button>
-    <button onclick="closeModal('notif-report-modal')" style="width:100%;padding:10px;border:1.5px solid var(--b);border-radius:10px;font-size:12px;font-weight:700;color:var(--mu);background:var(--bg2);cursor:pointer">Cancel</button>
+    <button onclick="markAllRead()"
+      style="font-size:11px;color:var(--blue);background:none;border:none;cursor:pointer;font-weight:600">
+      Mark all read
+    </button>
   </div>
+
+  <!-- LIST -->
+  <div id="notifs-list">
+    <div class="ldr">Loading...</div>
+  </div>
+
 </div>
   
 <!-- PROFILE PAGE -->
