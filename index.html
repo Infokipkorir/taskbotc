@@ -410,277 +410,109 @@ input:focus {
 .vbadge.ok{background:var(--gl);color:var(--green);border-color:var(--gb)}
 .vbadge.no{background:var(--rl);color:var(--red);border-color:var(--rb)}
 
-/* ── SUPPORT / CHAT — WhatsApp UI ── */
-
-/* ── Ticket list cards ── */
-.ticket-card {
-  background: var(--card);
-  border: none;
-  border-bottom: 1px solid #f0f2f5;
-  padding: 13px 16px;
-  margin-bottom: 0;
-  cursor: pointer;
-  transition: background .15s;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.ticket-card:hover { background: #f5f6f6; }
-
-.tck-avatar {
-  width: 46px;
-  height: 46px;
-  border-radius: 50%;
-  background: #dfe5e7;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  flex-shrink: 0;
-  color: #54656f;
-}
-
-.tck-body { flex: 1; min-width: 0; }
-
-.tck-subj {
-  font-size: 14px;
-  font-weight: 600;
-  color: #111b21;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.tck-meta {
-  font-size: 12px;
-  color: #667781;
-  margin-top: 2px;
-  display: flex;
-  gap: 6px;
-  align-items: center;
-  flex-wrap: wrap;
-  white-space: nowrap;
-  overflow: hidden;
-}
-
-.tck-status {
-  font-size: 10px;
-  padding: 2px 7px;
-  border-radius: 10px;
-  font-weight: 700;
-  border: none;
-}
-
-.s-open       { background: #dbeafe; color: #1d4ed8; }
-.s-progress   { background: #fef3c7; color: #d97706; }
-.s-resolved   { background: #dcfce7; color: #16a34a; }
-.s-closed     { background: #f3f4f6; color: #6b7280; }
-
-.aibadge {
-  font-size: 9px;
-  background: #f5f3ff;
-  color: #7c3aed;
-  padding: 2px 6px;
-  border-radius: 8px;
-  font-weight: 700;
-  border: none;
-}
-
-/* ── Chat background (WhatsApp wallpaper feel) ── */
-.chat-wrap {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 12px 16px 16px;
-  background: #efeae2;
-  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d4c9b8' fill-opacity='0.25'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-  min-height: 200px;
-  flex: 1;
-  overflow-y: auto;
-}
-
-/* ── Message bubbles ── */
+/* ── SUPPORT / CHAT —  */
+  /* ── Message bubbles ── */
 .cmsg {
   display: flex;
   flex-direction: column;
-  gap: 1px;
-  max-width: 72%;
+  gap: 2px;
+  max-width: 75%;
   position: relative;
+  margin: 4px 0;
 }
 
+/* USER (RIGHT SIDE - GREEN) */
 .cmsg.from-user {
   align-items: flex-end;
   align-self: flex-end;
 }
 
+/* SUPPORT / AI (LEFT SIDE) */
 .cmsg.from-ai,
 .cmsg.from-admin {
   align-items: flex-start;
   align-self: flex-start;
 }
 
-/* Bubble tails */
+/* COMMON BUBBLE */
 .cbub {
-  padding: 7px 12px 8px;
-  border-radius: 8px;
+  padding: 8px 12px;
+  border-radius: 10px;
   font-size: 13px;
   line-height: 1.5;
   word-break: break-word;
   position: relative;
-  box-shadow: 0 1px 1px rgba(0,0,0,.10);
+  box-shadow: 0 1px 2px rgba(0,0,0,.08);
 }
 
-/* Outgoing — green like WhatsApp */
+/* ── USER MESSAGE (GREEN) ── */
 .cmsg.from-user .cbub {
-  background: #d9fdd3;
-  color: #111b21;
-  border-bottom-right-radius: 2px;
+  background: #22c55e; /* clean green */
+  color: #000000; /* BLACK TEXT (FIXED) */
+  border-bottom-right-radius: 3px;
 }
 
+/* Tail */
 .cmsg.from-user .cbub::after {
   content: '';
   position: absolute;
-  right: -7px;
+  right: -6px;
   bottom: 0;
-  width: 0;
-  height: 0;
-  border-left: 8px solid #d9fdd3;
-  border-top: 6px solid transparent;
-  border-bottom: 0 solid transparent;
-}
-
-/* Incoming AI */
-.cmsg.from-ai .cbub {
-  background: #ffffff;
-  color: #111b21;
-  border-bottom-left-radius: 2px;
-}
-
-.cmsg.from-ai .cbub::after {
-  content: '';
-  position: absolute;
-  left: -7px;
-  bottom: 0;
-  width: 0;
-  height: 0;
-  border-right: 8px solid #ffffff;
+  border-left: 8px solid #22c55e;
   border-top: 6px solid transparent;
 }
 
-/* Incoming Admin */
+/* ── SUPPORT AGENT (WHITE + BLUE TEXT) ── */
 .cmsg.from-admin .cbub {
   background: #ffffff;
-  color: #111b21;
-  border-bottom-left-radius: 2px;
-  border-left: 3px solid #25d366;
+  color: #2563eb; /* BLUE TEXT (FIXED) */
+  border-bottom-left-radius: 3px;
+  border-left: 3px solid #2563eb; /* blue accent */
 }
 
+/* Tail */
 .cmsg.from-admin .cbub::after {
   content: '';
   position: absolute;
-  left: -7px;
+  left: -6px;
   bottom: 0;
-  width: 0;
-  height: 0;
   border-right: 8px solid #ffffff;
   border-top: 6px solid transparent;
 }
 
-.ctime {
-  font-size: 10px;
-  color: #667781;
-  text-align: right;
-  margin-top: 2px;
-  padding: 0 2px;
+/* ── AI MESSAGE (OPTIONAL LIGHT GRAY) ── */
+.cmsg.from-ai .cbub {
+  background: #f1f5f9;
+  color: #111827;
+  border-bottom-left-radius: 3px;
 }
 
+/* ── SENDER NAME ── */
 .csender {
   font-size: 11px;
   font-weight: 700;
-  color: #25d366;
   margin-bottom: 2px;
-  padding: 0 2px;
+  padding: 0 4px;
 }
 
-/* ── Chat input bar ── */
-.chat-inp-row {
-  display: flex;
-  gap: 8px;
-  align-items: flex-end;
-  padding: 8px 12px;
-  background: #f0f2f5;
-  border-top: 1px solid #e9edef;
-  margin-top: 0;
+/* Support name = blue */
+.cmsg.from-admin .csender {
+  color: #2563eb;
 }
 
-.chat-inp {
-  flex: 1;
-  padding: 9px 14px;
-  background: #ffffff;
-  border: none;
-  border-radius: 24px;
-  font-size: 14px;
-  color: #111b21;
-  outline: none;
-  resize: none;
-  min-height: 40px;
-  max-height: 100px;
-  box-shadow: 0 1px 2px rgba(0,0,0,.08);
-  font-family: inherit;
+/* User name = green */
+.cmsg.from-user .csender {
+  color: #16a34a;
 }
 
-.chat-inp::placeholder { color: #8696a0; }
-
-.send-btn {
-  width: 40px;
-  height: 40px;
-  background: #25d366;
-  border: none;
-  border-radius: 50%;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  box-shadow: 0 1px 3px rgba(0,0,0,.15);
-  transition: background .15s;
+/* ── TIME ── */
+.ctime {
+  font-size: 10px;
+  color: #6b7280;
+  margin-top: 2px;
+  padding: 0 4px;
 }
 
-.send-btn:hover { background: #1da851; }
-.send-btn svg { width: 18px; height: 18px; fill: white; }
-
-/* ── Handover / system banner ── */
-.handover-banner {
-  background: #fff3cd;
-  border: none;
-  border-radius: 8px;
-  padding: 8px 14px;
-  font-size: 11px;
-  color: #856404;
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  margin: 6px 16px;
-  text-align: center;
-  justify-content: center;
-  box-shadow: 0 1px 2px rgba(0,0,0,.08);
-}
-
-/* ── Date divider (WhatsApp style) ── */
-.chat-date-divider {
-  text-align: center;
-  margin: 8px 0;
-}
-
-.chat-date-divider span {
-  background: #ffffff;
-  color: #54656f;
-  font-size: 11px;
-  font-weight: 600;
-  padding: 4px 10px;
-  border-radius: 6px;
-  box-shadow: 0 1px 2px rgba(0,0,0,.10);
-  }
 /* ── FAQ ── */
 .faq-item{background:var(--card);border:0.5px solid var(--b);border-radius:var(--r);overflow:hidden;margin-bottom:7px}
 .faq-q{padding:12px 14px;font-size:13px;font-weight:700;color:var(--tx);cursor:pointer;display:flex;align-items:center;justify-content:space-between;user-select:none}
