@@ -989,14 +989,15 @@ input:focus {
 .logout-btn:hover{
   background:var(--rl);
 }
-
-/* ── PROFILE (MODERN CARD STYLE) ── */
-
-/* PAGE */
+    /* PAGE */
 .pg{
+  display:none;
+  flex-direction:column;
+  gap:12px;
   padding:14px;
   background:#f8fafc;
 }
+.pg.active{display:flex}
 
 /* CARD */
 .card{
@@ -1004,18 +1005,16 @@ input:focus {
   border:1px solid #e5e7eb;
   border-radius:14px;
   padding:14px;
-  margin-bottom:12px;
   box-shadow:0 1px 3px rgba(0,0,0,0.04);
 }
 
-/* HEADER CARD */
+/* HEADER */
 .prof-card{
   background:#fff;
   border:1px solid #e5e7eb;
   border-radius:16px;
   padding:20px;
   text-align:center;
-  margin-bottom:12px;
 }
 
 /* AVATAR */
@@ -1031,6 +1030,15 @@ input:focus {
   font-weight:800;
   font-size:22px;
   margin:0 auto 10px;
+  cursor:pointer;
+  overflow:hidden;
+}
+
+.prof-av img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:none;
 }
 
 /* TEXT */
@@ -1039,13 +1047,10 @@ input:focus {
   font-weight:800;
   color:#111827;
 }
-
 .prof-email{
   font-size:12px;
   color:#6b7280;
-  margin-top:3px;
 }
-
 .prof-lvl{
   display:inline-block;
   margin-top:8px;
@@ -1055,6 +1060,47 @@ input:focus {
   padding:4px 10px;
   border-radius:999px;
   font-weight:700;
+}
+
+/* VERIFIED */
+.vbadge{
+  font-size:10px;
+  padding:2px 6px;
+  border-radius:999px;
+  margin-left:6px;
+}
+.vbadge.ok{
+  background:#e8f5e9;
+  color:#16a34a;
+}
+.vbadge.no{
+  background:#fee2e2;
+  color:#dc2626;
+}
+
+/* PROGRESS */
+.prof-progress{
+  margin-top:12px;
+  text-align:left;
+}
+.pp-top{
+  display:flex;
+  justify-content:space-between;
+  font-size:11px;
+  color:#6b7280;
+  margin-bottom:4px;
+}
+.pp-bar{
+  height:6px;
+  background:#e5e7eb;
+  border-radius:999px;
+  overflow:hidden;
+}
+#pp-fill{
+  height:100%;
+  width:0%;
+  background:#2563eb;
+  transition:.4s;
 }
 
 /* CARD HEAD */
@@ -1075,18 +1121,14 @@ input:focus {
   border-bottom:1px solid #f1f5f9;
   gap:10px;
 }
+.row:last-child{border-bottom:none}
 
-.row:last-child{
-  border-bottom:none;
-}
-
-/* LABEL */
+/* TEXT */
 .lbl{
   font-size:13px;
-  color:#111827;
   font-weight:500;
+  color:#111827;
 }
-
 .sub{
   font-size:11px;
   color:#6b7280;
@@ -1100,7 +1142,6 @@ input:focus {
   font-size:12px;
   width:150px;
 }
-
 .inp:focus{
   outline:none;
   border-color:#2563eb;
@@ -1117,7 +1158,6 @@ input:focus {
   font-weight:700;
   cursor:pointer;
 }
-
 .btn-blue:hover{
   background:#1d4ed8;
 }
@@ -1132,13 +1172,17 @@ input:focus {
   font-size:13px;
   font-weight:800;
   cursor:pointer;
-  margin-top:6px;
 }
 
 /* VALUE */
 .val-green{
   color:#16a34a;
   font-weight:800;
+}
+
+/* CHART */
+canvas{
+  width:100%;
 }
 /* ── CHAT BODY ── */
 .chat-wrap {
@@ -2138,76 +2182,6 @@ input:focus {
   <div class="rc" id="ref-list"><div class="ldr">Loading...</div></div>
 </div>
 
-     <!-- PAYMENT PAGE -->
-<div class="pg" id="pg-payment" style="display:none">
-
-  <div class="rc">
-
-    <!-- BALANCE -->
-    <div style="font-size:11px;color:var(--mu)">Available Balance</div>
-    <div class="wbal" id="w-bal">$0.0000</div>
-
-    <div style="font-size:11px;color:var(--mu);margin-bottom:14px">
-      Withdrawals are processed via <b>PayPal only</b>
-    </div>
-
-    <!-- METHOD -->
-    <div class="wmet sel">
-
-      <div class="wmet-ico" style="background:#E3F2FD;color:#0A66C2">🅿️</div>
-
-      <div style="flex:1">
-        <div class="wmet-name">PayPal</div>
-        <div class="wmet-desc">Send funds to your PayPal account</div>
-
-        <div id="paypal-linked"
-             style="display:none;font-size:11px;color:#0A66C2;font-weight:700;margin-top:3px">
-        </div>
-      </div>
-
-      <div class="wmet-min">Instant</div>
-
-    </div>
-
-    <!-- PAYPAL EMAIL -->
-    <input class="winp"
-           id="paypal-email"
-           type="email"
-           placeholder="Enter your PayPal email"
-           oninput="validatePayPalEmail()" />
-
-    <!-- AMOUNT -->
-    <input class="winp"
-           id="pay-amount"
-           type="number"
-           min="1"
-           step="0.01"
-           placeholder="Minimum withdrawal $1.00" />
-
-    <!-- MESSAGE -->
-    <div id="pay-msg"
-         style="font-size:11px;margin-top:8px;text-align:center;color:var(--mu)">
-      Your PayPal email must match your account email
-    </div>
-
-    <!-- BUTTON -->
-    <button class="wbtn"
-            id="pay-btn"
-            onclick="processPayment()"
-            disabled>
-      Request Payment
-    </button>
-
-  </div>
-
-  <!-- HISTORY -->
-  <div class="sec">Payment History</div>
-
-  <div class="rc" id="pay-hist">
-    <div class="ldr">Loading...</div>
-  </div>
-
-</div>
 <!-- SUPPORT PAGE -->
 <div class="pg" id="pg-support">
   <div class="sgrp">
@@ -2257,18 +2231,41 @@ input:focus {
   <div id="notifs-list">
     <div class="ldr">Loading...</div>
   </div>
-
 </div>
-  
 <!-- PROFILE PAGE -->
-<div class="pg" id="pg-profile">
+<div class="pg active" id="pg-profile">
 
-  <!-- HEADER CARD -->
+  <!-- HEADER -->
   <div class="prof-card">
-    <div class="prof-av" id="prof-av">TU</div>
-    <div class="prof-name" id="prof-name">User</div>
+
+    <!-- AVATAR -->
+    <div class="prof-av" onclick="uploadAvatar()">
+      <img id="prof-img"/>
+      <span id="prof-initials">TU</span>
+    </div>
+    <input type="file" id="avatar-input" accept="image/*" hidden>
+
+    <!-- NAME + VERIFIED -->
+    <div class="prof-name">
+      <span id="prof-name">User</span>
+      <span id="verify-badge" class="vbadge no">Unverified</span>
+    </div>
+
     <div class="prof-email" id="prof-email">user@email.com</div>
+
     <div class="prof-lvl" id="prof-lvl">Level 1</div>
+
+    <!-- PROGRESS -->
+    <div class="prof-progress">
+      <div class="pp-top">
+        <span>Level Progress</span>
+        <span id="prof-xp">0 / 100 XP</span>
+      </div>
+      <div class="pp-bar">
+        <div id="pp-fill"></div>
+      </div>
+    </div>
+
   </div>
 
   <!-- ACCOUNT STATUS -->
@@ -2299,7 +2296,7 @@ input:focus {
     </div>
   </div>
 
-  <!-- PAYPAL -->
+  <!-- PAYPAL ONLY -->
   <div class="card">
     <div class="card-head">PayPal Account</div>
 
@@ -2310,6 +2307,12 @@ input:focus {
       </div>
       <button class="btn-blue" onclick="openPayPalModal()">Connect</button>
     </div>
+  </div>
+
+  <!-- EARNINGS CHART -->
+  <div class="card">
+    <div class="card-head">Earnings Overview</div>
+    <canvas id="earnChart" height="120"></canvas>
   </div>
 
   <!-- EDIT PROFILE -->
@@ -2336,7 +2339,6 @@ input:focus {
   <button class="btn-save" onclick="saveProfile()">Save Profile</button>
 
 </div>
-
 <!-- SETTINGS PAGE -->
 <div class="pg" id="pg-settings">
   <div class="sgrp">
