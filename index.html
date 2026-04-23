@@ -93,94 +93,97 @@ img { display: block; max-width: 100%; }
 /* ══════════════════════════════════════
    AUTH VIEW
 ══════════════════════════════════════ */
-#view-auth {
-  padding-bottom: 0;
-  background: linear-gradient(160deg, var(--blue) 0%, #0f3a9e 100%);
-  justify-content: center;
-  align-items: center;
-  padding: 40px 24px;
-  gap: 0;
+  *{margin:0;padding:0;box-sizing:border-box;font-family:Inter,system-ui}
+body{
+  height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  background:linear-gradient(135deg,#0f172a,#1e3a8a);
 }
-.auth-logo {
-  text-align: center;
-  margin-bottom: 36px;
+.container{
+  width:900px;
+  max-width:95%;
+  display:flex;
+  background:#fff;
+  border-radius:20px;
+  overflow:hidden;
+  box-shadow:0 30px 80px rgba(0,0,0,0.3);
 }
-.auth-logo-mark {
-  width: 72px; height: 72px;
-  background: rgba(255,255,255,0.15);
-  border: 1.5px solid rgba(255,255,255,0.3);
-  border-radius: var(--r-xl);
-  display: flex; align-items: center; justify-content: center;
-  margin: 0 auto 16px;
-  font-size: 28px; font-weight: 700; color: #fff;
-  letter-spacing: -1px;
+.left{
+  flex:1;
+  background:linear-gradient(135deg,#2563eb,#1e40af);
+  color:#fff;
+  padding:40px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
 }
-.auth-logo h1 { font-size: 26px; font-weight: 700; color: #fff; letter-spacing: -0.5px; }
-.auth-logo p { font-size: 14px; color: rgba(255,255,255,0.65); margin-top: 4px; }
+.left h1{font-size:32px;margin-bottom:10px}
+.left p{opacity:.8;line-height:1.5}
+.right{
+  flex:1;
+  padding:40px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+}
+h2{margin-bottom:20px;font-size:26px;color:#111827}
 
- .hidden {
-  display: none !important;
-   }
-.auth-card {
-  background: var(--white);
-  border-radius: var(--r-xl);
-  padding: 28px 24px;
-  width: 100%;
-  box-shadow: var(--shadow-md);
+.auth-tabs{
+  display:flex;
+  margin-bottom:20px;
+  gap:10px;
 }
-.auth-tabs {
-  display: flex;
-  background: var(--gray-bg);
-  border-radius: var(--r-md);
-  padding: 3px;
-  margin-bottom: 24px;
-  gap: 3px;
+.auth-tabs button{
+  flex:1;
+  padding:10px;
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
+  font-weight:600;
+  background:#e5e7eb;
 }
-.auth-tab {
-  flex: 1; padding: 8px 12px;
-  font-size: 13px; font-weight: 500;
-  color: var(--text-3);
-  border-radius: calc(var(--r-md) - 3px);
-  transition: all 0.2s; text-align: center;
+.auth-tabs button.active{
+  background:#2563eb;
+  color:#fff;
 }
-.auth-tab.active {
-  background: var(--white);
-  color: var(--text-1);
-  box-shadow: var(--shadow-sm);
-}
-.auth-form { display: flex; flex-direction: column; gap: 14px; }
-.field-group { display: flex; flex-direction: column; gap: 5px; }
-.field-label { font-size: 12px; font-weight: 600; color: var(--text-2); letter-spacing: 0.02em; }
-.field-input {
-  width: 100%; padding: 11px 14px;
-  border: 1.5px solid var(--gray-border);
-  border-radius: var(--r-sm);
-  font-size: 14px; color: var(--text-1);
-  background: var(--white);
-  transition: border-color 0.15s, box-shadow 0.15s;
-  outline: none;
-}
-.field-input:focus {
-  border-color: var(--blue);
-  box-shadow: 0 0 0 3px rgba(26,86,219,0.10);
-}
-.field-input::placeholder { color: var(--text-3); }
 
-.btn-primary {
-  width: 100%; padding: 13px;
-  background: var(--blue);
-  color: #fff; font-size: 14px; font-weight: 600;
-  border-radius: var(--r-sm);
-  transition: background 0.15s, transform 0.1s;
-  text-align: center;
-}
-.btn-primary:hover { background: var(--blue-dk); }
-.btn-primary:active { transform: scale(0.98); }
-.btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+.form{display:none}
+.form.active{display:block}
 
-.auth-divider { text-align: center; font-size: 12px; color: var(--text-3); margin: 4px 0; }
-.auth-msg { font-size: 12px; color: var(--red); text-align: center; min-height: 16px; }
-.auth-success { color: var(--green); }
+.input{margin-bottom:15px}
+.input input{
+  width:100%;padding:12px 14px;
+  border:1px solid #e5e7eb;
+  border-radius:10px;
+  outline:none;
+}
+
+button.action{
+  width:100%;padding:12px;
+  background:#2563eb;
+  color:#fff;
+  border:none;
+  border-radius:10px;
+  font-weight:600;
+  cursor:pointer;
+}
+
+.switch{
+  margin-top:15px;
+  text-align:center;
+  font-size:13px;
+  color:#6b7280;
+}
+.switch span{color:#2563eb;cursor:pointer;font-weight:600}
+
+.msg{font-size:12px;margin-top:10px;text-align:center;min-height:16px}
+.success{color:green}
+.error{color:red}
+
+@media(max-width:768px){.container{flex-direction:column
+                                  }
 
 /* ══════════════════════════════════════
    TOP BAR
@@ -903,60 +906,44 @@ img { display: block; max-width: 100%; }
 <body>
 <div id="app">
   <!-- ══ AUTH VIEW ══ -->
-  <div class="view active" id="view-auth">
-    <div class="auth-logo">
-      <div class="auth-logo-mark">OW</div>
-      <h1>OneWall</h1>
-      <p>Complete tasks. Earn real money.</p>
-    </div>
-    <div class="auth-card">
-      <div class="auth-tabs">
-        <button class="auth-tab active" onclick="switchAuthTab('login')">Sign In</button>
-        <button class="auth-tab" onclick="switchAuthTab('register')">Register</button>
-      </div>
+<div class="container">
 
-      <!-- Login Form -->
-      <div id="login-form">
-        <div class="auth-form">
-          <div class="field-group">
-            <label class="field-label">Email address</label>
-            <input type="email" class="field-input" id="login-email" placeholder="you@example.com" autocomplete="email">
-          </div>
-          <div class="field-group">
-            <label class="field-label">Password</label>
-            <input type="password" class="field-input" id="login-password" placeholder="••••••••" autocomplete="current-password">
-          </div>
-          <button class="btn-primary" onclick="handleLogin()" id="login-btn">Sign In</button>
-          <p class="auth-msg" id="login-msg"></p>
-        </div>
-      </div>
-
-      <!-- Register Form -->
-      <div id="register-form" class="hidden">
-        <div class="auth-form">
-          <div class="field-group">
-            <label class="field-label">Full name</label>
-            <input type="text" class="field-input" id="reg-name" placeholder="John Doe">
-          </div>
-          <div class="field-group">
-            <label class="field-label">Email address</label>
-            <input type="email" class="field-input" id="reg-email" placeholder="you@example.com" autocomplete="email">
-          </div>
-          <div class="field-group">
-            <label class="field-label">Password</label>
-            <input type="password" class="field-input" id="reg-password" placeholder="Min. 8 characters" autocomplete="new-password">
-          </div>
-          <div class="field-group">
-            <label class="field-label">Referral code (optional)</label>
-            <input type="text" class="field-input" id="reg-referral" placeholder="e.g. OW-ABC123">
-          </div>
-          <button class="btn-primary" onclick="handleRegister()" id="reg-btn">Create Account</button>
-          <p class="auth-msg" id="reg-msg"></p>
-        </div>
-      </div>
-    </div>
+  <div class="left">
+    <h1>Welcome</h1>
+    <p>Access your dashboard, manage tasks, and track earnings in real time.</p>
   </div>
 
+  <div class="right">
+
+    <div class="auth-tabs">
+      <button id="tab-login" class="active" onclick="switchAuthTab('login')">Sign In</button>
+      <button id="tab-register" onclick="switchAuthTab('register')">Sign Up</button>
+    </div>
+
+    <!-- LOGIN -->
+    <div id="login" class="form active">
+      <h2>Sign In</h2>
+      <div class="input"><input id="login-email" type="email" placeholder="Email"></div>
+      <div class="input"><input id="login-password" type="password" placeholder="Password"></div>
+      <button class="action" id="login-btn" onclick="handleLogin()">Login</button>
+      <div id="login-msg" class="msg"></div>
+    </div>
+
+    <!-- REGISTER -->
+    <div id="register" class="form">
+      <h2>Create Account</h2>
+      <div class="input"><input id="reg-name" type="text" placeholder="Full name"></div>
+      <div class="input"><input id="reg-email" type="email" placeholder="Email"></div>
+      <div class="input"><input id="reg-password" type="password" placeholder="Password"></div>
+      <div class="input"><input id="reg-referral" type="text" placeholder="Referral code"></div>
+      <button class="action" id="reg-btn" onclick="handleRegister()">Sign Up</button>
+      <div id="reg-msg" class="msg"></div>
+    </div>
+  </div>
+</div
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+   
   <!-- ══ HOME VIEW ══ -->
   <div class="view" id="view-home">
     <!-- Sticky Header -->
@@ -1684,73 +1671,61 @@ function hideLoader() {
 }
    
 /* ═════════ AUTH STATE ═════════ */
-
+/* ═════════ AUTH STATE ═════════ */
 const db = supabase.createClient(
   "https://lwnbfjjsstxkyexeojcl.supabase.co",
   "sb_publishable_Pj9ocGkssu5Gh6qZXFnZQQ_LdghnZt9"
 );
 
 /* ═════════ TAB SWITCH ═════════ */
-
-function switchAuthTab(tab) {
-  const loginTab = document.querySelector('[onclick="switchAuthTab(\'login\')"]');
-  const registerTab = document.querySelector('[onclick="switchAuthTab(\'register\')"]');
-
-  const loginForm = document.getElementById('login-form');
-  const registerForm = document.getElementById('register-form');
-
-  if (!loginTab || !registerTab) return;
+function switchAuthTab(tab){
+  const loginTab=document.getElementById('tab-login');
+  const registerTab=document.getElementById('tab-register');
+  const login=document.getElementById('login');
+  const register=document.getElementById('register');
 
   loginTab.classList.remove('active');
   registerTab.classList.remove('active');
+  login.classList.remove('active');
+  register.classList.remove('active');
 
-  loginForm.classList.add('hidden');
-  registerForm.classList.add('hidden');
-
-  if (tab === 'login') {
+  if(tab==='login'){
     loginTab.classList.add('active');
-    loginForm.classList.remove('hidden');
-  } else {
+    login.classList.add('active');
+  }else{
     registerTab.classList.add('active');
-    registerForm.classList.remove('hidden');
+    register.classList.add('active');
   }
 }
 
 /* ═════════ LOGIN ═════════ */
+async function handleLogin(){
+  const email=document.getElementById('login-email').value.trim();
+  const password=document.getElementById('login-password').value;
 
-async function handleLogin() {
-  const email = document.getElementById('login-email').value.trim();
-  const password = document.getElementById('login-password').value;
+  const btn=document.getElementById('login-btn');
+  const msg=document.getElementById('login-msg');
 
-  const btn = document.getElementById('login-btn');
-  const msg = document.getElementById('login-msg');
+  if(!email||!password){msg.textContent="Fill all fields";msg.className="msg error";return;}
 
-  if (!email || !password) {
-    msg.textContent = "Fill all fields";
+  btn.disabled=true;
+  btn.textContent="Signing in...";
+
+  const {error}=await db.auth.signInWithPassword({email,password});
+
+  if(error){
+    msg.textContent=error.message;
+    msg.className="msg error";
+    btn.disabled=false;
+    btn.textContent="Login";
     return;
   }
 
-  btn.disabled = true;
-  btn.textContent = "Signing in...";
-  msg.textContent = "";
+  msg.textContent="Login successful";
+  msg.className="msg success";
 
-  const { error } = await db.auth.signInWithPassword({
-    email,
-    password
-  });
-
-  if (error) {
-    msg.textContent = error.message;
-    btn.disabled = false;
-    btn.textContent = "Sign In";
-    return;
-  }
-
-  msg.className = "auth-msg auth-success";
-  msg.textContent = "Login successful";
-
-  if (typeof showApp === "function") showApp();
-}
+  if(typeof showApp==="function") showApp();
+         }
 
 /* ═════════ REGISTER ═════════ */
 
@@ -1801,14 +1776,11 @@ async function handleRegister() {
   btn.textContent = "Create Account";
 }
 
-/* ═════════ AUTO LOGIN CHECK ═════════ */
-
-db.auth.getSession().then(({ data }) => {
-  if (data.session && typeof showApp === "function") {
-    showApp();
-  }
+/* ═════════ AUTO SESSION ═════════ */
+db.auth.getSession().then(({data})=>{
+  if(data.session && typeof showApp === "function") showApp();
 });
-
+   
 
 /* ══════════════════════════════════════
    PROFILE
