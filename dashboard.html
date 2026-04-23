@@ -2075,12 +2075,28 @@ function navTo(view) {
   window.scrollTo(0, 0);
 }
 
+   function navTo(page) {
+  const routes = {
+    home: "dashboard.html",
+    mytasks: "mytasks.html",
+    support: "support.html",
+    referrals: "referrals.html",
+    profile: "profile.html"
+  };
+
+  if (routes[page]) {
+    window.location.href = routes[page];
+  } else {
+    console.warn("Route not found:", page);
+  }
+   }
 function navBack() {
   navHistory.pop();
   const back = navHistory[navHistory.length-1] || 'home';
   showView(back);
 }
 
+   
 /* ══════════════════════════════════════
    MISC UI
 ══════════════════════════════════════ */
