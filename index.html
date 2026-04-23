@@ -118,6 +118,9 @@ img { display: block; max-width: 100%; }
 .auth-logo h1 { font-size: 26px; font-weight: 700; color: #fff; letter-spacing: -0.5px; }
 .auth-logo p { font-size: 14px; color: rgba(255,255,255,0.65); margin-top: 4px; }
 
+ .hidden {
+  display: none !important;
+   }
 .auth-card {
   background: var(--white);
   border-radius: var(--r-xl);
@@ -1723,7 +1726,7 @@ async function handleLogin() {
     return;
   }
 
-  // ✅ FIX: trigger UI after login
+  //trigger UI after login
   msg.textContent = 'Signed in successfully';
   if (typeof showApp === 'function') showApp();
 }
@@ -1769,7 +1772,7 @@ async function handleRegister() {
     return;
   }
 
-  // ✅ SAFETY CHECK (avoid crash if no user)
+  // SAFETY CHECK (avoid crash if no user)
   if (!data?.user) {
     msg.textContent = 'Something went wrong. Try again.';
     btn.disabled = false;
@@ -1806,7 +1809,7 @@ async function handleRegister() {
 }
 
 
-/* ✅ FIXED FUNCTION NAME */
+/* FUNCTION NAME */
 async function handleSignOut() {
   await db.auth.signOut();
   if (typeof showAuth === 'function') showAuth();
