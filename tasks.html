@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Tasks</title>
+
+<!-- Bootstrap Icons -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+
+<!-- Supabase -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+
+<style>
+/* ═════════ ROOT ═════════ */
+:root{
+  --blue:#1a56db;
+  --blue-dk:#1e40af;
+  --gray:#6b7280;
+  --bg:#f9fafb;
+  --white:#fff;
+  --border:#e5e7eb;
+}
+
+/* BASE */
+body{
+  margin:0;
+  font-family:system-ui;
+  background:var(--bg);
+}
+
+/* VIEW */
+.view{
+  display:none;
+  padding-bottom:90px;
+}
+
+/* HEADER */
+.header{
+  padding:16px;
+  font-size:18px;
+  font-weight:700;
+}
+
+/* TASKS */
+.tasks-list{
+  padding:16px;
+}
+
+.task-card{
+  background:#fff;
+  border-radius:12px;
+  padding:14px;
+  margin-bottom:10px;
+  box-shadow:0 3px 12px rgba(0,0,0,0.05);
+  cursor:pointer;
+  transition:.2s;
+}
+
+.task-card:active{
+  transform:scale(0.97);
+}
+
+.task-title{font-weight:600;}
+.task-desc{font-size:13px;color:var(--gray);}
+.task-reward{color:var(--blue);font-weight:700;margin-top:6px}
+
+/* MODAL */
+.modal-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.45);
+  display:none;
+  align-items:flex-end;
+  z-index:200;
+}
+
+.modal-overlay.open{display:flex;}
+
+.modal-sheet{
+  background:#fff;
+  width:100%;
+  max-width:480px;
+  margin:auto;
+  border-radius:20px 20px 0 0;
+  padding:20px;
+}
+
+.modal-title{
+  font-size:18px;
+  font-weight:700;
+  text-align:center;
+}
+
+.modal-desc{
+  text-align:center;
+  font-size:14px;
+  color:var(--gray);
+}
+
+.modal-reward{
+  text-align:center;
+  font-size:22px;
+  font-weight:700;
+  color:var(--blue);
+  margin:10px 0;
+}
+
+.modal-input{
+  width:100%;
+  padding:10px;
+  border:1px solid var(--border);
+  border-radius:8px;
+  margin-top:10px;
+}
+
+.modal-btn{
+  width:100%;
+  padding:12px;
+  border:none;
+  border-radius:8px;
+  margin-top:10px;
+  background:var(--blue);
+  color:#fff;
+  font-weight:600;
+}
+
+/* ═════════ BOTTOM NAV ═════════ */
+
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 480px;
+
+  background: #fff;
+  border-top: 0.5px solid #e5e7eb;
+
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+
+  padding-bottom: env(safe-area-inset-bottom, 0);
+  z-index: 999;
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.06);
+}
+
+.nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+
+  padding: 10px 4px 8px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.nav-item:active {
+  transform: scale(0.95);
+  opacity: 0.6;
+}
+
+.nav-item i {
+  font-size: 20px;
+  color: #6b7280;
+}
+
+.nav-label {
+  font-size: 10px;
+  color: #6b7280;
+}
+
+/* ACTIVE */
+.nav-item.active i,
+.nav-item.active .nav-label {
+  color: var(--blue);
+  font-weight: 600;
+}
+</style>
+</head>
+
+<body>
+
+<!-- VIEW -->
+<div class="view" id="view-home">
+
+<div class="header">Available Tasks</div>
+
+<div class="tasks-list" id="tasks-list">
+  Loading tasks...
+</div>
+
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="task-modal" onclick="closeModal()">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-title" id="modal-title"></div>
+    <div class="modal-desc" id="modal-desc"></div>
+    <div class="modal-reward" id="modal-reward"></div>
+
+    <input class="modal-input" id="proof" placeholder="Paste proof link">
+
+    <button class="modal-btn" onclick="submitTask()">Submit Task</button>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+
+  <div class="nav-item active" onclick="navTo('home')">
+    <i class="bi bi-list-check"></i>
+    <div class="nav-label">Tasks</div>
+  </div>
+
+  <div class="nav-item" onclick="location.href='mytasks.html'">
+    <i class="bi bi-clipboard-check"></i>
+    <div class="nav-label">My Tasks</div>
+  </div>
+
+  <div class="nav-item" onclick="location.href='support.html'">
+    <i class="bi bi-chat-dots"></i>
+    <div class="nav-label">Support</div>
+  </div>
+
+  <div class="nav-item" onclick="location.href='referrals.html'">
+    <i class="bi bi-people"></i>
+    <div class="nav-label">Referrals</div>
+  </div>
+
+  <div class="nav-item" onclick="location.href='profile.html'">
+    <i class="bi bi-person"></i>
+    <div class="nav-label">Profile</div>
+  </div>
+
+</nav>
+
+<script>
+const db = supabase.createClient(
+ "https://lwnbfjjsstxkyexeojcl.supabase.co",
+ "sb_publishable_Pj9ocGkssu5Gh6qZXFnZQQ_LdghnZt9"
+);
+
+let tasksCache = [];
+let currentTask = null;
+let currentUser = null;
+
+/* NAV */
+function navTo(view){
+  document.querySelectorAll('.view').forEach(v=>v.style.display='none');
+  document.getElementById('view-'+view).style.display='block';
+}
+
+/* USER */
+async function loadUser(){
+  const {data} = await db.auth.getUser();
+  currentUser = data.user;
+}
+
+/* TASKS */
+async function loadTasks(){
+  const {data,error} = await db
+    .from("tasks")
+    .select("*")
+    .eq("status","active");
+
+  if(error){
+    document.getElementById("tasks-list").innerHTML="Error loading tasks";
+    return;
+  }
+
+  tasksCache = data;
+  renderTasks();
+}
+
+function renderTasks(){
+  const box = document.getElementById("tasks-list");
+
+  if(!tasksCache.length){
+    box.innerHTML="<div style='padding:20px'>No tasks available</div>";
+    return;
+  }
+
+  box.innerHTML = tasksCache.map(t=>`
+    <div class="task-card" onclick="openTask('${t.id}')">
+      <div class="task-title">${t.title}</div>
+      <div class="task-desc">${t.description || ""}</div>
+      <div class="task-reward">$${t.reward}</div>
+    </div>
+  `).join('');
+}
+
+/* MODAL */
+function openTask(id){
+  const t = tasksCache.find(x=>x.id==id);
+  if(!t) return;
+
+  currentTask = t;
+
+  document.getElementById("modal-title").textContent=t.title;
+  document.getElementById("modal-desc").textContent=t.description;
+  document.getElementById("modal-reward").textContent="$"+t.reward;
+
+  document.getElementById("task-modal").classList.add("open");
+}
+
+function closeModal(){
+  document.getElementById("task-modal").classList.remove("open");
+}
+
+/* SUBMIT */
+async function submitTask(){
+
+  if(!currentUser){
+    alert("Login required");
+    return;
+  }
+
+  const proof = document.getElementById("proof").value;
+
+  const {error} = await db.from("user_tasks").insert([{
+    user_id: currentUser.id,
+    task_id: currentTask.id,
+    proof: proof,
+    status:"pending"
+  }]);
+
+  if(error){
+    alert(error.message);
+    return;
+  }
+
+  alert("Task submitted!");
+  closeModal();
+}
+
+/* INIT */
+document.addEventListener("DOMContentLoaded", async ()=>{
+  navTo("home");
+  await loadUser();
+  loadTasks();
+});
+</script>
+
+</body>
+</html>
