@@ -1682,77 +1682,97 @@ async function loadApp() {
 function hideLoader() {
   document.getElementById('loader').style.display = 'none';
 }
-
+   
 /* ══════════════════════════════════════
-   AUTH
+   AUTH 
 ══════════════════════════════════════ */
 
+/* SUPABASE CLIENT (REQUIRED) */
+const db = supabase.createClient(
+  "https://lwnbfjjsstxkyexeojcl.supabase.co
+   ",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx3bmJmampzc3R4a3lleGVvamNsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzMjc4MTgsImV4cCI6MjA5MTkwMzgxOH0.EzB9H8dzwS7VME9-wwnpSHkA4R-04Wd8msK9E24hBDg';
+
+/* ═══ AUTH TAB SWITCH ═══ */
 function switchAuthTab(tab) {
-  const tabs = document.querySelectorAll('.auth-tab');
+  const loginTab = document.querySelectorAll('.auth-tab')[0];
+  const registerTab = document.querySelectorAll('.auth-tab')[1];
 
-  tabs.forEach((el, i) => {
-    el.classList.toggle(
-      'active',
-      (tab === 'login' && i === 0) || (tab === 'register' && i === 1)
-    );
-  });
+  const loginForm = document.getElementById('login-form');
+  const registerForm = document.getElementById('register-form');
 
-  document.getElementById('login-form').classList.toggle('hidden', tab !== 'login');
-  document.getElementById('register-form').classList.toggle('hidden', tab !== 'register');
+  loginTab.classList.remove('active');
+  registerTab.classList.remove('active');
+
+  loginForm.classList.add('hidden');
+  registerForm.classList.add('hidden');
+
+  if (tab === 'login') {
+    loginTab.classList.add('active');
+    loginForm.classList.remove('hidden');
+  } else {
+    registerTab.classList.add('active');
+    registerForm.classList.remove('hidden');
+  }
 }
 
-
+/* ═══ LOGIN ═══ */
 async function handleLogin() {
-  const email    = document.getElementById('login-email').value.trim();
+  const email = document.getElementById('login-email').value.trim();
   const password = document.getElementById('login-password').value;
-  const btn      = document.getElementById('login-btn');
-  const msg      = document.getElementById('login-msg');
+
+  const btn = document.getElementById('login-btn');
+  const msg = document.getElementById('login-msg');
 
   if (!email || !password) {
-    msg.textContent = 'Please fill all fields.';
+    msg.textContent = "Please fill all fields.";
     return;
   }
 
   btn.disabled = true;
-  btn.textContent = 'Signing in…';
-  msg.textContent = '';
+  btn.textContent = "Signing in…";
+  msg.textContent = "";
 
-  const { error } = await db.auth.signInWithPassword({ email, password });
+  const { error } = await db.auth.signInWithPassword({
+    email,
+    password
+  });
 
   if (error) {
     msg.textContent = error.message;
     btn.disabled = false;
-    btn.textContent = 'Sign In';
+    btn.textContent = "Sign In";
     return;
   }
 
-  //trigger UI after login
-  msg.textContent = 'Signed in successfully';
-  if (typeof showApp === 'function') showApp();
+  msg.textContent = "Login successful";
+
+  if (typeof showApp === "function") showApp();
 }
 
-
+/* ═══ REGISTER ═══ */
 async function handleRegister() {
-  const name     = document.getElementById('reg-name').value.trim();
-  const email    = document.getElementById('reg-email').value.trim();
+  const name = document.getElementById('reg-name').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
   const password = document.getElementById('reg-password').value;
-  const refCode  = document.getElementById('reg-referral').value.trim().toUpperCase();
-  const btn      = document.getElementById('reg-btn');
-  const msg      = document.getElementById('reg-msg');
+  const refCode = document.getElementById('reg-referral').value.trim().toUpperCase();
+
+  const btn = document.getElementById('reg-btn');
+  const msg = document.getElementById('reg-msg');
 
   if (!name || !email || !password) {
-    msg.textContent = 'Please fill all required fields.';
+    msg.textContent = "Please fill all required fields.";
     return;
   }
 
   if (password.length < 8) {
-    msg.textContent = 'Password must be at least 8 characters.';
+    msg.textContent = "Password must be at least 8 characters.";
     return;
   }
 
   btn.disabled = true;
-  btn.textContent = 'Creating account…';
-  msg.textContent = '';
+  btn.textContent = "Creating account…";
+  msg.textContent = "";
 
   const { data, error } = await db.auth.signUp({
     email,
@@ -1768,80 +1788,28 @@ async function handleRegister() {
   if (error) {
     msg.textContent = error.message;
     btn.disabled = false;
-    btn.textContent = 'Create Account';
+    btn.textContent = "Create Account";
     return;
   }
 
-  // SAFETY CHECK (avoid crash if no user)
-  if (!data?.user) {
-    msg.textContent = 'Something went wrong. Try again.';
-    btn.disabled = false;
-    btn.textContent = 'Create Account';
-    return;
-  }
+  msg.className = "auth-msg auth-success";
+  msg.textContent = "Account created! Check your email.";
 
-  const code = 'OW-' + Math.random().toString(36).substring(2, 8).toUpperCase();
-
-  await db.from('profiles').upsert({
-    id: data.user.id,
-    full_name: name,
-    email,
-    referral_code: code,
-    referred_by: refCode || null,
-    balance: 0,
-    total_earned: 0,
-    created_at: new Date().toISOString()
-  });
-
-  if (refCode) {
-    await db.from('referrals').insert({
-      referrer_code: refCode,
-      referred_user_id: data.user.id,
-      status: 'pending',
-      created_at: new Date().toISOString()
-    });
-  }
-
-  msg.className = 'auth-msg auth-success';
-  msg.textContent = 'Account created! Check your email to confirm.';
-  btn.textContent = 'Create Account';
   btn.disabled = false;
+  btn.textContent = "Create Account";
 }
 
-
-/* FUNCTION NAME */
+/* ═══ SIGN OUT ═══ */
 async function handleSignOut() {
   await db.auth.signOut();
-  if (typeof showAuth === 'function') showAuth();
+  if (typeof showAuth === "function") showAuth();
 }
-   function switchAuthTab(tab) {
-  const loginTab = document.querySelectorAll('.auth-tab')[0];
-  const registerTab = document.querySelectorAll('.auth-tab')[1];
 
-  const loginForm = document.getElementById('login-form');
-  const registerForm = document.getElementById('register-form');
-
-  // reset tab states
-  loginTab.classList.remove('active');
-  registerTab.classList.remove('active');
-
-  // hide both forms first (important fix)
-  loginForm.classList.add('hidden');
-  registerForm.classList.add('hidden');
-
-  // switch based on tab
-  if (tab === 'login') {
-    loginTab.classList.add('active');
-    loginForm.classList.remove('hidden');
-  } else {
-    registerTab.classList.add('active');
-    registerForm.classList.remove('hidden');
+/* ═══ AUTO SESSION CHECK ═══ */
+db.auth.getSession().then(({ data }) => {
+  if (data.session) {
+    if (typeof showApp === "function") showApp();
   }
-   }
-   document.querySelectorAll('.auth-tab').forEach(btn => {
-  btn.addEventListener('click', () => {
-    switchAuthTab(btn.dataset.tab);
-  });
 });
 
 /* ══════════════════════════════════════
