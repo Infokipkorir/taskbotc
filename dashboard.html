@@ -1630,130 +1630,61 @@ async function loadApp() {
 function hideLoader() {
   document.getElementById('loader').style.display = 'none';
 }
-   
-/* ═════════ AUTH STATE ═════════ */
-/* ═════════ AUTH STATE ═════════ */
+
 const db = supabase.createClient(
   "https://lwnbfjjsstxkyexeojcl.supabase.co",
   "sb_publishable_Pj9ocGkssu5Gh6qZXFnZQQ_LdghnZt9"
 );
+   let currentUser = null;
+let tasksCache = [];
+   async function initApp() {
+  const { data: { session } } = await db.auth.getSession();
 
-/* ═════════ TAB SWITCH ═════════ */
-function switchAuthTab(tab){
-  const loginTab=document.getElementById('tab-login');
-  const registerTab=document.getElementById('tab-register');
-  const login=document.getElementById('login');
-  const register=document.getElementById('register');
-
-  loginTab.classList.remove('active');
-  registerTab.classList.remove('active');
-  login.classList.remove('active');
-  register.classList.remove('active');
-
-  if(tab==='login'){
-    loginTab.classList.add('active');
-    login.classList.add('active');
-  }else{
-    registerTab.classList.add('active');
-    register.classList.add('active');
+  if (!session) {
+    window.location.href = "index.html";
+    return;
   }
+
+  currentUser = session.user;
+
+  await loadUserProfile();
+  await loadTasks();
+
+  navTo("home");
 }
 
-/* ═════════ LOGIN ═════════ */
-async function handleLogin(){
-  const email=document.getElementById('login-email').value.trim();
-  const password=document.getElementById('login-password').value;
-
-  const btn=document.getElementById('login-btn');
-  const msg=document.getElementById('login-msg');
-
-  if(!email||!password){msg.textContent="Fill all fields";msg.className="msg error";return;}
-
-  btn.disabled=true;
-  btn.textContent="Signing in...";
-
-  const {error}=await db.auth.signInWithPassword({email,password});
-
-  if(error){
-    msg.textContent=error.message;
-    msg.className="msg error";
-    btn.disabled=false;
-    btn.textContent="Login";
-    return;
-  }
-
-  msg.textContent="Login successful";
-  msg.className="msg success";
-
-  if(typeof showApp==="function") showApp();
-         }
-
-/* ═════════ REGISTER ═════════ */
-
-async function handleRegister() {
-  const name = document.getElementById('reg-name').value.trim();
-  const email = document.getElementById('reg-email').value.trim();
-  const password = document.getElementById('reg-password').value;
-  const ref = document.getElementById('reg-referral').value.trim().toUpperCase();
-
-  const btn = document.getElementById('reg-btn');
-  const msg = document.getElementById('reg-msg');
-
-  if (!name || !email || !password) {
-    msg.textContent = "Fill required fields";
-    return;
-  }
-
-  if (password.length < 8) {
-    msg.textContent = "Password too short";
-    return;
-  }
-
-  btn.disabled = true;
-  btn.textContent = "Creating...";
-
-  const { error } = await db.auth.signUp({
-    email,
-    password,
-    options: {
-      data: {
-        full_name: name,
-        referral_code_used: ref || null
-      }
-    }
-  });
-
-  if (error) {
-    msg.textContent = error.message;
-    btn.disabled = false;
-    btn.textContent = "Create Account";
-    return;
-  }
-
-  msg.className = "auth-msg auth-success";
-  msg.textContent = "Check your email to confirm account";
-
-  btn.disabled = false;
-  btn.textContent = "Create Account";
-}
-
-/* ═════════ AUTO SESSION ═════════ */
-db.auth.getSession().then(({data})=>{
-  if(data.session && typeof showApp === "function") showApp();
-});
-   
-
+window.addEventListener("load", initApp);
 /* ══════════════════════════════════════
    PROFILE
 ══════════════════════════════════════ */
-async function loadProfile() {
-  const { data } = await db.from('profiles').select('*').eq('id', currentUser.id).single();
-  userProfile = data || {
-    full_name: currentUser.user_metadata?.full_name || 'User',
-    email: currentUser.email, balance: 0, total_earned: 0,
-    referral_code: 'OW-XXXXXX'
-  };
-  updateProfileUI();
+async function loadUserProfile() {
+  const user = currentUser;
+
+  if (!user) return;
+
+  const name = user.user_metadata?.full_name || "User";
+  const email = user.email;
+
+  // HOME
+  document.getElementById("home-name").textContent = name;
+  document.getElementById("home-email").textContent = email;
+
+  // PROFILE
+  document.getElementById("profile-name").textContent = name;
+  document.getElementById("profile-email").textContent = email;
+
+  // SETTINGS
+  const sName = document.getElementById("settings-name");
+  const sEmail = document.getElementById("settings-email");
+
+  if (sName) sName.textContent = name;
+  if (sEmail) sEmail.textContent = email;
+
+  // avatar initials
+  const initials = name.split(" ").map(n => n[0]).join("").toUpperCase();
+  document.querySelectorAll("#home-avatar, #profile-avatar").forEach(el => {
+    el.textContent = initials;
+  });
 }
 
 function updateProfileUI() {
@@ -1789,31 +1720,21 @@ function updateProfileUI() {
 /* ══════════════════════════════════════
    TASKS
 ══════════════════════════════════════ */
-const TASK_ICONS = {
-  quick: '⚡', survey: '📝', social: '📱', video: '🎬', app: '📲'
-};
-
 async function loadTasks() {
-  const { data } = await db.from('tasks').select('*').eq('is_active', true).order('reward', {ascending: false});
-  allTasks = data || [];
-  renderTasks(allTasks);
-}
+  const { data, error } = await db
+    .from("tasks")
+    .select("*")
+    .eq("status", "active")
+    .order("created_at", { ascending: false });
 
-function filterTasks(el, cat) {
-  currentFilter = cat;
-  document.querySelectorAll('.task-tab').forEach(t => t.classList.remove('active'));
-  el.classList.add('active');
-  const filtered = cat === 'all' ? allTasks : allTasks.filter(t => t.category === cat);
-  renderTasks(filtered);
-}
-
-function renderTasks(tasks) {
-  const list = document.getElementById('tasks-list');
-  if (!tasks || !tasks.length) {
-    list.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div><p>No tasks in this category yet.</p></div>`;
+  if (error) {
+    console.log("Task error:", error.message);
     return;
   }
-  list.innerHTML = tasks.map(task => `
+
+  tasksCache = data || [];
+  renderTasks();
+}.map(task => `
     <div class="task-card" onclick="openTaskModal(${task.id})">
       <div class="task-badge ${task.category}">${TASK_ICONS[task.category] || '📋'}</div>
       <div class="task-info">
@@ -1831,24 +1752,42 @@ function renderTasks(tasks) {
   setText('stat-week', tasks.length);
 }
 
+   function renderTasks() {
+  const box = document.getElementById("tasks-list");
+
+  if (!tasksCache.length) {
+    box.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">📋</div>
+        <p>No tasks available</p>
+      </div>
+    `;
+    return;
+  }
+
+  box.innerHTML = tasksCache.map(task => `
+    <div class="task-card" onclick="openTask('${task.id}')">
+      <div class="task-title">${task.title}</div>
+      <div class="task-reward">$${task.reward}</div>
+      <div class="task-desc">${task.description || ""}</div>
+    </div>
+  `).join("");
+   }
 /* ══════════════════════════════════════
    TASK MODAL
 ══════════════════════════════════════ */
-async function openTaskModal(taskId) {
-  const task = allTasks.find(t => t.id === taskId);
+function openTask(id) {
+  const task = tasksCache.find(t => t.id === id);
   if (!task) return;
-  currentTaskId = taskId;
 
-  document.getElementById('modal-icon').textContent = TASK_ICONS[task.category] || '📋';
-  document.getElementById('modal-icon').className = `modal-task-icon ${task.category}`;
-  setText('modal-title', task.title);
-  setText('modal-reward', '+$' + Number(task.reward).toFixed(2));
-  setText('modal-desc', task.description || '');
-  document.getElementById('modal-proof-input').value = '';
-  document.getElementById('modal-notes').value = '';
-  document.getElementById('modal-submit-btn').disabled = false;
-  document.getElementById('modal-submit-btn').textContent = 'Submit Task';
+  document.getElementById("modal-title").textContent = task.title;
+  document.getElementById("modal-desc").textContent = task.description;
+  document.getElementById("modal-reward").textContent = "$" + task.reward;
 
+  window.currentTask = task;
+
+  document.getElementById("task-modal").style.display = "flex";
+}
   // Steps
   const steps = task.steps || [];
   const stepsHtml = steps.length
@@ -1913,6 +1852,30 @@ async function submitTask() {
     });
   }
 }
+   async function submitTask() {
+  const proof = document.getElementById("modal-proof-input").value;
+  const notes = document.getElementById("modal-notes").value;
+
+  if (!window.currentTask) return;
+
+  const { error } = await db.from("user_tasks").insert([
+    {
+      user_id: currentUser.id,
+      task_id: window.currentTask.id,
+      proof,
+      notes,
+      status: "pending"
+    }
+  ]);
+
+  if (error) {
+    alert(error.message);
+    return;
+  }
+
+  alert("Task submitted successfully!");
+  closeModal();
+   }
 
 /* ══════════════════════════════════════
    MY TASKS
@@ -1952,6 +1915,26 @@ async function loadMyTasks() {
     `;
   }).join('');
 }
+   async function loadMyTasks() {
+  const { data } = await db
+    .from("user_tasks")
+    .select("*")
+    .eq("user_id", currentUser.id);
+
+  const box = document.getElementById("my-tasks-list");
+
+  if (!data.length) {
+    box.innerHTML = "<p>No tasks yet</p>";
+    return;
+  }
+
+  box.innerHTML = data.map(t => `
+    <div class="task-card">
+      <div>Status: ${t.status}</div>
+      <div>Task ID: ${t.task_id}</div>
+    </div>
+  `).join("");
+   }
 
 /* ══════════════════════════════════════
    REFERRALS
@@ -2074,6 +2057,17 @@ function showView(name) {
   });
 }
 
+   function navTo(view) {
+  document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
+  document.getElementById("view-" + view)?.classList.add("active");
+
+  document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
+  document.querySelector(`[data-view="${view}"]`)?.classList.add("active");
+
+  // ONLY SPECIAL ACTIONS
+  if (view === "mytasks") loadMyTasks();
+  if (view === "profile") loadUserProfile();
+   }
 function navTo(view) {
   if (navHistory[navHistory.length-1] !== view) navHistory.push(view);
   prevView = navHistory.length > 1 ? navHistory[navHistory.length-2] : 'home';
