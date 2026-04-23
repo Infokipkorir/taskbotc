@@ -1683,24 +1683,51 @@ function hideLoader() {
 /* ══════════════════════════════════════
    AUTH
 ══════════════════════════════════════ */
+
 function switchAuthTab(tab) {
-  document.querySelectorAll('.auth-tab').forEach((el, i) => {
-    el.classList.toggle('active', (tab === 'login' && i === 0) || (tab === 'register' && i === 1));
+  const tabs = document.querySelectorAll('.auth-tab');
+
+  tabs.forEach((el, i) => {
+    el.classList.toggle(
+      'active',
+      (tab === 'login' && i === 0) || (tab === 'register' && i === 1)
+    );
   });
+
   document.getElementById('login-form').classList.toggle('hidden', tab !== 'login');
   document.getElementById('register-form').classList.toggle('hidden', tab !== 'register');
 }
+
 
 async function handleLogin() {
   const email    = document.getElementById('login-email').value.trim();
   const password = document.getElementById('login-password').value;
   const btn      = document.getElementById('login-btn');
   const msg      = document.getElementById('login-msg');
-  if (!email || !password) { msg.textContent = 'Please fill all fields.'; return; }
-  btn.disabled = true; btn.textContent = 'Signing in…'; msg.textContent = '';
+
+  if (!email || !password) {
+    msg.textContent = 'Please fill all fields.';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Signing in…';
+  msg.textContent = '';
+
   const { error } = await db.auth.signInWithPassword({ email, password });
-  if (error) { msg.textContent = error.message; btn.disabled = false; btn.textContent = 'Sign In'; }
+
+  if (error) {
+    msg.textContent = error.message;
+    btn.disabled = false;
+    btn.textContent = 'Sign In';
+    return;
+  }
+
+  // ✅ FIX: trigger UI after login
+  msg.textContent = 'Signed in successfully';
+  if (typeof showApp === 'function') showApp();
 }
+
 
 async function handleRegister() {
   const name     = document.getElementById('reg-name').value.trim();
@@ -1709,41 +1736,80 @@ async function handleRegister() {
   const refCode  = document.getElementById('reg-referral').value.trim().toUpperCase();
   const btn      = document.getElementById('reg-btn');
   const msg      = document.getElementById('reg-msg');
-  if (!name || !email || !password) { msg.textContent = 'Please fill all required fields.'; return; }
-  if (password.length < 8) { msg.textContent = 'Password must be at least 8 characters.'; return; }
-  btn.disabled = true; btn.textContent = 'Creating account…'; msg.textContent = '';
 
-  const { data, error } = await db.auth.signUp({
-    email, password,
-    options: { data: { full_name: name, referral_code_used: refCode || null } }
-  });
-  if (error) {
-    msg.textContent = error.message;
-    btn.disabled = false; btn.textContent = 'Create Account';
+  if (!name || !email || !password) {
+    msg.textContent = 'Please fill all required fields.';
     return;
   }
-  // Create profile
-  const code = 'OW-' + Math.random().toString(36).substring(2,8).toUpperCase();
-  await db.from('profiles').upsert({
-    id: data.user.id, full_name: name, email,
-    referral_code: code, referred_by: refCode || null,
-    balance: 0, total_earned: 0, created_at: new Date().toISOString()
+
+  if (password.length < 8) {
+    msg.textContent = 'Password must be at least 8 characters.';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Creating account…';
+  msg.textContent = '';
+
+  const { data, error } = await db.auth.signUp({
+    email,
+    password,
+    options: {
+      data: {
+        full_name: name,
+        referral_code_used: refCode || null
+      }
+    }
   });
-  // Handle referral credit
+
+  if (error) {
+    msg.textContent = error.message;
+    btn.disabled = false;
+    btn.textContent = 'Create Account';
+    return;
+  }
+
+  // ✅ SAFETY CHECK (avoid crash if no user)
+  if (!data?.user) {
+    msg.textContent = 'Something went wrong. Try again.';
+    btn.disabled = false;
+    btn.textContent = 'Create Account';
+    return;
+  }
+
+  const code = 'OW-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+
+  await db.from('profiles').upsert({
+    id: data.user.id,
+    full_name: name,
+    email,
+    referral_code: code,
+    referred_by: refCode || null,
+    balance: 0,
+    total_earned: 0,
+    created_at: new Date().toISOString()
+  });
+
   if (refCode) {
     await db.from('referrals').insert({
-      referrer_code: refCode, referred_user_id: data.user.id,
-      status: 'pending', created_at: new Date().toISOString()
+      referrer_code: refCode,
+      referred_user_id: data.user.id,
+      status: 'pending',
+      created_at: new Date().toISOString()
     });
   }
+
   msg.className = 'auth-msg auth-success';
   msg.textContent = 'Account created! Check your email to confirm.';
-  btn.textContent = 'Create Account'; btn.disabled = false;
+  btn.textContent = 'Create Account';
+  btn.disabled = false;
 }
 
+
+/* ✅ FIXED FUNCTION NAME */
 async function handleSignOut() {
   await db.auth.signOut();
-  showToast('Signed out');
+  if (typeof showAuth === 'function') showAuth();
 }
 
 /* ══════════════════════════════════════
