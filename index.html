@@ -1441,15 +1441,107 @@ img { display: block; max-width: 100%; }
 </div>
 
 <script>
-/* ══════════════════════════════════════
-   SUPABASE INIT
-   Replace with your actual keys
-══════════════════════════════════════ */
-const SUPABASE_URL  = 'https://YOUR_PROJECT.supabase.co';
-const SUPABASE_ANON = 'YOUR_ANON_KEY';
-const { createClient } = supabase;
-const db = createClient(SUPABASE_URL, SUPABASE_ANON);
+var SU='https://lwnbfjjsstxkyexeojcl.supabase.co';
+var SK='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx3bmJmampzc3R4a3lleGVvamNsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzMjc4MTgsImV4cCI6MjA5MTkwMzgxOH0.EzB9H8dzwS7VME9-wwnpSHkA4R-04Wd8msK9E24hBDg';
+var STOR=SU+'/storage/v1/object/public/screenshots/';
 
+/* ── SUPABASE REST CLIENT ── */
+var sb=(function(){
+  var base=SU+'/rest/v1/';
+  var storBase=SU+'/storage/v1/';
+  function H(){return{'Content-Type':'application/json','apikey':SK,'Authorization':'Bearer '+SK,'Prefer':'return=representation'};}
+  function qb(table){
+    var sel='*',filters=[],ord=null,lim=null,single=false;
+    var q={
+      select:function(s){sel=s;return q;},
+      eq:function(k,v){filters.push(encodeURIComponent(k)+'=eq.'+encodeURIComponent(v));return q;},
+      neq:function(k,v){filters.push(encodeURIComponent(k)+'=neq.'+encodeURIComponent(v));return q;},
+      gt:function(k,v){filters.push(encodeURIComponent(k)+'=gt.'+encodeURIComponent(v));return q;},
+      or:function(s){filters.push('or=('+encodeURIComponent(s)+')');return q;},
+      order:function(k,o){ord=encodeURIComponent(k)+'.'+(o&&o.ascending===false?'desc':'asc');return q;},
+      limit:function(n){lim=n;return q;},
+      single:function(){single=true;return q;},
+      get:function(){
+        var url=base+table+'?select='+encodeURIComponent(sel);
+        filters.forEach(function(f){url+='&'+f;});
+        if(ord)url+='&order='+ord;
+        if(lim)url+='&limit='+lim;
+        var h=H();
+        if(single)h['Accept']='application/vnd.pgrst.object+json';
+        return fetch(url,{method:'GET',headers:h})
+          .then(function(r){return r.text().then(function(t){
+            if(r.status===406)return{data:null,error:null};
+            var d=null;try{d=t?JSON.parse(t):null;}catch(e){d=null;}
+            return r.ok?{data:d,error:null}:{data:null,error:d||{message:'HTTP '+r.status+': '+t.slice(0,80)}};
+          });})
+          .catch(function(e){return{data:null,error:{message:'fetch: '+e.message}};});
+      },
+      then:function(res,rej){return q.get().then(res,rej);}
+    };
+    return q;
+  }
+  function ub(table,obj){
+    var filters=[];
+    var u={
+      eq:function(k,v){filters.push(encodeURIComponent(k)+'=eq.'+encodeURIComponent(v));return u;},
+      exec:function(){
+        var url=base+table+'?'+filters.join('&');
+        return fetch(url,{method:'PATCH',headers:H(),body:JSON.stringify(obj)})
+          .then(function(r){
+            if(r.status===204)return{data:null,error:null};
+            return r.text().then(function(t){var d=null;try{d=t?JSON.parse(t):null;}catch(e){d=null;}return r.ok?{data:d,error:null}:{data:null,error:d||{message:'HTTP '+r.status}};});
+          })
+          .catch(function(e){return{data:null,error:{message:e.message}};});
+      },
+      then:function(res,rej){return u.exec().then(res,rej);}
+    };
+    return u;
+  }
+  function db(table){
+    var filters=[];
+    var d={
+      eq:function(k,v){filters.push(encodeURIComponent(k)+'=eq.'+encodeURIComponent(v));return d;},
+      exec:function(){
+        var url=base+table+'?'+filters.join('&');
+        return fetch(url,{method:'DELETE',headers:{apikey:SK,Authorization:'Bearer '+SK}})
+          .then(function(r){return{data:null,error:r.ok?null:{message:'Delete failed '+r.status}};})
+          .catch(function(e){return{data:null,error:{message:e.message}};});
+      },
+      then:function(res,rej){return d.exec().then(res,rej);}
+    };
+    return d;
+  }
+  return{
+    from:function(table){
+      return{
+        select:function(s){return qb(table).select(s||'*');},
+        update:function(obj){return ub(table,obj);},
+        delete:function(){return db(table);},
+        insert:function(rows){
+          var body=Array.isArray(rows)?rows:[rows];
+          return fetch(base+table,{method:'POST',headers:H(),body:JSON.stringify(body)})
+            .then(function(r){return r.text().then(function(t){var d=null;try{d=t?JSON.parse(t):null;}catch(e){d=null;}return r.ok?{data:d,error:null}:{data:null,error:d||{message:'HTTP '+r.status+': '+t.slice(0,100)}};});})
+            .catch(function(e){return{data:null,error:{message:e.message}};});
+        }
+      };
+    },
+    storage:{
+      from:function(bucket){
+        return{
+          upload:function(path,file,opts){
+            return fetch(storBase+'object/'+bucket+'/'+path,{
+              method:'POST',
+              headers:{apikey:SK,Authorization:'Bearer '+SK,'Content-Type':file.type||'application/octet-stream','x-upsert':(opts&&opts.upsert)?'true':'false'},
+              body:file
+            })
+            .then(function(r){return r.text().then(function(t){var d=null;try{d=t?JSON.parse(t):null;}catch(e){d=null;}return r.ok?{data:d,error:null}:{data:null,error:d||{message:'Upload failed'}};});})
+            .catch(function(e){return{data:null,error:{message:e.message}};});
+          }
+        };
+      }
+    }
+  };
+})();
 /* ══════════════════════════════════════
    APP STATE
 ══════════════════════════════════════ */
