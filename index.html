@@ -1683,23 +1683,23 @@ function hideLoader() {
   document.getElementById('loader').style.display = 'none';
 }
    
-/* ══════════════════════════════════════
-   AUTH 
-══════════════════════════════════════ */
+/* ═════════ AUTH STATE ═════════ */
 
-/* SUPABASE CLIENT (REQUIRED) */
 const db = supabase.createClient(
-  "https://lwnbfjjsstxkyexeojcl.supabase.co
-   ",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx3bmJmampzc3R4a3lleGVvamNsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzMjc4MTgsImV4cCI6MjA5MTkwMzgxOH0.EzB9H8dzwS7VME9-wwnpSHkA4R-04Wd8msK9E24hBDg';
+  "https://lwnbfjjsstxkyexeojcl.supabase.co",
+  "YOUR_ANON_KEY_HERE"
+);
 
-/* ═══ AUTH TAB SWITCH ═══ */
+/* ═════════ TAB SWITCH ═════════ */
+
 function switchAuthTab(tab) {
-  const loginTab = document.querySelectorAll('.auth-tab')[0];
-  const registerTab = document.querySelectorAll('.auth-tab')[1];
+  const loginTab = document.querySelector('[onclick="switchAuthTab(\'login\')"]');
+  const registerTab = document.querySelector('[onclick="switchAuthTab(\'register\')"]');
 
   const loginForm = document.getElementById('login-form');
   const registerForm = document.getElementById('register-form');
+
+  if (!loginTab || !registerTab) return;
 
   loginTab.classList.remove('active');
   registerTab.classList.remove('active');
@@ -1716,7 +1716,8 @@ function switchAuthTab(tab) {
   }
 }
 
-/* ═══ LOGIN ═══ */
+/* ═════════ LOGIN ═════════ */
+
 async function handleLogin() {
   const email = document.getElementById('login-email').value.trim();
   const password = document.getElementById('login-password').value;
@@ -1725,12 +1726,12 @@ async function handleLogin() {
   const msg = document.getElementById('login-msg');
 
   if (!email || !password) {
-    msg.textContent = "Please fill all fields.";
+    msg.textContent = "Fill all fields";
     return;
   }
 
   btn.disabled = true;
-  btn.textContent = "Signing in…";
+  btn.textContent = "Signing in...";
   msg.textContent = "";
 
   const { error } = await db.auth.signInWithPassword({
@@ -1745,42 +1746,43 @@ async function handleLogin() {
     return;
   }
 
+  msg.className = "auth-msg auth-success";
   msg.textContent = "Login successful";
 
   if (typeof showApp === "function") showApp();
 }
 
-/* ═══ REGISTER ═══ */
+/* ═════════ REGISTER ═════════ */
+
 async function handleRegister() {
   const name = document.getElementById('reg-name').value.trim();
   const email = document.getElementById('reg-email').value.trim();
   const password = document.getElementById('reg-password').value;
-  const refCode = document.getElementById('reg-referral').value.trim().toUpperCase();
+  const ref = document.getElementById('reg-referral').value.trim().toUpperCase();
 
   const btn = document.getElementById('reg-btn');
   const msg = document.getElementById('reg-msg');
 
   if (!name || !email || !password) {
-    msg.textContent = "Please fill all required fields.";
+    msg.textContent = "Fill required fields";
     return;
   }
 
   if (password.length < 8) {
-    msg.textContent = "Password must be at least 8 characters.";
+    msg.textContent = "Password too short";
     return;
   }
 
   btn.disabled = true;
-  btn.textContent = "Creating account…";
-  msg.textContent = "";
+  btn.textContent = "Creating...";
 
-  const { data, error } = await db.auth.signUp({
+  const { error } = await db.auth.signUp({
     email,
     password,
     options: {
       data: {
         full_name: name,
-        referral_code_used: refCode || null
+        referral_code_used: ref || null
       }
     }
   });
@@ -1793,24 +1795,20 @@ async function handleRegister() {
   }
 
   msg.className = "auth-msg auth-success";
-  msg.textContent = "Account created! Check your email.";
+  msg.textContent = "Check your email to confirm account";
 
   btn.disabled = false;
   btn.textContent = "Create Account";
 }
 
-/* ═══ SIGN OUT ═══ */
-async function handleSignOut() {
-  await db.auth.signOut();
-  if (typeof showAuth === "function") showAuth();
-}
+/* ═════════ AUTO LOGIN CHECK ═════════ */
 
-/* ═══ AUTO SESSION CHECK ═══ */
 db.auth.getSession().then(({ data }) => {
-  if (data.session) {
-    if (typeof showApp === "function") showApp();
+  if (data.session && typeof showApp === "function") {
+    showApp();
   }
 });
+
 
 /* ══════════════════════════════════════
    PROFILE
