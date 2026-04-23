@@ -1814,6 +1814,35 @@ async function handleSignOut() {
   await db.auth.signOut();
   if (typeof showAuth === 'function') showAuth();
 }
+   function switchAuthTab(tab) {
+  const loginTab = document.querySelectorAll('.auth-tab')[0];
+  const registerTab = document.querySelectorAll('.auth-tab')[1];
+
+  const loginForm = document.getElementById('login-form');
+  const registerForm = document.getElementById('register-form');
+
+  // reset tab states
+  loginTab.classList.remove('active');
+  registerTab.classList.remove('active');
+
+  // hide both forms first (important fix)
+  loginForm.classList.add('hidden');
+  registerForm.classList.add('hidden');
+
+  // switch based on tab
+  if (tab === 'login') {
+    loginTab.classList.add('active');
+    loginForm.classList.remove('hidden');
+  } else {
+    registerTab.classList.add('active');
+    registerForm.classList.remove('hidden');
+  }
+   }
+   document.querySelectorAll('.auth-tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    switchAuthTab(btn.dataset.tab);
+  });
+});
 
 /* ══════════════════════════════════════
    PROFILE
