@@ -248,7 +248,31 @@ async function handleRegister(){
     window.location.href="dashboard.html";
   },1000);
 }
+async function handleRegister(){
+  const name=document.getElementById('reg-name').value;
+  const email=document.getElementById('reg-email').value;
+  const password=document.getElementById('reg-password').value;
 
+  const msg=document.getElementById('msg');
+
+  const { data, error } = await db.auth.signUp({
+    email,
+    password,
+    options:{
+      data:{ full_name:name }
+    }
+  });
+
+  if(error){
+    console.log(error); // IMPORTANT
+    msg.textContent = error.message;
+    msg.className = "msg error";
+    return;
+  }
+
+  msg.textContent = "Check your email to confirm account";
+  msg.className = "msg success";
+  }
 </script>
 
 </body>
