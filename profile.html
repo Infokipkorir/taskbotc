@@ -3,30 +3,37 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>Profile</title>
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 
 <style>
+
+/* ═════════ ROOT ═════════ */
 :root{
   --blue:#1a56db;
   --gray:#6b7280;
   --bg:#f9fafb;
+  --card:#ffffff;
+  --border:#eee;
 }
 
+/* ═════════ GLOBAL ═════════ */
 body{
   margin:0;
   font-family:system-ui;
   background:var(--bg);
 }
 
-.view{display:none;padding-bottom:90px}
+.view{
+  display:none;
+  padding-bottom:90px;
+}
 
-/* PROFILE */
+/* ═════════ PROFILE CARD ═════════ */
 .profile-card{
-  background:#fff;
+  background:var(--card);
   margin:16px;
   padding:20px;
   border-radius:16px;
@@ -35,10 +42,16 @@ body{
 }
 
 .avatar{
-  width:70px;height:70px;border-radius:50%;
-  background:var(--blue);color:#fff;
-  display:flex;align-items:center;justify-content:center;
-  font-size:22px;font-weight:700;margin:0 auto 10px;
+  width:70px;height:70px;
+  border-radius:50%;
+  background:var(--blue);
+  color:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:22px;
+  font-weight:700;
+  margin:0 auto 10px;
 }
 
 .name{font-weight:700;font-size:16px}
@@ -55,7 +68,7 @@ body{
   border-radius:20px;
 }
 
-/* STATS GRID */
+/* ═════════ STATS ═════════ */
 .stats{
   display:grid;
   grid-template-columns:repeat(2,1fr);
@@ -72,7 +85,28 @@ body{
 .stat-num{font-weight:700;color:var(--blue)}
 .stat-label{font-size:11px;color:var(--gray)}
 
-/* MENU */
+/* ═════════ CARDS (PAYMENT / ACTIVITY) ═════════ */
+.card{
+  background:#fff;
+  margin:16px;
+  padding:15px;
+  border-radius:12px;
+  box-shadow:0 2px 10px rgba(0,0,0,0.05);
+}
+
+.card b{
+  display:block;
+  margin-bottom:10px;
+}
+
+.item{
+  display:flex;
+  justify-content:space-between;
+  padding:10px 0;
+  border-bottom:1px solid #f1f1f1;
+}
+
+/* ═════════ MENU ═════════ */
 .menu{margin:16px}
 
 .menu-item{
@@ -93,7 +127,7 @@ body{
 
 .menu-left i{color:var(--blue)}
 
-/* LOGOUT */
+/* ═════════ BUTTONS ═════════ */
 .logout{
   background:#ef4444;
   color:#fff;
@@ -104,7 +138,26 @@ body{
   cursor:pointer;
 }
 
-/* NAV */
+/* ═════════ MODAL ═════════ */
+#verify-modal{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.5);
+  align-items:center;
+  justify-content:center;
+  z-index:999;
+}
+
+#verify-modal div{
+  background:#fff;
+  padding:20px;
+  border-radius:12px;
+  width:90%;
+  max-width:350px;
+}
+
+/* ═════════ NAV ═════════ */
 .bottom-nav{
   position:fixed;
   bottom:0;
@@ -113,7 +166,7 @@ body{
   width:100%;
   max-width:480px;
   background:#fff;
-  border-top:1px solid #eee;
+  border-top:1px solid var(--border);
   display:flex;
 }
 
@@ -123,13 +176,14 @@ body{
   padding:10px;
 }
 
-.nav-item i{font-size:20px;color:#6b7280}
-.nav-label{font-size:10px;color:#6b7280}
+.nav-item i{font-size:20px;color:var(--gray)}
+.nav-label{font-size:10px;color:var(--gray)}
 
 .nav-item.active i,
 .nav-item.active .nav-label{
   color:var(--blue);
 }
+
 </style>
 </head>
 
@@ -137,136 +191,71 @@ body{
 
 <div class="view" id="view-profile">
 
+<!-- PROFILE -->
 <div class="profile-card">
   <div class="avatar" id="avatar">U</div>
-
   <div class="name" id="name">Loading...</div>
-  <div id="verify-badge" style="font-size:12px;margin-top:5px;cursor:pointer"></div>
+  <div id="verify-badge"></div>
   <div class="username" id="username">@username</div>
   <div class="email" id="email">email</div>
 
   <div class="badge" id="country">🌍 Loading country</div>
 
   <div class="stats">
-    <div class="stat">
-      <div class="stat-num" id="tasks">0</div>
-      <div class="stat-label">Tasks</div>
-    </div>
-
-    <div class="stat">
-      <div class="stat-num" id="earnings">$0</div>
-      <div class="stat-label">Earnings</div>
-    </div>
-
-    <div class="stat">
-      <div class="stat-num" id="members">0</div>
-      <div class="stat-label">Members</div>
-    </div>
-
-    <div class="stat">
-      <div class="stat-num" id="since">—</div>
-      <div class="stat-label">Joined</div>
-    </div>
+    <div class="stat"><div class="stat-num" id="tasks">0</div><div class="stat-label">Tasks</div></div>
+    <div class="stat"><div class="stat-num" id="earnings">$0</div><div class="stat-label">Earnings</div></div>
+    <div class="stat"><div class="stat-num" id="members">0</div><div class="stat-label">Members</div></div>
+    <div class="stat"><div class="stat-num" id="since">—</div><div class="stat-label">Joined</div></div>
   </div>
 </div>
 
+<!-- PAYMENT -->
+<div class="card">
+  <b>Payment Method</b>
+  <div class="item">
+    <span><i class="bi bi-paypal"></i> PayPal Email</span>
+    <span id="paypal-email">Loading...</span>
+  </div>
+</div>
+
+<!-- ACTIVITY -->
+<div class="card">
+  <b>Recent Activity</b>
+  <div id="activity-list">Loading...</div>
+</div>
+
+<!-- LOGOUT -->
 <div class="logout" onclick="logout()">Sign Out</div>
 
 </div>
 
-  <div id="verify-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);align-items:center;justify-content:center;z-index:999">
-
-  <div style="background:#fff;padding:20px;border-radius:12px;width:90%;max-width:350px">
-
+<!-- VERIFY MODAL -->
+<div id="verify-modal">
+  <div>
     <h3>Verify Account</h3>
     <p>Enter OTP sent to your email</p>
 
     <input id="otp-input" placeholder="Enter OTP"
       style="width:100%;padding:10px;margin:10px 0;border:1px solid #ccc;border-radius:6px">
 
-    <button onclick="sendOTP()" style="width:100%;margin-bottom:10px">
-      Send OTP
-    </button>
-
-    <button onclick="confirmOTP()" style="width:100%;background:#1a56db;color:#fff">
-      Verify
-    </button>
-
-    <button onclick="closeVerifyModal()" style="margin-top:10px;width:100%">
-      Cancel
-    </button>
-
+    <button onclick="sendOTP()" style="width:100%;margin-bottom:10px">Send OTP</button>
+    <button onclick="confirmOTP()" style="width:100%;background:#1a56db;color:#fff">Verify</button>
+    <button onclick="closeVerifyModal()" style="margin-top:10px;width:100%">Cancel</button>
   </div>
-  </div>
+</div>
 
-  <div class="card">
-  <b>Payment Method</b>
-
-  <div class="item">
-    <span><i class="bi bi-paypal"></i> PayPal Email</span>
-    <span id="paypal-email">Loading...</span>
-  </div>
-
-  <div class="item">
-    <span>Status</span>
-    <span id="paypal-status" style="color:green">Active</span>
-  </div>
-  </div>
-  <div class="card">
-  <b>Recent Activity</b>
-  <div id="activity-list">Loading...</div>
-  </div>
 <!-- NAV -->
 <nav class="bottom-nav">
-
-  <div class="nav-item" onclick="location.href='task.html'">
-    <i class="bi bi-list-check"></i>
-    <div class="nav-label">Tasks</div>
-  </div>
-
-  <div class="nav-item" onclick="location.href='mytasks.html'">
-    <i class="bi bi-clipboard-check"></i>
-    <div class="nav-label">My Tasks</div>
-  </div>
-
-  <div class="nav-item" onclick="location.href='support.html'">
-    <i class="bi bi-chat-dots"></i>
-    <div class="nav-label">Support</div>
-  </div>
-
-  <div class="nav-item" onclick="location.href='referrals.html'">
-    <i class="bi bi-people"></i>
-    <div class="nav-label">Referrals</div>
-  </div>
-
-  <div class="nav-item active">
-    <i class="bi bi-person"></i>
-    <div class="nav-label">Profile</div>
-  </div>
-
+  <div class="nav-item" onclick="location.href='task.html'"><i class="bi bi-list-check"></i><div class="nav-label">Tasks</div></div>
+  <div class="nav-item" onclick="location.href='mytasks.html'"><i class="bi bi-clipboard-check"></i><div class="nav-label">My Tasks</div></div>
+  <div class="nav-item" onclick="location.href='support.html'"><i class="bi bi-chat-dots"></i><div class="nav-label">Support</div></div>
+  <div class="nav-item" onclick="location.href='referrals.html'"><i class="bi bi-people"></i><div class="nav-label">Referrals</div></div>
+  <div class="nav-item active"><i class="bi bi-person"></i><div class="nav-label">Profile</div></div>
 </nav>
 
 <script>
-const db = supabase.createClient(
- "https://lwnbfjjsstxkyexeojcl.supabase.co",
- "sb_publishable_Pj9ocGkssu5Gh6qZXFnZQQ_LdghnZt9"
-);
 
-let currentUser = null;
-
-/* FLAG HELPER */
-function getFlag(country){
-  const flags = {
-    Kenya:"🇰🇪",
-    Nigeria:"🇳🇬",
-    USA:"🇺🇸",
-    UK:"🇬🇧"
-  };
-  return flags[country] || "🌍";
-}
-
-  <script>
-
+/* ═════════ SUPABASE ═════════ */
 const db = supabase.createClient(
   "https://lwnbfjjsstxkyexeojcl.supabase.co",
   "sb_publishable_Pj9ocGkssu5Gh6qZXFnZQQ_LdghnZt9"
@@ -274,223 +263,129 @@ const db = supabase.createClient(
 
 let currentUser = null;
 
-/* ═════════ LOAD PROFILE ═════════ */
+/* FLAG */
+function getFlag(c){
+  return {Kenya:"🇰🇪",Nigeria:"🇳🇬",USA:"🇺🇸",UK:"🇬🇧"}[c] || "🌍";
+}
+
+/* ═════════ INIT ═════════ */
 document.addEventListener("DOMContentLoaded", async () => {
+
+  document.getElementById("view-profile").style.display = "block";
 
   const { data } = await db.auth.getUser();
   if (!data.user) return location.href = "index.html";
 
   currentUser = data.user;
 
-  // BASIC INFO
-  document.getElementById("username").textContent =
-    currentUser.user_metadata?.full_name || "User";
-
-  document.getElementById("avatar").textContent =
-    currentUser.email[0].toUpperCase();
-
-  const date = new Date(currentUser.created_at);
-  document.getElementById("since").textContent = date.getFullYear();
-
-  document.getElementById("payment-method").textContent =
-    "PayPal - " + currentUser.email;
-
-  // VERIFICATION
+  loadProfile();
+  loadStats();
+  loadPaymentAndActivity();
   checkVerification();
-
-  // LOAD DATA
-  loadTransactions();
 });
 
-/* ═════════ VERIFICATION STATUS ═════════ */
-function checkVerification() {
-  const badge = document.getElementById("verify-badge");
-
-  if (currentUser.user_metadata?.verified) {
-    badge.innerHTML = "✔ Verified";
-    badge.style.color = "green";
-  } else {
-    badge.innerHTML = "⚠ Not Verified";
-    badge.style.color = "red";
-    badge.onclick = openVerifyModal;
-  }
-}
-
-/* ═════════ LOAD TRANSACTIONS ═════════ */
-async function loadTransactions() {
-
-  const { data, error } = await db
-    .from("transactions")
-    .select("*")
-    .eq("user_id", currentUser.id)
-    .order("created_at", { ascending: false });
-
-  const box = document.getElementById("transactions");
-
-  if (error || !data.length) {
-    box.innerHTML = `<div class="item">No transactions yet</div>`;
-    return;
-  }
-
-  // calculate earnings
-  let total = 0;
-
-  box.innerHTML = data.map(tx => {
-
-    if (tx.status === "completed") total += Number(tx.amount);
-
-    return `
-      <div class="item">
-        <span>${tx.type}</span>
-        <span style="color:${tx.amount > 0 ? 'green':'red'}">
-          ${tx.amount > 0 ? '+' : ''}$${tx.amount}
-        </span>
-      </div>
-    `;
-  }).join("");
-
-  document.getElementById("earnings").textContent =
-    "$" + total.toFixed(2);
-}
-
-/* ═════════ VERIFY MODAL ═════════ */
-function openVerifyModal() {
-  document.getElementById("verify-modal").style.display = "flex";
-}
-
-function closeVerifyModal() {
-  document.getElementById("verify-modal").style.display = "none";
-}
-
-/* ═════════ SEND OTP (SIMULATED) ═════════ */
-async function sendOTP() {
-  alert("OTP sent to your email");
-
-  // In production use Supabase email OTP
-}
-
-/* ═════════ CONFIRM OTP ═════════ */
-async function confirmOTP() {
-
-  const otp = document.getElementById("otp-input").value;
-
-  if (otp.length < 4) {
-    alert("Invalid OTP");
-    return;
-  }
-
-  // Simulate success → mark verified
-  const { error } = await db.auth.updateUser({
-    data: { verified: true }
-  });
-
-  if (error) {
-    alert(error.message);
-    return;
-  }
-
-  alert("Account verified successfully!");
-  closeVerifyModal();
-  checkVerification();
-}
-
-
-/* LOAD PROFILE */
+/* ═════════ PROFILE ═════════ */
 async function loadProfile(){
-
-  const {data} = await db.auth.getUser();
-
-  if(!data.user){
-    location.href="index.html";
-    return;
-  }
-
-  currentUser = data.user;
-
-  const meta = data.user.user_metadata;
+  const meta = currentUser.user_metadata || {};
 
   document.getElementById("name").textContent = meta.full_name || "User";
   document.getElementById("username").textContent = "@"+(meta.username || "user");
-  document.getElementById("email").textContent = data.user.email;
+  document.getElementById("email").textContent = currentUser.email;
 
   document.getElementById("avatar").textContent =
-    (meta.full_name || data.user.email)[0].toUpperCase();
+    (meta.full_name || currentUser.email)[0].toUpperCase();
 
   document.getElementById("country").textContent =
     getFlag(meta.country) + " " + (meta.country || "Unknown");
 
   document.getElementById("since").textContent =
-    new Date(data.user.created_at).toLocaleDateString();
-
-  loadStats();
+    new Date(currentUser.created_at).getFullYear();
 }
 
-/* LOAD STATS */
+/* ═════════ STATS ═════════ */
 async function loadStats(){
 
-  const {data} = await db
-    .from("user_tasks")
+  const { data } = await db.from("user_tasks")
     .select("*")
     .eq("user_id", currentUser.id);
 
-  if(data){
-    document.getElementById("tasks").textContent = data.length;
+  document.getElementById("tasks").textContent = data?.length || 0;
 
-    let total = data.reduce((s,t)=> s + (t.reward||0),0);
-    document.getElementById("earnings").textContent = "$"+total;
-  }
+  let total = data?.reduce((s,t)=>s+(t.reward||0),0) || 0;
+  document.getElementById("earnings").textContent = "$"+total;
 
-  // MEMBERS COUNT
-  const {count} = await db
-    .from("profiles")
-    .select("*", { count:"exact", head:true });
+  const { count } = await db.from("profiles")
+    .select("*",{count:"exact",head:true});
 
   document.getElementById("members").textContent = count || 0;
 }
-  /* ═════════ PAYPAL + ACTIVITY ═════════ */
 
-async function loadPaymentAndActivity() {
+/* ═════════ PAYMENT + ACTIVITY ═════════ */
+async function loadPaymentAndActivity(){
 
-  // PAYPAL
-  document.getElementById("paypal-email").textContent =
-    currentUser.email;
+  document.getElementById("paypal-email").textContent = currentUser.email;
 
-  // ACTIVITY
-  const { data } = await db
-    .from("activities")
+  const { data } = await db.from("activities")
     .select("*")
     .eq("user_id", currentUser.id)
-    .order("created_at", { ascending: false })
+    .order("created_at",{ascending:false})
     .limit(10);
 
   const box = document.getElementById("activity-list");
 
-  if (!data || !data.length) {
-    box.innerHTML = "<div>No recent activity</div>";
+  if(!data?.length){
+    box.innerHTML = "No activity";
     return;
   }
 
-  box.innerHTML = data.map(a => `
+  box.innerHTML = data.map(a=>`
     <div class="item">
       <span>${a.title}</span>
-      <span style="font-size:11px;color:#999">
-        ${new Date(a.created_at).toLocaleDateString()}
-      </span>
+      <span>${new Date(a.created_at).toLocaleDateString()}</span>
     </div>
   `).join("");
 }
 
-/* LOGOUT */
+/* ═════════ VERIFY ═════════ */
+function checkVerification(){
+  const badge = document.getElementById("verify-badge");
+
+  if(currentUser.user_metadata?.verified){
+    badge.textContent = "✔ Verified";
+    badge.style.color = "green";
+  }else{
+    badge.textContent = "⚠ Not Verified";
+    badge.style.color = "red";
+    badge.onclick = openVerifyModal;
+  }
+}
+
+function openVerifyModal(){
+  document.getElementById("verify-modal").style.display="flex";
+}
+
+function closeVerifyModal(){
+  document.getElementById("verify-modal").style.display="none";
+}
+
+async function sendOTP(){
+  alert("OTP sent");
+}
+
+async function confirmOTP(){
+  await db.auth.updateUser({ data:{ verified:true } });
+  alert("Verified");
+  closeVerifyModal();
+  checkVerification();
+}
+
+/* ═════════ LOGOUT ═════════ */
 async function logout(){
   await db.auth.signOut();
   location.href="index.html";
 }
 
-document.addEventListener("DOMContentLoaded", ()=>{
-  document.getElementById("view-profile").style.display="block";
-  loadProfile();
-});
 </script>
 
 </body>
-    </html>
+</html>
