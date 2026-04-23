@@ -1542,6 +1542,104 @@ var sb=(function(){
     }
   };
 })();
+   /* ── NOTIFICATIONS JS ── */
+
+var _notifReportId = null;
+
+// Sender config – add more as needed
+var NOTIF_SENDERS = {
+  support:  { label: 'Support',  verified: true  },
+  payments: { label: 'Payments', verified: false },
+  system:   { label: 'System',   verified: false },
+};
+
+function renderNotifSender(type) {
+  var cfg = NOTIF_SENDERS[type] || { label: type || 'System', verified: false };
+  var badge = cfg.verified
+    ? '<span class="notif-verified"><svg viewBox="0 0 10 10"><polyline points="2,5 4.5,7.5 8,3" stroke="#fff" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>'
+    : '';
+  return '<div class="notif-sender"><span class="notif-sender-name">' + cfg.label + '</span>' + badge + '</div>';
+}
+
+function renderNotifications(list) {
+  var el = document.getElementById('notifs-list');
+  if (!list || !list.length) {
+    el.innerHTML = '<div style="text-align:center;padding:30px;color:var(--mu);font-size:13px">No notifications yet</div>';
+    updateNotifBadge(0);
+    return;
+  }
+
+  var unread = 0;
+  var html = '';
+
+  list.forEach(function(n) {
+    if (!n.read) unread++;
+    var cls = 'notif-item ' + (n.read ? 'read ' : '') + (n.type ? 'nt-' + n.type : '');
+    var dot  = !n.read ? '<span class="notif-unread-dot"></span>' : '';
+    var liked = (n.liked) ? 'liked' : '';
+    var likeCount = n.likes || 0;
+
+    html += '<div class="' + cls + '" id="notif-' + n.id + '" onclick="markNotifRead(\'' + n.id + '\')">'
+          +   '<div style="display:flex;align-items:flex-start;gap:6px">'
+          +     '<div style="flex:1">'
+          +       renderNotifSender(n.sender)
+          +       '<div class="notif-title">' + (n.title || '') + '</div>'
+          +       '<div class="notif-msg">'   + (n.msg   || '') + '</div>'
+          +       '<div class="notif-date">'  + (n.date  || '') + '</div>'
+          +     '</div>'
+          +     dot
+          +   '</div>'
+          +   '<div class="notif-actions" onclick="event.stopPropagation()">'
+          +     '<button class="notif-action-btn ' + liked + '" id="like-btn-' + n.id + '" onclick="toggleNotifLike(\'' + n.id + '\')">'
+          +       '<svg viewBox="0 0 24 24" fill="' + (n.liked ? 'currentColor' : 'none') + '" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.8 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg>'
+          +       '<span id="like-count-' + n.id + '">' + (likeCount > 0 ? likeCount : '') + '</span>'
+          +     '</button>'
+          +     '<button class="notif-action-btn" onclick="shareNotif(\'' + n.id + '\')">'
+          +       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/><line x1="15.4" y1="6.5" x2="8.6" y2="10.5"/></svg>'
+          +       'Share'
+          +     '</button>'
+          +     '<button class="notif-action-btn" onclick="openNotifReport(\'' + n.id + '\')">'
+          +       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>'
+          +       'Report'
+          +     '</button>'
+          +   '</div>'
+          + '</div>';
+  });
+  // ==================== MOCK DATABASE (localStorage) ====================
+const STORAGE_KEY = "secure_app_users";
+
+function loadUsers() {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return [];
+    try {
+        return JSON.parse(raw);
+    } catch (e) {
+        return [];
+    }
+}
+
+function saveUsers(users) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(users));
+}
+
+// ==================== UTILITIES ====================
+function showMessage(containerId, message, isError = true) {
+    const msgDiv = document.getElementById(containerId);
+    if (!msgDiv) return;
+    msgDiv.style.display = "block";
+    msgDiv.style.background = isError ? "#fee2e2" : "#e0f2fe";
+    msgDiv.style.color = isError ? "#b91c1c" : "#0c4e6e";
+    msgDiv.style.borderLeftColor = isError ? "#ef4444" : "#0ea5e9";
+    msgDiv.innerHTML = message;
+    setTimeout(() => {
+        if (msgDiv) msgDiv.style.display = "none";
+    }, 3800);
+}
+
+function clearMsg(containerId) {
+    const div = document.getElementById(containerId);
+    if (div) div.style.display = "none";
+}
 /* ══════════════════════════════════════
    APP STATE
 ══════════════════════════════════════ */
