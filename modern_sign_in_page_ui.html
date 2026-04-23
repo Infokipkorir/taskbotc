@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Onetasks</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Inter,system-ui}
+
+/* PAGE BACKGROUND SPLIT */
+body{
+  height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:linear-gradient(135deg,#0f172a,#1e3a8a);
+}
+
+/* SPLASH INTRO */
+.splash{
+  text-align:center;
+  color:#fff;
+  animation:fadeIn 1s ease;
+  padding:20px;
+}
+
+.logo{
+  width:90px;height:90px;
+  margin:0 auto 20px;
+  background:rgba(255,255,255,0.12);
+  border:1px solid rgba(255,255,255,0.25);
+  border-radius:18px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:700;
+  font-size:28px;
+}
+
+.splash h1{font-size:34px;margin-bottom:10px}
+.splash p{opacity:.85;margin-bottom:18px;line-height:1.4}
+
+/* INTRO BADGE */
+.badge{
+  display:inline-block;
+  padding:6px 12px;
+  background:rgba(255,255,255,0.15);
+  border:1px solid rgba(255,255,255,0.25);
+  border-radius:999px;
+  font-size:12px;
+  margin-bottom:12px;
+}
+
+.btn{
+  padding:12px 20px;
+  border:none;
+  border-radius:12px;
+  background:#2563eb;
+  color:#fff;
+  font-weight:600;
+  cursor:pointer;
+}
+
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* MODAL OVERLAY */
+.overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.5);
+  display:none;
+  align-items:center;
+  justify-content:center;
+}
+
+/* LIGHT AUTH CARD */
+.modal{
+  width:92%;
+  max-width:420px;
+  background:#ffffff;
+  border-radius:18px;
+  padding:22px;
+  box-shadow:0 30px 80px rgba(0,0,0,0.25);
+}
+
+.modal h2{margin-bottom:12px;color:#111827}
+
+.input{margin-bottom:10px}
+.input input,select{
+  width:100%;padding:11px;
+  border:1px solid #e5e7eb;
+  border-radius:10px;
+  outline:none;
+  background:#f9fafb;
+}
+
+.action{
+  width:100%;padding:12px;
+  background:#2563eb;
+  color:#fff;
+  border:none;
+  border-radius:10px;
+  font-weight:600;
+  cursor:pointer;
+}
+
+.switch{
+  font-size:12px;
+  text-align:center;
+  margin-top:10px;
+  color:#6b7280;
+}
+
+.switch span{
+  color:#2563eb;
+  cursor:pointer;
+  font-weight:600;
+}
+
+.msg{
+  font-size:12px;
+  text-align:center;
+  margin-top:8px;
+  min-height:14px;
+}
+.success{color:green}
+.error{color:red}
+
+@media(max-width:768px){body{padding:10px}}
+</style>
+</head>
+<body>
+
+<!-- SPLASH / INTRO -->
+<div id="splash" class="splash">
+  <div class="badge">🚀 Welcome to Onetasks Platform</div>
+  <div class="logo">OT</div>
+  <h1>Earn. Complete Tasks. Grow.</h1>
+  <p>
+    Onetasks helps you complete simple online tasks and earn real rewards.
+    Start your journey in seconds.
+  </p>
+  <button class="btn" onclick="openAuth()">Get Started</button>
+</div>
+
+<!-- AUTH MODAL -->
+<div id="authOverlay" class="overlay">
+  <div class="modal">
+
+    <h2 id="title">Login</h2>
+
+    <!-- LOGIN -->
+    <div id="loginBox">
+      <div class="input"><input id="login-email" type="email" placeholder="Email"></div>
+      <div class="input"><input id="login-password" type="password" placeholder="Password"></div>
+      <button class="action" onclick="handleLogin()">Login</button>
+    </div>
+
+    <!-- REGISTER -->
+    <div id="registerBox" style="display:none">
+      <div class="input"><input id="reg-name" type="text" placeholder="Full name"></div>
+      <div class="input"><input id="reg-email" type="email" placeholder="Email"></div>
+      <div class="input"><input id="reg-password" type="password" placeholder="Password"></div>
+
+      <div class="input">
+        <select id="reg-country">
+          <option>🇰🇪 Kenya</option>
+          <option>🇺🇬 Uganda</option>
+          <option>🇹🇿 Tanzania</option>
+          <option>🇳🇬 Nigeria</option>
+        </select>
+      </div>
+
+      <button class="action" onclick="handleRegister()">Create Account</button>
+    </div>
+
+    <div class="switch">
+      <span onclick="toggleMode()" id="switchText">No account? Register</span>
+    </div>
+
+    <div id="msg" class="msg"></div>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+
+const db = supabase.createClient(
+  "https://lwnbfjjsstxkyexeojcl.supabase.co",
+  "sb_publishable_Pj9ocGkssu5Gh6qZXFnZQQ_LdghnZt9"
+);
+
+let mode="login";
+
+function openAuth(){
+  document.getElementById('authOverlay').style.display='flex';
+}
+
+function toggleMode(){
+  mode = mode==='login' ? 'register':'login';
+
+  document.getElementById('loginBox').style.display = mode==='login'?'block':'none';
+  document.getElementById('registerBox').style.display = mode==='register'?'block':'none';
+
+  document.getElementById('title').innerText = mode==='login'?'Login':'Register';
+  document.getElementById('switchText').innerText = mode==='login'?'No account? Register':'Have account? Login';
+}
+
+/* LOGIN */
+async function handleLogin(){
+  const email=document.getElementById('login-email').value;
+  const password=document.getElementById('login-password').value;
+
+  const {error}=await db.auth.signInWithPassword({email,password});
+
+  const msg=document.getElementById('msg');
+
+  if(error){msg.textContent=error.message;msg.className='msg error';return;}
+
+  msg.textContent="Login successful";
+  msg.className='msg success';
+
+  setTimeout(()=>{
+    window.location.href="dashboard.html";
+  },800);
+}
+
+/* REGISTER */
+async function handleRegister(){
+  const name=document.getElementById('reg-name').value;
+  const email=document.getElementById('reg-email').value;
+  const password=document.getElementById('reg-password').value;
+
+  const msg=document.getElementById('msg');
+
+  const {error}=await db.auth.signUp({
+    email,password,
+    options:{data:{full_name:name}}
+  });
+
+  if(error){msg.textContent=error.message;msg.className='msg error';return;}
+
+  msg.textContent="Account created successfully";
+  msg.className='msg success';
+
+  setTimeout(()=>{
+    window.location.href="dashboard.html";
+  },1000);
+}
+
+</script>
+
+</body>
+</html>
