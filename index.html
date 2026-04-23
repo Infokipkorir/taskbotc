@@ -1097,24 +1097,10 @@ async function handleLogin(){
     return;
   }
 
-  msg.textContent = "Login successful";
-msg.className = "msg success";
+  msg.textContent="Login successful";
+msg.className="msg success";
 
-//  WAIT a bit then route inside SPA
-setTimeout(() => {
-  if (typeof showApp === "function") {
-    showApp(); // default home/dashboard view
-  }
-
-  // optional: auto-load tasks if needed
-  if (typeof loadTasks === "function") {
-    loadTasks();
-  }
-
-  // OR directly go to tasks page (if you want)
-  // showTasks();
-
-}, 700);
+if(typeof showApp==="function") showApp();
 
 /* ═════════ REGISTER ═════════ */
 async function handleRegister(){
