@@ -2108,6 +2108,15 @@ function showToast(msg, type = '') {
   toastTimer = setTimeout(() => el.classList.remove('show'), 3000);
 }
 
+   window.navTo = function(view) {
+  console.log("NAV:", view);
+
+  document.querySelectorAll('.nav-item').forEach(el => {
+    el.classList.remove('active');
+  });
+
+  document.querySelector(`.nav-item[data-view="${view}"]`)?.classList.add('active');
+};
 /* ══════════════════════════════════════
    HELPERS
 ══════════════════════════════════════ */
