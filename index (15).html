@@ -1,0 +1,1952 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#1a56db">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>OneWall – Earn Real Money</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+/* ══════════════════════════════════════
+   RESET & BASE
+══════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 16px; height: 100%; }
+body {
+  font-family: 'DM Sans', system-ui, sans-serif;
+  background: #f0f2f5;
+  min-height: 100%;
+  min-height: 100dvh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+button { font-family: inherit; cursor: pointer; border: none; background: none; }
+input, textarea, select { font-family: inherit; }
+a { text-decoration: none; color: inherit; }
+img { display: block; max-width: 100%; }
+
+/* ══════════════════════════════════════
+   DESIGN TOKENS
+══════════════════════════════════════ */
+:root {
+  --blue:        #1a56db;
+  --blue-dk:     #1346c2;
+  --blue-lt:     #e6f1fb;
+  --blue-mid:    #b5d4f4;
+  --green:       #3b6d11;
+  --green-lt:    #eaf3de;
+  --amber:       #ba7517;
+  --amber-lt:    #faeeda;
+  --red:         #e24b4a;
+  --red-lt:      #fcebeb;
+  --orange:      #ff6b35;
+  --gray-bg:     #f0f2f5;
+  --gray-card:   #f8f9fb;
+  --gray-border: #e4e7ed;
+  --text-1:      #111827;
+  --text-2:      #4b5563;
+  --text-3:      #9ca3af;
+  --white:       #ffffff;
+  --shadow-sm:   0 1px 3px rgba(0,0,0,0.08);
+  --shadow-md:   0 4px 16px rgba(0,0,0,0.10);
+  --r-sm:        8px;
+  --r-md:        12px;
+  --r-lg:        16px;
+  --r-xl:        20px;
+  --r-pill:      999px;
+  --nav-h:       64px;
+  --header-h:    56px;
+}
+
+/* ══════════════════════════════════════
+   APP SHELL
+══════════════════════════════════════ */
+#app {
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: var(--gray-bg);
+  position: relative;
+  overflow: hidden;
+}
+
+/* ══════════════════════════════════════
+   VIEWS
+══════════════════════════════════════ */
+.view {
+  display: none;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding-bottom: calc(var(--nav-h) + 8px);
+  animation: fadeIn 0.2s ease;
+}
+.view.active { display: flex; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+/* ══════════════════════════════════════
+   AUTH VIEW
+══════════════════════════════════════ */
+#view-auth {
+  padding-bottom: 0;
+  background: linear-gradient(160deg, var(--blue) 0%, #0f3a9e 100%);
+  justify-content: center;
+  align-items: center;
+  padding: 40px 24px;
+  gap: 0;
+}
+.auth-logo {
+  text-align: center;
+  margin-bottom: 36px;
+}
+.auth-logo-mark {
+  width: 72px; height: 72px;
+  background: rgba(255,255,255,0.15);
+  border: 1.5px solid rgba(255,255,255,0.3);
+  border-radius: var(--r-xl);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 16px;
+  font-size: 28px; font-weight: 700; color: #fff;
+  letter-spacing: -1px;
+}
+.auth-logo h1 { font-size: 26px; font-weight: 700; color: #fff; letter-spacing: -0.5px; }
+.auth-logo p { font-size: 14px; color: rgba(255,255,255,0.65); margin-top: 4px; }
+
+.auth-card {
+  background: var(--white);
+  border-radius: var(--r-xl);
+  padding: 28px 24px;
+  width: 100%;
+  box-shadow: var(--shadow-md);
+}
+.auth-tabs {
+  display: flex;
+  background: var(--gray-bg);
+  border-radius: var(--r-md);
+  padding: 3px;
+  margin-bottom: 24px;
+  gap: 3px;
+}
+.auth-tab {
+  flex: 1; padding: 8px 12px;
+  font-size: 13px; font-weight: 500;
+  color: var(--text-3);
+  border-radius: calc(var(--r-md) - 3px);
+  transition: all 0.2s; text-align: center;
+}
+.auth-tab.active {
+  background: var(--white);
+  color: var(--text-1);
+  box-shadow: var(--shadow-sm);
+}
+.auth-form { display: flex; flex-direction: column; gap: 14px; }
+.field-group { display: flex; flex-direction: column; gap: 5px; }
+.field-label { font-size: 12px; font-weight: 600; color: var(--text-2); letter-spacing: 0.02em; }
+.field-input {
+  width: 100%; padding: 11px 14px;
+  border: 1.5px solid var(--gray-border);
+  border-radius: var(--r-sm);
+  font-size: 14px; color: var(--text-1);
+  background: var(--white);
+  transition: border-color 0.15s, box-shadow 0.15s;
+  outline: none;
+}
+.field-input:focus {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(26,86,219,0.10);
+}
+.field-input::placeholder { color: var(--text-3); }
+
+.btn-primary {
+  width: 100%; padding: 13px;
+  background: var(--blue);
+  color: #fff; font-size: 14px; font-weight: 600;
+  border-radius: var(--r-sm);
+  transition: background 0.15s, transform 0.1s;
+  text-align: center;
+}
+.btn-primary:hover { background: var(--blue-dk); }
+.btn-primary:active { transform: scale(0.98); }
+.btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.auth-divider { text-align: center; font-size: 12px; color: var(--text-3); margin: 4px 0; }
+.auth-msg { font-size: 12px; color: var(--red); text-align: center; min-height: 16px; }
+.auth-success { color: var(--green); }
+
+/* ══════════════════════════════════════
+   TOP BAR
+══════════════════════════════════════ */
+.top-bar {
+  background: var(--blue);
+  padding: env(safe-area-inset-top, 0) 0 0;
+  position: sticky; top: 0; z-index: 50;
+}
+.top-bar-inner {
+  display: flex; align-items: center;
+  padding: 0 16px;
+  height: var(--header-h);
+  gap: 10px;
+}
+.top-bar-back {
+  width: 34px; height: 34px;
+  border-radius: var(--r-sm);
+  background: rgba(255,255,255,0.15);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.top-bar-title { font-size: 16px; font-weight: 600; color: #fff; flex: 1; }
+.top-bar-action {
+  width: 34px; height: 34px;
+  border-radius: var(--r-sm);
+  background: rgba(255,255,255,0.15);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.top-bar-action svg, .top-bar-back svg { flex-shrink: 0; }
+
+/* ══════════════════════════════════════
+   HOME HEADER
+══════════════════════════════════════ */
+.home-header {
+  background: linear-gradient(160deg, var(--blue) 0%, #1346c2 55%, #0f3a9e 100%);
+  padding: env(safe-area-inset-top, 0) 0 0;
+  position: sticky; top: 0; z-index: 50;
+  overflow: hidden;
+}
+.home-header::after {
+  content: '';
+  position: absolute;
+  right: -40px; top: -40px;
+  width: 180px; height: 180px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.05);
+  pointer-events: none;
+}
+.home-header-inner {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 16px;
+  height: var(--header-h);
+  position: relative; z-index: 1;
+}
+.home-logo { font-size: 18px; font-weight: 700; color: #fff; letter-spacing: -0.5px; }
+.home-logo span { font-weight: 400; opacity: 0.6; font-size: 14px; }
+.home-notif-btn {
+  width: 36px; height: 36px;
+  border-radius: var(--r-sm);
+  background: rgba(255,255,255,0.14);
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+}
+.home-notif-dot {
+  width: 8px; height: 8px;
+  background: #ff6b35;
+  border-radius: 50%;
+  border: 1.5px solid var(--blue);
+  position: absolute; top: 6px; right: 6px;
+}
+
+.balance-card {
+  background: rgba(255,255,255,0.13);
+  border: 0.5px solid rgba(255,255,255,0.2);
+  border-radius: var(--r-md);
+  padding: 12px 14px;
+  margin: 4px 16px 16px;
+  display: flex; align-items: center; gap: 12px;
+  position: relative; z-index: 1;
+}
+.user-avatar {
+  width: 44px; height: 44px;
+  border-radius: 10px;
+  background: var(--red);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 14px; color: #fff;
+  flex-shrink: 0; letter-spacing: 0.03em;
+}
+.user-details { flex: 1; min-width: 0; }
+.user-name { font-size: 14px; font-weight: 600; color: #fff; }
+.user-email { font-size: 11px; color: rgba(255,255,255,0.6); margin-top: 1px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.balance-amt { text-align: right; flex-shrink: 0; }
+.balance-lbl { font-size: 10px; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.06em; }
+.balance-val { font-size: 20px; font-weight: 700; color: #fff; font-family: 'DM Mono', monospace; margin-top: 2px; }
+
+/* ══════════════════════════════════════
+   STATS ROW
+══════════════════════════════════════ */
+.stats-row {
+  display: flex; gap: 8px;
+  padding: 12px 14px;
+  background: var(--white);
+}
+.stat-card {
+  flex: 1; text-align: center;
+  padding: 10px 6px;
+  background: var(--gray-card);
+  border-radius: var(--r-md);
+  border: 0.5px solid var(--gray-border);
+}
+.stat-num { font-size: 17px; font-weight: 700; color: var(--blue); font-family: 'DM Mono', monospace; }
+.stat-lbl { font-size: 10px; color: var(--text-3); margin-top: 3px; }
+
+/* ══════════════════════════════════════
+   SECTION HEADER
+══════════════════════════════════════ */
+.section-hd {
+  font-size: 10px; font-weight: 700;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  padding: 14px 16px 6px;
+  background: var(--gray-bg);
+}
+
+/* ══════════════════════════════════════
+   QUICK ACTIONS
+══════════════════════════════════════ */
+.actions-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 8px; padding: 8px 12px 14px;
+  background: var(--white);
+}
+.action-btn {
+  display: flex; flex-direction: column;
+  align-items: center; gap: 6px;
+  padding: 10px 4px 8px;
+  border-radius: var(--r-md);
+  background: var(--gray-card);
+  border: 0.5px solid var(--gray-border);
+  transition: background 0.15s, transform 0.1s;
+}
+.action-btn:hover { background: var(--blue-lt); border-color: var(--blue-mid); }
+.action-btn:active { transform: scale(0.94); }
+.action-btn.disabled { opacity: 0.4; pointer-events: none; }
+.action-icon {
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  background: var(--blue);
+  display: flex; align-items: center; justify-content: center;
+}
+.action-icon.dim { background: #c2c7d0; }
+.action-icon svg { width: 18px; height: 18px; flex-shrink: 0; }
+.action-lbl { font-size: 10px; color: var(--text-2); text-align: center; line-height: 1.2; }
+.soon-pill {
+  font-size: 8px; font-weight: 700;
+  background: var(--orange); color: #fff;
+  border-radius: var(--r-pill);
+  padding: 2px 5px; letter-spacing: 0.05em;
+}
+
+/* ══════════════════════════════════════
+   TASK TABS
+══════════════════════════════════════ */
+.task-tabs {
+  display: flex; background: var(--white);
+  border-bottom: 0.5px solid var(--gray-border);
+  padding: 0 12px; gap: 2px;
+  overflow-x: auto; scrollbar-width: none;
+  position: sticky; top: var(--header-h); z-index: 40;
+}
+.task-tabs::-webkit-scrollbar { display: none; }
+.task-tab {
+  flex-shrink: 0; padding: 10px 10px;
+  font-size: 12px; font-weight: 500;
+  color: var(--text-3);
+  border-bottom: 2px solid transparent;
+  transition: color 0.15s;
+  white-space: nowrap;
+}
+.task-tab.active { color: var(--blue); border-bottom-color: var(--blue); font-weight: 600; }
+
+/* ══════════════════════════════════════
+   TASK CARDS
+══════════════════════════════════════ */
+.tasks-list {
+  padding: 10px 14px;
+  display: flex; flex-direction: column; gap: 10px;
+  background: var(--gray-bg);
+  flex: 1;
+}
+.task-card {
+  background: var(--white);
+  border-radius: var(--r-lg);
+  border: 0.5px solid var(--gray-border);
+  padding: 14px;
+  display: flex; align-items: flex-start; gap: 12px;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.12s, box-shadow 0.12s;
+}
+.task-card:active { transform: scale(0.98); }
+.task-badge {
+  width: 44px; height: 44px;
+  border-radius: var(--r-sm);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  font-size: 20px;
+}
+.task-badge.survey  { background: #e6f1fb; }
+.task-badge.social  { background: #eaf3de; }
+.task-badge.video   { background: #faeeda; }
+.task-badge.app     { background: #fcebeb; }
+.task-badge.quick   { background: #f3e8ff; }
+.task-info { flex: 1; min-width: 0; }
+.task-title { font-size: 14px; font-weight: 600; color: var(--text-1); line-height: 1.3; }
+.task-desc { font-size: 12px; color: var(--text-2); margin-top: 3px; line-height: 1.4; }
+.task-meta { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+.task-reward {
+  font-size: 12px; font-weight: 700;
+  color: var(--green);
+  background: var(--green-lt);
+  padding: 3px 8px;
+  border-radius: var(--r-pill);
+}
+.task-time {
+  font-size: 11px; color: var(--text-3);
+  display: flex; align-items: center; gap: 3px;
+}
+.task-cta {
+  background: var(--blue); color: #fff;
+  font-size: 11px; font-weight: 600;
+  padding: 7px 12px;
+  border-radius: var(--r-sm);
+  white-space: nowrap; flex-shrink: 0;
+  transition: background 0.15s;
+}
+.task-cta:hover { background: var(--blue-dk); }
+.task-cta.done {
+  background: var(--green-lt);
+  color: var(--green);
+}
+
+.empty-state {
+  text-align: center; padding: 48px 24px;
+  color: var(--text-3);
+}
+.empty-state .empty-icon { font-size: 48px; margin-bottom: 12px; }
+.empty-state p { font-size: 14px; }
+
+/* ══════════════════════════════════════
+   MY TASKS VIEW
+══════════════════════════════════════ */
+.my-task-card {
+  background: var(--white);
+  border-radius: var(--r-lg);
+  border: 0.5px solid var(--gray-border);
+  padding: 14px;
+  display: flex; align-items: center; gap: 12px;
+  box-shadow: var(--shadow-sm);
+}
+.my-task-status {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  font-size: 16px;
+}
+.my-task-status.pending { background: var(--amber-lt); }
+.my-task-status.approved { background: var(--green-lt); }
+.my-task-status.rejected { background: var(--red-lt); }
+.my-task-info { flex: 1; min-width: 0; }
+.my-task-title { font-size: 13px; font-weight: 600; color: var(--text-1); }
+.my-task-sub { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+.my-task-amount {
+  font-size: 14px; font-weight: 700;
+  font-family: 'DM Mono', monospace;
+}
+.my-task-amount.earned { color: var(--green); }
+.my-task-amount.pending-c { color: var(--amber); }
+.my-task-amount.rejected-c { color: var(--red); }
+
+/* ══════════════════════════════════════
+   MENU LIST (Profile / Settings / etc)
+══════════════════════════════════════ */
+.menu-block {
+  background: var(--white);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  border: 0.5px solid var(--gray-border);
+  box-shadow: var(--shadow-sm);
+  margin: 0 14px;
+}
+.menu-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 0.5px solid var(--gray-border);
+  transition: background 0.12s;
+}
+.menu-item:last-child { border-bottom: none; }
+.menu-item:hover { background: var(--gray-card); }
+.menu-icon {
+  width: 36px; height: 36px;
+  border-radius: var(--r-sm);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.menu-icon.blue   { background: var(--blue-lt); }
+.menu-icon.green  { background: var(--green-lt); }
+.menu-icon.amber  { background: var(--amber-lt); }
+.menu-icon.red    { background: var(--red-lt); }
+.menu-icon.purple { background: #f3e8ff; }
+.menu-icon svg { width: 17px; height: 17px; flex-shrink: 0; }
+.menu-text { flex: 1; font-size: 14px; color: var(--text-1); }
+.menu-badge {
+  font-size: 10px; font-weight: 700;
+  background: var(--blue); color: #fff;
+  border-radius: var(--r-pill);
+  padding: 2px 7px; min-width: 20px; text-align: center;
+}
+.menu-arrow { color: var(--text-3); font-size: 18px; line-height: 1; }
+.menu-value { font-size: 13px; color: var(--text-3); }
+
+/* ══════════════════════════════════════
+   TOGGLE SWITCH
+══════════════════════════════════════ */
+.toggle {
+  width: 40px; height: 22px;
+  background: var(--gray-border);
+  border-radius: var(--r-pill);
+  position: relative;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+.toggle.on { background: var(--blue); }
+.toggle::after {
+  content: '';
+  width: 16px; height: 16px;
+  background: #fff;
+  border-radius: 50%;
+  position: absolute;
+  top: 3px; left: 3px;
+  transition: transform 0.2s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+.toggle.on::after { transform: translateX(18px); }
+
+/* ══════════════════════════════════════
+   REFERRALS VIEW
+══════════════════════════════════════ */
+.referral-hero {
+  background: linear-gradient(135deg, #1a56db, #0f3a9e);
+  margin: 14px 14px 0;
+  border-radius: var(--r-lg);
+  padding: 24px;
+  text-align: center;
+  position: relative; overflow: hidden;
+}
+.referral-hero::before {
+  content: ''; position: absolute;
+  right: -30px; top: -30px;
+  width: 120px; height: 120px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.07);
+}
+.referral-hero h2 { font-size: 20px; font-weight: 700; color: #fff; }
+.referral-hero p { font-size: 13px; color: rgba(255,255,255,0.7); margin-top: 6px; line-height: 1.5; }
+.referral-amount {
+  font-size: 36px; font-weight: 700; color: #fff;
+  font-family: 'DM Mono', monospace;
+  margin: 12px 0 4px;
+}
+.referral-sublbl { font-size: 11px; color: rgba(255,255,255,0.55); }
+
+.referral-code-block {
+  margin: 14px 14px 0;
+  background: var(--white);
+  border: 0.5px solid var(--gray-border);
+  border-radius: var(--r-lg);
+  padding: 16px;
+  box-shadow: var(--shadow-sm);
+}
+.ref-code-label { font-size: 11px; font-weight: 700; color: var(--text-3); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 10px; }
+.ref-code-row { display: flex; align-items: center; gap: 10px; }
+.ref-code {
+  flex: 1; padding: 11px 14px;
+  background: var(--gray-bg);
+  border: 1.5px dashed var(--blue-mid);
+  border-radius: var(--r-sm);
+  font-family: 'DM Mono', monospace;
+  font-size: 16px; font-weight: 700;
+  color: var(--blue); letter-spacing: 0.1em;
+  text-align: center;
+}
+.ref-copy-btn {
+  padding: 11px 16px;
+  background: var(--blue);
+  color: #fff; font-size: 13px; font-weight: 600;
+  border-radius: var(--r-sm);
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+.ref-copy-btn:hover { background: var(--blue-dk); }
+.ref-copy-btn.copied { background: var(--green); }
+
+.ref-stats {
+  display: flex; gap: 8px;
+  margin: 10px 14px 0;
+}
+.ref-stat {
+  flex: 1; background: var(--white);
+  border: 0.5px solid var(--gray-border);
+  border-radius: var(--r-md);
+  padding: 14px 12px;
+  text-align: center;
+  box-shadow: var(--shadow-sm);
+}
+.ref-stat-num { font-size: 22px; font-weight: 700; color: var(--blue); font-family: 'DM Mono', monospace; }
+.ref-stat-lbl { font-size: 11px; color: var(--text-3); margin-top: 4px; }
+
+.ref-list-section { margin: 14px 14px 0; }
+.ref-list-title { font-size: 12px; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+.ref-person {
+  background: var(--white);
+  border: 0.5px solid var(--gray-border);
+  border-radius: var(--r-md);
+  padding: 12px 14px;
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 6px;
+  box-shadow: var(--shadow-sm);
+}
+.ref-person-avatar {
+  width: 38px; height: 38px;
+  border-radius: 8px; background: var(--blue-lt);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700; color: var(--blue);
+  flex-shrink: 0;
+}
+.ref-person-info { flex: 1; }
+.ref-person-name { font-size: 13px; font-weight: 600; color: var(--text-1); }
+.ref-person-date { font-size: 11px; color: var(--text-3); margin-top: 1px; }
+.ref-person-earn { font-size: 13px; font-weight: 700; color: var(--green); font-family: 'DM Mono', monospace; }
+
+/* ══════════════════════════════════════
+   PROFILE VIEW
+══════════════════════════════════════ */
+.profile-hero {
+  background: linear-gradient(160deg, var(--blue) 0%, #0f3a9e 100%);
+  padding: 28px 20px 32px;
+  text-align: center;
+  position: relative;
+}
+.profile-avatar-wrap { position: relative; display: inline-block; margin-bottom: 12px; }
+.profile-avatar {
+  width: 80px; height: 80px;
+  border-radius: 18px;
+  background: var(--red);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28px; font-weight: 700; color: #fff;
+  border: 3px solid rgba(255,255,255,0.3);
+  margin: 0 auto;
+}
+.profile-name { font-size: 20px; font-weight: 700; color: #fff; }
+.profile-email { font-size: 13px; color: rgba(255,255,255,0.65); margin-top: 4px; }
+.profile-joined { font-size: 11px; color: rgba(255,255,255,0.45); margin-top: 4px; }
+.profile-stats {
+  display: flex;
+  background: rgba(255,255,255,0.12);
+  border-radius: var(--r-md);
+  margin: 16px 0 0;
+  overflow: hidden;
+}
+.profile-stat {
+  flex: 1; padding: 12px 8px;
+  text-align: center;
+  border-right: 0.5px solid rgba(255,255,255,0.15);
+}
+.profile-stat:last-child { border-right: none; }
+.profile-stat-n { font-size: 18px; font-weight: 700; color: #fff; font-family: 'DM Mono', monospace; }
+.profile-stat-l { font-size: 10px; color: rgba(255,255,255,0.55); margin-top: 2px; }
+
+/* ══════════════════════════════════════
+   NOTIFICATIONS VIEW
+══════════════════════════════════════ */
+.notif-item {
+  background: var(--white);
+  border-bottom: 0.5px solid var(--gray-border);
+  padding: 14px 16px;
+  display: flex; gap: 12px; align-items: flex-start;
+}
+.notif-item.unread { background: #f0f6ff; }
+.notif-dot {
+  width: 38px; height: 38px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; flex-shrink: 0;
+}
+.notif-dot.info    { background: var(--blue-lt); }
+.notif-dot.success { background: var(--green-lt); }
+.notif-dot.warn    { background: var(--amber-lt); }
+.notif-content { flex: 1; }
+.notif-title { font-size: 13px; font-weight: 600; color: var(--text-1); }
+.notif-body  { font-size: 12px; color: var(--text-2); margin-top: 2px; line-height: 1.4; }
+.notif-time  { font-size: 10px; color: var(--text-3); margin-top: 4px; }
+
+/* ══════════════════════════════════════
+   TASK DETAIL MODAL
+══════════════════════════════════════ */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(0,0,0,0.45);
+  display: none; align-items: flex-end;
+}
+.modal-overlay.open { display: flex; }
+.modal-sheet {
+  width: 100%; max-width: 480px;
+  margin: 0 auto;
+  background: var(--white);
+  border-radius: var(--r-xl) var(--r-xl) 0 0;
+  padding: 20px 20px 36px;
+  animation: slideUp 0.25s cubic-bezier(0.4,0,0.2,1);
+}
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.modal-handle {
+  width: 36px; height: 4px;
+  background: var(--gray-border);
+  border-radius: var(--r-pill);
+  margin: 0 auto 20px;
+}
+.modal-task-icon {
+  width: 64px; height: 64px;
+  border-radius: var(--r-md);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28px; margin: 0 auto 14px;
+}
+.modal-task-title { font-size: 18px; font-weight: 700; color: var(--text-1); text-align: center; }
+.modal-task-reward {
+  font-size: 28px; font-weight: 700;
+  color: var(--blue); font-family: 'DM Mono', monospace;
+  text-align: center; margin: 8px 0;
+}
+.modal-task-desc { font-size: 14px; color: var(--text-2); text-align: center; line-height: 1.6; margin-bottom: 20px; }
+.modal-steps { background: var(--gray-bg); border-radius: var(--r-md); padding: 14px; margin-bottom: 20px; }
+.modal-step { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 10px; }
+.modal-step:last-child { margin-bottom: 0; }
+.step-num {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: var(--blue); color: #fff;
+  font-size: 11px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; margin-top: 1px;
+}
+.step-text { font-size: 13px; color: var(--text-2); line-height: 1.5; }
+.modal-proof {
+  margin-bottom: 16px;
+}
+.modal-proof label { font-size: 12px; font-weight: 700; color: var(--text-2); letter-spacing: 0.02em; display: block; margin-bottom: 6px; }
+.modal-proof input, .modal-proof textarea {
+  width: 100%; padding: 10px 12px;
+  border: 1.5px solid var(--gray-border);
+  border-radius: var(--r-sm);
+  font-size: 13px; color: var(--text-1);
+  outline: none; resize: vertical;
+  transition: border-color 0.15s;
+}
+.modal-proof input:focus, .modal-proof textarea:focus { border-color: var(--blue); }
+.modal-btn-row { display: flex; gap: 10px; }
+.modal-cancel {
+  flex: 1; padding: 13px;
+  background: var(--gray-bg);
+  color: var(--text-2); font-size: 14px; font-weight: 600;
+  border-radius: var(--r-sm);
+  transition: background 0.15s;
+  text-align: center;
+}
+.modal-cancel:hover { background: var(--gray-border); }
+.modal-submit {
+  flex: 2; padding: 13px;
+  background: var(--blue); color: #fff;
+  font-size: 14px; font-weight: 600;
+  border-radius: var(--r-sm);
+  transition: background 0.15s, transform 0.1s;
+  text-align: center;
+}
+.modal-submit:hover { background: var(--blue-dk); }
+.modal-submit:active { transform: scale(0.98); }
+.modal-submit:disabled { opacity: 0.6; }
+
+/* ══════════════════════════════════════
+   BOTTOM NAV
+══════════════════════════════════════ */
+.bottom-nav {
+  position: fixed;
+  bottom: 0; left: 50%;
+  transform: translateX(-50%);
+  width: 100%; max-width: 480px;
+  background: var(--white);
+  border-top: 0.5px solid var(--gray-border);
+  display: flex;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+  z-index: 100;
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.06);
+}
+.nav-item {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; gap: 3px;
+  padding: 10px 4px 8px;
+  cursor: pointer;
+  transition: opacity 0.12s;
+  position: relative;
+}
+.nav-item:active { opacity: 0.7; }
+.nav-icon { position: relative; }
+.nav-icon svg { width: 22px; height: 22px; display: block; }
+.nav-badge {
+  position: absolute; top: -4px; right: -6px;
+  min-width: 16px; height: 16px;
+  background: var(--red);
+  border-radius: var(--r-pill);
+  font-size: 9px; font-weight: 700; color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0 4px;
+  border: 2px solid var(--white);
+}
+.nav-label { font-size: 10px; color: var(--text-3); font-weight: 400; }
+.nav-item.active .nav-label { color: var(--blue); font-weight: 600; }
+
+/* ══════════════════════════════════════
+   SUPPORT VIEW
+══════════════════════════════════════ */
+.support-option {
+  background: var(--white);
+  border: 0.5px solid var(--gray-border);
+  border-radius: var(--r-lg);
+  padding: 16px;
+  margin: 0 14px 10px;
+  display: flex; align-items: center; gap: 14px;
+  box-shadow: var(--shadow-sm);
+  transition: background 0.12s;
+}
+.support-option:hover { background: var(--gray-card); }
+.support-icon {
+  width: 48px; height: 48px;
+  border-radius: var(--r-md);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; flex-shrink: 0;
+}
+.support-info { flex: 1; }
+.support-title { font-size: 14px; font-weight: 600; color: var(--text-1); }
+.support-sub { font-size: 12px; color: var(--text-3); margin-top: 2px; }
+
+/* ══════════════════════════════════════
+   TOAST
+══════════════════════════════════════ */
+.toast {
+  position: fixed;
+  bottom: calc(var(--nav-h) + 16px);
+  left: 50%; transform: translateX(-50%) translateY(20px);
+  background: #111827; color: #fff;
+  padding: 10px 18px;
+  border-radius: var(--r-pill);
+  font-size: 13px; font-weight: 500;
+  opacity: 0; transition: all 0.3s;
+  z-index: 300; white-space: nowrap;
+  pointer-events: none;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast.success { background: #1a7c3e; }
+.toast.error   { background: #c53030; }
+
+/* ══════════════════════════════════════
+   LOADER
+══════════════════════════════════════ */
+.loader-overlay {
+  position: fixed; inset: 0; z-index: 400;
+  background: var(--white);
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column; gap: 16px;
+}
+.loader-spin {
+  width: 40px; height: 40px;
+  border: 3px solid var(--blue-lt);
+  border-top-color: var(--blue);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loader-text { font-size: 13px; color: var(--text-3); }
+
+/* ══════════════════════════════════════
+   UTILS
+══════════════════════════════════════ */
+.divider { height: 0.5px; background: var(--gray-border); margin: 0; }
+.spacer { height: 14px; }
+.text-center { text-align: center; }
+.scrollable { overflow-y: auto; flex: 1; }
+.fw700 { font-weight: 700; }
+.hidden { display: none !important; }
+
+/* Signout */
+.signout-btn {
+  text-align: center; padding: 14px;
+  font-size: 13px; font-weight: 600;
+  color: var(--red);
+  background: var(--white);
+  border-top: 0.5px solid var(--gray-border);
+  margin-top: 10px;
+  cursor: pointer;
+  transition: background 0.12s;
+  border-radius: 0 0 var(--r-lg) var(--r-lg);
+}
+.signout-btn:hover { background: var(--red-lt); }
+
+/* Scrollable content in views */
+.view-scroll { overflow-y: auto; flex: 1; -webkit-overflow-scrolling: touch; }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ══ LOADER ══ -->
+  <div class="loader-overlay" id="loader">
+    <div class="loader-spin"></div>
+    <p class="loader-text">Loading OneWall…</p>
+  </div>
+
+  <!-- ══ AUTH VIEW ══ -->
+  <div class="view active" id="view-auth">
+    <div class="auth-logo">
+      <div class="auth-logo-mark">OW</div>
+      <h1>OneWall</h1>
+      <p>Complete tasks. Earn real money.</p>
+    </div>
+    <div class="auth-card">
+      <div class="auth-tabs">
+        <button class="auth-tab active" onclick="switchAuthTab('login')">Sign In</button>
+        <button class="auth-tab" onclick="switchAuthTab('register')">Register</button>
+      </div>
+
+      <!-- Login Form -->
+      <div id="login-form">
+        <div class="auth-form">
+          <div class="field-group">
+            <label class="field-label">Email address</label>
+            <input type="email" class="field-input" id="login-email" placeholder="you@example.com" autocomplete="email">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Password</label>
+            <input type="password" class="field-input" id="login-password" placeholder="••••••••" autocomplete="current-password">
+          </div>
+          <button class="btn-primary" onclick="handleLogin()" id="login-btn">Sign In</button>
+          <p class="auth-msg" id="login-msg"></p>
+        </div>
+      </div>
+
+      <!-- Register Form -->
+      <div id="register-form" class="hidden">
+        <div class="auth-form">
+          <div class="field-group">
+            <label class="field-label">Full name</label>
+            <input type="text" class="field-input" id="reg-name" placeholder="John Doe">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Email address</label>
+            <input type="email" class="field-input" id="reg-email" placeholder="you@example.com" autocomplete="email">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Password</label>
+            <input type="password" class="field-input" id="reg-password" placeholder="Min. 8 characters" autocomplete="new-password">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Referral code (optional)</label>
+            <input type="text" class="field-input" id="reg-referral" placeholder="e.g. OW-ABC123">
+          </div>
+          <button class="btn-primary" onclick="handleRegister()" id="reg-btn">Create Account</button>
+          <p class="auth-msg" id="reg-msg"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ HOME VIEW ══ -->
+  <div class="view" id="view-home">
+    <!-- Sticky Header -->
+    <div class="home-header">
+      <div class="home-header-inner">
+        <div class="home-logo">OneWall <span>v4.0</span></div>
+        <button class="home-notif-btn" onclick="navTo('notifications')">
+          <svg width="18" height="18" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+          <div class="home-notif-dot" id="notif-dot" style="display:none"></div>
+        </button>
+      </div>
+      <div class="balance-card">
+        <div class="user-avatar" id="home-avatar">JO</div>
+        <div class="user-details">
+          <div class="user-name" id="home-name">Loading…</div>
+          <div class="user-email" id="home-email">loading@email.com</div>
+        </div>
+        <div class="balance-amt">
+          <div class="balance-lbl">Balance</div>
+          <div class="balance-val" id="home-balance">$0.00</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="view-scroll">
+      <!-- Stats -->
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-num" id="stat-week">0</div>
+          <div class="stat-lbl">This week</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num" id="stat-total">$0.00</div>
+          <div class="stat-lbl">Total earned</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num" id="stat-refs">0</div>
+          <div class="stat-lbl">Referrals</div>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="section-hd">Quick actions</div>
+      <div class="actions-grid">
+        <button class="action-btn" onclick="navTo('tasks')">
+          <div class="action-icon">
+            <svg fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+          </div>
+          <div class="action-lbl">Browse Tasks</div>
+        </button>
+        <button class="action-btn" onclick="navTo('mytasks')">
+          <div class="action-icon">
+            <svg fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          </div>
+          <div class="action-lbl">My Tasks</div>
+        </button>
+        <button class="action-btn" onclick="navTo('referrals')">
+          <div class="action-icon">
+            <svg fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+          </div>
+          <div class="action-lbl">Referrals</div>
+        </button>
+        <button class="action-btn disabled">
+          <div class="action-icon dim">
+            <svg fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+          </div>
+          <div class="action-lbl">Withdraw</div>
+          <div class="soon-pill">SOON</div>
+        </button>
+      </div>
+
+      <!-- Task category tabs -->
+      <div class="task-tabs" id="home-task-tabs">
+        <button class="task-tab active" data-cat="all" onclick="filterTasks(this,'all')">All Tasks</button>
+        <button class="task-tab" data-cat="quick" onclick="filterTasks(this,'quick')">Quick</button>
+        <button class="task-tab" data-cat="survey" onclick="filterTasks(this,'survey')">Survey</button>
+        <button class="task-tab" data-cat="social" onclick="filterTasks(this,'social')">Social</button>
+        <button class="task-tab" data-cat="video" onclick="filterTasks(this,'video')">Video</button>
+        <button class="task-tab" data-cat="app" onclick="filterTasks(this,'app')">App</button>
+      </div>
+
+      <!-- Tasks List -->
+      <div class="tasks-list" id="tasks-list">
+        <div class="empty-state">
+          <div class="empty-icon">📋</div>
+          <p>Loading tasks…</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ MY TASKS VIEW ══ -->
+  <div class="view" id="view-mytasks">
+    <div class="top-bar">
+      <div class="top-bar-inner">
+        <button class="top-bar-back" onclick="navTo('home')">
+          <svg width="18" height="18" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M19 12H5m7-7l-7 7 7 7"/></svg>
+        </button>
+        <span class="top-bar-title">My Tasks</span>
+      </div>
+    </div>
+    <div class="view-scroll">
+      <div class="section-hd">Task history &amp; status</div>
+      <div class="tasks-list" id="my-tasks-list">
+        <div class="empty-state">
+          <div class="empty-icon">📭</div>
+          <p>You haven't submitted any tasks yet.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ REFERRALS VIEW ══ -->
+  <div class="view" id="view-referrals">
+    <div class="top-bar">
+      <div class="top-bar-inner">
+        <button class="top-bar-back" onclick="navTo('home')">
+          <svg width="18" height="18" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M19 12H5m7-7l-7 7 7 7"/></svg>
+        </button>
+        <span class="top-bar-title">Referrals</span>
+      </div>
+    </div>
+    <div class="view-scroll">
+      <div class="referral-hero">
+        <h2>Invite &amp; Earn</h2>
+        <p>Earn <strong style="color:#fff">$1.00</strong> for every friend you refer who completes their first task.</p>
+        <div class="referral-amount" id="ref-total-earned">$0.00</div>
+        <div class="referral-sublbl">Total earned from referrals</div>
+      </div>
+
+      <div class="referral-code-block">
+        <div class="ref-code-label">Your referral code</div>
+        <div class="ref-code-row">
+          <div class="ref-code" id="ref-code-display">OW-XXXXXX</div>
+          <button class="ref-copy-btn" id="ref-copy-btn" onclick="copyReferralCode()">Copy</button>
+        </div>
+      </div>
+
+      <div class="ref-stats">
+        <div class="ref-stat">
+          <div class="ref-stat-num" id="ref-count">0</div>
+          <div class="ref-stat-lbl">Referrals</div>
+        </div>
+        <div class="ref-stat">
+          <div class="ref-stat-num" id="ref-active">0</div>
+          <div class="ref-stat-lbl">Active users</div>
+        </div>
+        <div class="ref-stat">
+          <div class="ref-stat-num" id="ref-pending">$0.00</div>
+          <div class="ref-stat-lbl">Pending</div>
+        </div>
+      </div>
+
+      <div class="ref-list-section" id="ref-list-section">
+        <div class="ref-list-title">Your referrals</div>
+        <div id="ref-list">
+          <div class="empty-state" style="padding:24px">
+            <div class="empty-icon">👥</div>
+            <p>No referrals yet. Share your code!</p>
+          </div>
+        </div>
+      </div>
+      <div class="spacer"></div>
+    </div>
+  </div>
+
+  <!-- ══ SUPPORT VIEW ══ -->
+  <div class="view" id="view-support">
+    <div class="top-bar">
+      <div class="top-bar-inner">
+        <button class="top-bar-back" onclick="navTo('home')">
+          <svg width="18" height="18" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M19 12H5m7-7l-7 7 7 7"/></svg>
+        </button>
+        <span class="top-bar-title">Support</span>
+      </div>
+    </div>
+    <div class="view-scroll">
+      <div class="section-hd">How can we help?</div>
+      <a href="https://wa.me/254700000000" class="support-option" style="display:flex">
+        <div class="support-icon" style="background:#dcfce7; font-size:24px;">💬</div>
+        <div class="support-info">
+          <div class="support-title">WhatsApp Support</div>
+          <div class="support-sub">Chat with us on WhatsApp</div>
+        </div>
+        <span class="menu-arrow">›</span>
+      </a>
+      <a href="mailto:support@onewall.app" class="support-option" style="display:flex">
+        <div class="support-icon" style="background:var(--blue-lt); font-size:24px;">✉️</div>
+        <div class="support-info">
+          <div class="support-title">Email Support</div>
+          <div class="support-sub">support@onewall.app</div>
+        </div>
+        <span class="menu-arrow">›</span>
+      </a>
+
+      <div class="section-hd">FAQ</div>
+      <div class="menu-block">
+        <div class="menu-item" onclick="toggleFaq(this)">
+          <div class="menu-text">How do I get paid?</div>
+          <span class="menu-arrow">›</span>
+        </div>
+        <div class="faq-answer hidden" style="padding:0 16px 14px;font-size:13px;color:var(--text-2);line-height:1.6">
+          Payments are sent via M-Pesa once the withdraw feature is enabled. Your earnings accumulate in your balance and you can request a payout anytime.
+        </div>
+        <div class="menu-item" onclick="toggleFaq(this)">
+          <div class="menu-text">How long does task approval take?</div>
+          <span class="menu-arrow">›</span>
+        </div>
+        <div class="faq-answer hidden" style="padding:0 16px 14px;font-size:13px;color:var(--text-2);line-height:1.6">
+          Task submissions are reviewed within 24–48 hours. You'll receive a notification once your task is approved or rejected.
+        </div>
+        <div class="menu-item" onclick="toggleFaq(this)">
+          <div class="menu-text">How does the referral program work?</div>
+          <span class="menu-arrow">›</span>
+        </div>
+        <div class="faq-answer hidden" style="padding:0 16px 14px;font-size:13px;color:var(--text-2);line-height:1.6">
+          Share your unique referral code. When a friend registers using your code and completes their first task, you earn $1.00 credited to your balance.
+        </div>
+        <div class="menu-item" onclick="toggleFaq(this)">
+          <div class="menu-text">What types of tasks are available?</div>
+          <span class="menu-arrow">›</span>
+        </div>
+        <div class="faq-answer hidden" style="padding:0 16px 14px;font-size:13px;color:var(--text-2);line-height:1.6">
+          Tasks include quick actions, surveys, social media tasks, video watching, and app installs. New tasks are added regularly.
+        </div>
+      </div>
+      <div class="spacer"></div>
+    </div>
+  </div>
+
+  <!-- ══ PROFILE VIEW ══ -->
+  <div class="view" id="view-profile">
+    <div class="top-bar">
+      <div class="top-bar-inner">
+        <button class="top-bar-back" onclick="navTo('home')">
+          <svg width="18" height="18" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M19 12H5m7-7l-7 7 7 7"/></svg>
+        </button>
+        <span class="top-bar-title">Profile</span>
+        <button class="top-bar-action" onclick="navTo('settings')">
+          <svg width="18" height="18" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="view-scroll">
+      <div class="profile-hero">
+        <div class="profile-avatar-wrap">
+          <div class="profile-avatar" id="profile-avatar">JO</div>
+        </div>
+        <div class="profile-name" id="profile-name">Loading…</div>
+        <div class="profile-email" id="profile-email">loading@email.com</div>
+        <div class="profile-joined" id="profile-joined">Joined recently</div>
+        <div class="profile-stats">
+          <div class="profile-stat">
+            <div class="profile-stat-n" id="p-tasks">0</div>
+            <div class="profile-stat-l">Tasks Done</div>
+          </div>
+          <div class="profile-stat">
+            <div class="profile-stat-n" id="p-earned">$0</div>
+            <div class="profile-stat-l">Earned</div>
+          </div>
+          <div class="profile-stat">
+            <div class="profile-stat-n" id="p-refs">0</div>
+            <div class="profile-stat-l">Referrals</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="spacer"></div>
+      <div class="section-hd">Account</div>
+      <div class="menu-block">
+        <div class="menu-item" onclick="navTo('settings')">
+          <div class="menu-icon blue">
+            <svg fill="none" stroke="#1a56db" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+          </div>
+          <span class="menu-text">Settings</span>
+          <span class="menu-arrow">›</span>
+        </div>
+        <div class="menu-item" onclick="navTo('notifications')">
+          <div class="menu-icon amber">
+            <svg fill="none" stroke="#ba7517" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+          </div>
+          <span class="menu-text">Notifications <span class="menu-badge" id="notif-badge-prof">0</span></span>
+          <span class="menu-arrow">›</span>
+        </div>
+        <div class="menu-item" onclick="navTo('support')">
+          <div class="menu-icon green">
+            <svg fill="none" stroke="#3b6d11" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+          </div>
+          <span class="menu-text">Support</span>
+          <span class="menu-arrow">›</span>
+        </div>
+        <div class="menu-item" onclick="navTo('referrals')">
+          <div class="menu-icon purple">
+            <svg fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+          </div>
+          <span class="menu-text">Refer Friends</span>
+          <span class="menu-arrow">›</span>
+        </div>
+      </div>
+
+      <div class="spacer"></div>
+      <div class="section-hd">Legal</div>
+      <div class="menu-block">
+        <a class="menu-item" href="#" onclick="showToast('Opening Privacy Policy…')">
+          <div class="menu-icon blue">
+            <svg fill="none" stroke="#1a56db" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <span class="menu-text">Privacy Policy</span>
+          <span class="menu-arrow">›</span>
+        </a>
+        <a class="menu-item" href="#" onclick="showToast('Opening Terms…')">
+          <div class="menu-icon amber">
+            <svg fill="none" stroke="#ba7517" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          </div>
+          <span class="menu-text">Terms of Service</span>
+          <span class="menu-arrow">›</span>
+        </a>
+      </div>
+      <div class="spacer"></div>
+      <div class="menu-block">
+        <div class="signout-btn" onclick="handleSignOut()" style="border-radius:var(--r-lg);margin:0">Sign out</div>
+      </div>
+      <div class="spacer"></div>
+    </div>
+  </div>
+
+  <!-- ══ SETTINGS VIEW ══ -->
+  <div class="view" id="view-settings">
+    <div class="top-bar">
+      <div class="top-bar-inner">
+        <button class="top-bar-back" onclick="navTo('profile')">
+          <svg width="18" height="18" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M19 12H5m7-7l-7 7 7 7"/></svg>
+        </button>
+        <span class="top-bar-title">Settings</span>
+      </div>
+    </div>
+    <div class="view-scroll">
+      <div class="section-hd">Account info</div>
+      <div class="menu-block">
+        <div class="menu-item">
+          <div class="menu-icon blue">
+            <svg fill="none" stroke="#1a56db" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+          </div>
+          <span class="menu-text">Full Name</span>
+          <span class="menu-value" id="settings-name">—</span>
+        </div>
+        <div class="menu-item">
+          <div class="menu-icon blue">
+            <svg fill="none" stroke="#1a56db" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          </div>
+          <span class="menu-text">Email</span>
+          <span class="menu-value" id="settings-email" style="font-size:11px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">—</span>
+        </div>
+        <div class="menu-item">
+          <div class="menu-icon green">
+            <svg fill="none" stroke="#3b6d11" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+          </div>
+          <span class="menu-text">Change Password</span>
+          <span class="menu-arrow">›</span>
+        </div>
+      </div>
+
+      <div class="section-hd">Preferences</div>
+      <div class="menu-block">
+        <div class="menu-item">
+          <div class="menu-icon amber">
+            <svg fill="none" stroke="#ba7517" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+          </div>
+          <span class="menu-text">Push Notifications</span>
+          <div class="toggle on" id="toggle-notif" onclick="this.classList.toggle('on')"></div>
+        </div>
+        <div class="menu-item">
+          <div class="menu-icon purple">
+            <svg fill="none" stroke="#7c3aed" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+          </div>
+          <span class="menu-text">Email updates</span>
+          <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+        </div>
+      </div>
+
+      <div class="section-hd">Danger zone</div>
+      <div class="menu-block">
+        <div class="menu-item" onclick="handleSignOut()">
+          <div class="menu-icon red">
+            <svg fill="none" stroke="#e24b4a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          </div>
+          <span class="menu-text" style="color:var(--red)">Sign Out</span>
+          <span class="menu-arrow" style="color:var(--red)">›</span>
+        </div>
+      </div>
+      <div class="spacer"></div>
+      <p style="text-align:center;font-size:11px;color:var(--text-3);padding:8px 16px 24px">OneWall v4.0 · Made with ❤️ in Kenya</p>
+    </div>
+  </div>
+
+  <!-- ══ NOTIFICATIONS VIEW ══ -->
+  <div class="view" id="view-notifications">
+    <div class="top-bar">
+      <div class="top-bar-inner">
+        <button class="top-bar-back" onclick="navBack()">
+          <svg width="18" height="18" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M19 12H5m7-7l-7 7 7 7"/></svg>
+        </button>
+        <span class="top-bar-title">Notifications</span>
+        <button class="top-bar-action" onclick="markAllRead()" style="font-size:10px;color:rgba(255,255,255,0.8);width:auto;padding:0 6px">All read</button>
+      </div>
+    </div>
+    <div class="view-scroll">
+      <div id="notif-list">
+        <div class="empty-state">
+          <div class="empty-icon">🔔</div>
+          <p>No notifications yet.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ BOTTOM NAV ══ -->
+  <nav class="bottom-nav" id="bottom-nav">
+    <div class="nav-item active" data-view="home" onclick="navTo('home')">
+      <div class="nav-icon">
+        <svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+      </div>
+      <span class="nav-label">Tasks</span>
+    </div>
+    <div class="nav-item" data-view="mytasks" onclick="navTo('mytasks')">
+      <div class="nav-icon">
+        <svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      </div>
+      <span class="nav-label">My Tasks</span>
+    </div>
+    <div class="nav-item" data-view="support" onclick="navTo('support')">
+      <div class="nav-icon">
+        <svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+      </div>
+      <span class="nav-label">Support</span>
+    </div>
+    <div class="nav-item" data-view="referrals" onclick="navTo('referrals')">
+      <div class="nav-icon">
+        <svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+      </div>
+      <span class="nav-label">Referrals</span>
+    </div>
+    <div class="nav-item" data-view="profile" onclick="navTo('profile')">
+      <div class="nav-icon">
+        <svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+      </div>
+      <span class="nav-label">Profile</span>
+    </div>
+  </nav>
+
+  <!-- ══ TASK DETAIL MODAL ══ -->
+  <div class="modal-overlay" id="task-modal" onclick="handleModalBackdropClick(event)">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-task-icon" id="modal-icon">📋</div>
+      <div class="modal-task-title" id="modal-title">Task Title</div>
+      <div class="modal-task-reward" id="modal-reward">$0.00</div>
+      <div class="modal-task-desc" id="modal-desc">Task description</div>
+      <div class="modal-steps" id="modal-steps"></div>
+      <div class="modal-proof">
+        <label>Proof of completion (URL / screenshot link)</label>
+        <input type="url" id="modal-proof-input" placeholder="https://...">
+      </div>
+      <div class="modal-proof">
+        <label>Notes (optional)</label>
+        <textarea id="modal-notes" rows="2" placeholder="Any additional information…"></textarea>
+      </div>
+      <div class="modal-btn-row">
+        <button class="modal-cancel" onclick="closeModal()">Cancel</button>
+        <button class="modal-submit" id="modal-submit-btn" onclick="submitTask()">Submit Task</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ TOAST ══ -->
+  <div class="toast" id="toast"></div>
+
+</div>
+
+<script>
+/* ══════════════════════════════════════
+   SUPABASE INIT
+   Replace with your actual keys
+══════════════════════════════════════ */
+const SUPABASE_URL  = 'https://YOUR_PROJECT.supabase.co';
+const SUPABASE_ANON = 'YOUR_ANON_KEY';
+const { createClient } = supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_ANON);
+
+/* ══════════════════════════════════════
+   APP STATE
+══════════════════════════════════════ */
+let currentUser   = null;
+let userProfile   = null;
+let allTasks      = [];
+let currentTaskId = null;
+let currentFilter = 'all';
+let prevView      = 'home';
+let navHistory    = ['home'];
+
+/* ══════════════════════════════════════
+   INIT
+══════════════════════════════════════ */
+(async function init() {
+  const { data: { session } } = await db.auth.getSession();
+  if (session) {
+    currentUser = session.user;
+    await loadApp();
+  } else {
+    hideLoader();
+    showView('auth');
+  }
+
+  db.auth.onAuthStateChange(async (event, session) => {
+    if (event === 'SIGNED_IN' && session) {
+      currentUser = session.user;
+      await loadApp();
+    } else if (event === 'SIGNED_OUT') {
+      currentUser = null;
+      userProfile = null;
+      showView('auth');
+    }
+  });
+})();
+
+async function loadApp() {
+  await Promise.all([loadProfile(), loadTasks()]);
+  hideLoader();
+  showView('home');
+  await Promise.all([loadNotifications(), loadReferrals(), loadMyTasks()]);
+}
+
+function hideLoader() {
+  document.getElementById('loader').style.display = 'none';
+}
+
+/* ══════════════════════════════════════
+   AUTH
+══════════════════════════════════════ */
+function switchAuthTab(tab) {
+  document.querySelectorAll('.auth-tab').forEach((el, i) => {
+    el.classList.toggle('active', (tab === 'login' && i === 0) || (tab === 'register' && i === 1));
+  });
+  document.getElementById('login-form').classList.toggle('hidden', tab !== 'login');
+  document.getElementById('register-form').classList.toggle('hidden', tab !== 'register');
+}
+
+async function handleLogin() {
+  const email    = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  const btn      = document.getElementById('login-btn');
+  const msg      = document.getElementById('login-msg');
+  if (!email || !password) { msg.textContent = 'Please fill all fields.'; return; }
+  btn.disabled = true; btn.textContent = 'Signing in…'; msg.textContent = '';
+  const { error } = await db.auth.signInWithPassword({ email, password });
+  if (error) { msg.textContent = error.message; btn.disabled = false; btn.textContent = 'Sign In'; }
+}
+
+async function handleRegister() {
+  const name     = document.getElementById('reg-name').value.trim();
+  const email    = document.getElementById('reg-email').value.trim();
+  const password = document.getElementById('reg-password').value;
+  const refCode  = document.getElementById('reg-referral').value.trim().toUpperCase();
+  const btn      = document.getElementById('reg-btn');
+  const msg      = document.getElementById('reg-msg');
+  if (!name || !email || !password) { msg.textContent = 'Please fill all required fields.'; return; }
+  if (password.length < 8) { msg.textContent = 'Password must be at least 8 characters.'; return; }
+  btn.disabled = true; btn.textContent = 'Creating account…'; msg.textContent = '';
+
+  const { data, error } = await db.auth.signUp({
+    email, password,
+    options: { data: { full_name: name, referral_code_used: refCode || null } }
+  });
+  if (error) {
+    msg.textContent = error.message;
+    btn.disabled = false; btn.textContent = 'Create Account';
+    return;
+  }
+  // Create profile
+  const code = 'OW-' + Math.random().toString(36).substring(2,8).toUpperCase();
+  await db.from('profiles').upsert({
+    id: data.user.id, full_name: name, email,
+    referral_code: code, referred_by: refCode || null,
+    balance: 0, total_earned: 0, created_at: new Date().toISOString()
+  });
+  // Handle referral credit
+  if (refCode) {
+    await db.from('referrals').insert({
+      referrer_code: refCode, referred_user_id: data.user.id,
+      status: 'pending', created_at: new Date().toISOString()
+    });
+  }
+  msg.className = 'auth-msg auth-success';
+  msg.textContent = 'Account created! Check your email to confirm.';
+  btn.textContent = 'Create Account'; btn.disabled = false;
+}
+
+async function handleSignOut() {
+  await db.auth.signOut();
+  showToast('Signed out');
+}
+
+/* ══════════════════════════════════════
+   PROFILE
+══════════════════════════════════════ */
+async function loadProfile() {
+  const { data } = await db.from('profiles').select('*').eq('id', currentUser.id).single();
+  userProfile = data || {
+    full_name: currentUser.user_metadata?.full_name || 'User',
+    email: currentUser.email, balance: 0, total_earned: 0,
+    referral_code: 'OW-XXXXXX'
+  };
+  updateProfileUI();
+}
+
+function updateProfileUI() {
+  if (!userProfile) return;
+  const name    = userProfile.full_name || 'User';
+  const email   = userProfile.email || currentUser.email;
+  const balance = userProfile.balance || 0;
+  const total   = userProfile.total_earned || 0;
+  const initials = name.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
+
+  // Home header
+  setText('home-avatar', initials);
+  setText('home-name', name);
+  setText('home-email', email);
+  setText('home-balance', '$' + balance.toFixed(2));
+  // Stats
+  setText('stat-total', '$' + total.toFixed(2));
+  // Profile page
+  setText('profile-avatar', initials);
+  setText('profile-name', name);
+  setText('profile-email', email);
+  const joined = userProfile.created_at ? new Date(userProfile.created_at).toLocaleDateString('en-US', {year:'numeric', month:'long'}) : '';
+  setText('profile-joined', 'Joined ' + joined);
+  setText('p-earned', '$' + total.toFixed(2));
+  // Settings
+  setText('settings-name', name);
+  setText('settings-email', email);
+  // Referral code
+  const code = userProfile.referral_code || 'OW-XXXXXX';
+  setText('ref-code-display', code);
+}
+
+/* ══════════════════════════════════════
+   TASKS
+══════════════════════════════════════ */
+const TASK_ICONS = {
+  quick: '⚡', survey: '📝', social: '📱', video: '🎬', app: '📲'
+};
+
+async function loadTasks() {
+  const { data } = await db.from('tasks').select('*').eq('is_active', true).order('reward', {ascending: false});
+  allTasks = data || [];
+  renderTasks(allTasks);
+}
+
+function filterTasks(el, cat) {
+  currentFilter = cat;
+  document.querySelectorAll('.task-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  const filtered = cat === 'all' ? allTasks : allTasks.filter(t => t.category === cat);
+  renderTasks(filtered);
+}
+
+function renderTasks(tasks) {
+  const list = document.getElementById('tasks-list');
+  if (!tasks || !tasks.length) {
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div><p>No tasks in this category yet.</p></div>`;
+    return;
+  }
+  list.innerHTML = tasks.map(task => `
+    <div class="task-card" onclick="openTaskModal(${task.id})">
+      <div class="task-badge ${task.category}">${TASK_ICONS[task.category] || '📋'}</div>
+      <div class="task-info">
+        <div class="task-title">${escHtml(task.title)}</div>
+        <div class="task-desc">${escHtml(task.description || '')}</div>
+        <div class="task-meta">
+          <span class="task-reward">+$${Number(task.reward).toFixed(2)}</span>
+          <span class="task-time">⏱ ${escHtml(task.duration || '5 min')}</span>
+        </div>
+      </div>
+      <button class="task-cta">Start</button>
+    </div>
+  `).join('');
+  // Update week count
+  setText('stat-week', tasks.length);
+}
+
+/* ══════════════════════════════════════
+   TASK MODAL
+══════════════════════════════════════ */
+async function openTaskModal(taskId) {
+  const task = allTasks.find(t => t.id === taskId);
+  if (!task) return;
+  currentTaskId = taskId;
+
+  document.getElementById('modal-icon').textContent = TASK_ICONS[task.category] || '📋';
+  document.getElementById('modal-icon').className = `modal-task-icon ${task.category}`;
+  setText('modal-title', task.title);
+  setText('modal-reward', '+$' + Number(task.reward).toFixed(2));
+  setText('modal-desc', task.description || '');
+  document.getElementById('modal-proof-input').value = '';
+  document.getElementById('modal-notes').value = '';
+  document.getElementById('modal-submit-btn').disabled = false;
+  document.getElementById('modal-submit-btn').textContent = 'Submit Task';
+
+  // Steps
+  const steps = task.steps || [];
+  const stepsHtml = steps.length
+    ? steps.map((s,i)=>`<div class="modal-step"><div class="step-num">${i+1}</div><div class="step-text">${escHtml(s)}</div></div>`).join('')
+    : `<div class="modal-step"><div class="step-num">1</div><div class="step-text">Complete the task as described above</div></div>
+       <div class="modal-step"><div class="step-num">2</div><div class="step-text">Provide proof of completion below</div></div>
+       <div class="modal-step"><div class="step-num">3</div><div class="step-text">Submit and wait for review (24-48hrs)</div></div>`;
+  document.getElementById('modal-steps').innerHTML = stepsHtml;
+
+  document.getElementById('task-modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+  document.getElementById('task-modal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function handleModalBackdropClick(e) {
+  if (e.target === document.getElementById('task-modal')) closeModal();
+}
+
+async function submitTask() {
+  if (!currentTaskId || !currentUser) return;
+  const proof  = document.getElementById('modal-proof-input').value.trim();
+  const notes  = document.getElementById('modal-notes').value.trim();
+  const btn    = document.getElementById('modal-submit-btn');
+  const task   = allTasks.find(t => t.id === currentTaskId);
+
+  btn.disabled = true; btn.textContent = 'Submitting…';
+
+  // Check if already submitted
+  const { data: existing } = await db.from('task_submissions')
+    .select('id').eq('user_id', currentUser.id).eq('task_id', currentTaskId).single();
+  if (existing) {
+    showToast('You already submitted this task!', 'error');
+    btn.disabled = false; btn.textContent = 'Submit Task';
+    return;
+  }
+
+  const { error } = await db.from('task_submissions').insert({
+    user_id: currentUser.id, task_id: currentTaskId,
+    proof_url: proof || null, notes: notes || null,
+    status: 'pending', reward: task ? task.reward : 0,
+    submitted_at: new Date().toISOString()
+  });
+
+  if (error) {
+    showToast('Submission failed. Try again.', 'error');
+    btn.disabled = false; btn.textContent = 'Submit Task';
+  } else {
+    closeModal();
+    showToast('Task submitted for review! ✓', 'success');
+    await loadMyTasks();
+    // Add notification
+    await db.from('notifications').insert({
+      user_id: currentUser.id,
+      title: 'Task submitted',
+      body: `Your submission for "${task?.title}" is under review.`,
+      type: 'info', read: false,
+      created_at: new Date().toISOString()
+    });
+  }
+}
+
+/* ══════════════════════════════════════
+   MY TASKS
+══════════════════════════════════════ */
+async function loadMyTasks() {
+  const { data } = await db.from('task_submissions')
+    .select('*, tasks(title, category, reward)')
+    .eq('user_id', currentUser.id)
+    .order('submitted_at', { ascending: false });
+
+  const list = document.getElementById('my-tasks-list');
+  if (!data || !data.length) {
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div><p>No task submissions yet.</p></div>`;
+    // Stats
+    setText('p-tasks', 0);
+    return;
+  }
+
+  const approved = data.filter(s => s.status === 'approved');
+  setText('p-tasks', approved.length);
+
+  list.innerHTML = data.map(s => {
+    const task     = s.tasks || {};
+    const icon     = TASK_ICONS[task.category] || '📋';
+    const statusMap = { pending: ['⏳', 'pending', 'pending-c'], approved: ['✅', 'approved', 'earned'], rejected: ['❌', 'rejected', 'rejected-c'] };
+    const [emoji, cls, amtCls] = statusMap[s.status] || statusMap.pending;
+    const date = s.submitted_at ? new Date(s.submitted_at).toLocaleDateString() : '';
+    return `
+      <div class="my-task-card">
+        <div class="my-task-status ${cls}">${emoji}</div>
+        <div class="my-task-info">
+          <div class="my-task-title">${escHtml(task.title || 'Task')}</div>
+          <div class="my-task-sub">${escHtml(s.status.charAt(0).toUpperCase() + s.status.slice(1))} · ${date}</div>
+        </div>
+        <div class="my-task-amount ${amtCls}">+$${Number(s.reward || 0).toFixed(2)}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+/* ══════════════════════════════════════
+   REFERRALS
+══════════════════════════════════════ */
+async function loadReferrals() {
+  if (!userProfile) return;
+  const code = userProfile.referral_code;
+
+  const { data: refs } = await db.from('referrals')
+    .select('*, profiles!referred_user_id(full_name, created_at)')
+    .eq('referrer_code', code);
+
+  const total = refs ? refs.length : 0;
+  const active = refs ? refs.filter(r => r.status === 'active').length : 0;
+  const pending = refs ? refs.filter(r => r.status === 'pending').length : 0;
+  const earned  = active * 1.00;
+
+  setText('ref-count', total);
+  setText('ref-active', active);
+  setText('ref-pending', '$' + (pending * 1).toFixed(2));
+  setText('ref-total-earned', '$' + earned.toFixed(2));
+  setText('stat-refs', total);
+
+  const listEl = document.getElementById('ref-list');
+  if (!refs || !refs.length) {
+    listEl.innerHTML = `<div class="empty-state" style="padding:24px"><div class="empty-icon">👥</div><p>No referrals yet. Share your code!</p></div>`;
+    return;
+  }
+  listEl.innerHTML = refs.map(r => {
+    const person = r.profiles || {};
+    const name   = person.full_name || 'User';
+    const initials = name.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
+    const date   = person.created_at ? new Date(person.created_at).toLocaleDateString() : '';
+    return `
+      <div class="ref-person">
+        <div class="ref-person-avatar">${initials}</div>
+        <div class="ref-person-info">
+          <div class="ref-person-name">${escHtml(name)}</div>
+          <div class="ref-person-date">Joined ${date}</div>
+        </div>
+        <div class="ref-person-earn">${r.status === 'active' ? '+$1.00' : '⏳'}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function copyReferralCode() {
+  const code = document.getElementById('ref-code-display').textContent;
+  const btn  = document.getElementById('ref-copy-btn');
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(code);
+  } else {
+    const ta = document.createElement('textarea');
+    ta.value = code; document.body.appendChild(ta);
+    ta.select(); document.execCommand('copy');
+    document.body.removeChild(ta);
+  }
+  btn.textContent = 'Copied!';
+  btn.classList.add('copied');
+  showToast('Referral code copied! ✓', 'success');
+  setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+}
+
+/* ══════════════════════════════════════
+   NOTIFICATIONS
+══════════════════════════════════════ */
+async function loadNotifications() {
+  const { data } = await db.from('notifications')
+    .select('*').eq('user_id', currentUser.id)
+    .order('created_at', { ascending: false }).limit(30);
+
+  const unread = data ? data.filter(n => !n.read).length : 0;
+  const dotEl  = document.getElementById('notif-dot');
+  const badgeEl = document.getElementById('notif-badge-prof');
+  if (dotEl) dotEl.style.display = unread > 0 ? 'block' : 'none';
+  if (badgeEl) badgeEl.textContent = unread;
+
+  const listEl = document.getElementById('notif-list');
+  if (!data || !data.length) {
+    listEl.innerHTML = `<div class="empty-state"><div class="empty-icon">🔔</div><p>No notifications yet.</p></div>`;
+    return;
+  }
+  const iconMap = { info: '💬', success: '✅', warn: '⚠️', error: '❌' };
+  listEl.innerHTML = data.map(n => `
+    <div class="notif-item ${n.read ? '' : 'unread'}">
+      <div class="notif-dot ${n.type || 'info'}">${iconMap[n.type] || '🔔'}</div>
+      <div class="notif-content">
+        <div class="notif-title">${escHtml(n.title || '')}</div>
+        <div class="notif-body">${escHtml(n.body || '')}</div>
+        <div class="notif-time">${n.created_at ? timeAgo(n.created_at) : ''}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function markAllRead() {
+  await db.from('notifications').update({ read: true }).eq('user_id', currentUser.id).eq('read', false);
+  await loadNotifications();
+  showToast('All marked as read');
+}
+
+/* ══════════════════════════════════════
+   NAVIGATION
+══════════════════════════════════════ */
+const VIEWS_WITH_NAV = ['home', 'mytasks', 'support', 'referrals', 'profile'];
+const VIEWS_WITH_BACK = ['settings', 'notifications'];
+
+function showView(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  const target = document.getElementById('view-' + name);
+  if (target) target.classList.add('active');
+
+  const nav = document.getElementById('bottom-nav');
+  const showNav = VIEWS_WITH_NAV.includes(name) || VIEWS_WITH_BACK.includes(name);
+  nav.style.display = VIEWS_WITH_NAV.includes(name) ? 'flex' : 'none';
+
+  // Update active nav item
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.classList.toggle('active', item.dataset.view === name);
+  });
+}
+
+function navTo(view) {
+  if (navHistory[navHistory.length-1] !== view) navHistory.push(view);
+  prevView = navHistory.length > 1 ? navHistory[navHistory.length-2] : 'home';
+  showView(view);
+  window.scrollTo(0, 0);
+}
+
+function navBack() {
+  navHistory.pop();
+  const back = navHistory[navHistory.length-1] || 'home';
+  showView(back);
+}
+
+/* ══════════════════════════════════════
+   MISC UI
+══════════════════════════════════════ */
+function toggleFaq(el) {
+  const answer = el.nextElementSibling;
+  if (answer && answer.classList.contains('faq-answer')) {
+    answer.classList.toggle('hidden');
+    const arrow = el.querySelector('.menu-arrow');
+    if (arrow) arrow.textContent = answer.classList.contains('hidden') ? '›' : '⌄';
+  }
+}
+
+let toastTimer;
+function showToast(msg, type = '') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show' + (type ? ' ' + type : '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+/* ══════════════════════════════════════
+   HELPERS
+══════════════════════════════════════ */
+function setText(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = val;
+}
+function escHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function timeAgo(iso) {
+  const diff = Date.now() - new Date(iso).getTime();
+  const m = Math.floor(diff/60000);
+  if (m < 1) return 'just now';
+  if (m < 60) return m + 'm ago';
+  const h = Math.floor(m/60);
+  if (h < 24) return h + 'h ago';
+  return Math.floor(h/24) + 'd ago';
+}
+</script>
+</body>
+</html>
