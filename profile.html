@@ -316,23 +316,51 @@ loadActivity();
 });
 
 /* PROFILE */
+/* PROFILE */
 async function loadProfile(){
-const {data}=await db.from("profiles")
-.select("*").eq("id",currentUser.id).single();
 
-if(!data) return;
+  const { data, error } = await db
+    .from("profiles")
+    .select("*")
+    .eq("id", currentUser.id)
+    .single();
 
-document.getElementById("name").textContent=data.full_name;
-document.getElementById("username").textContent="@"+data.username;
-document.getElementById("email").textContent=currentUser.email;
+  if(error){
+    console.log("Profile error:", error.message);
+    return;
+  }
 
-document.getElementById("avatar").textContent=data.full_name?.[0]||"U";
-document.getElementById("country").textContent=getFlag(data.country)+" "+data.country;
+  if(!data){
+    console.log("No profile found");
+    return;
+  }
 
-document.getElementById("paypal-email").textContent=data.paypal_email||currentUser.email;
-document.getElementById("since").textContent=new Date(currentUser.created_at).getFullYear();
+  document.getElementById("name").textContent =
+    data.full_name || "User";
+
+  document.getElementById("username").textContent =
+    "@" + (data.username || "user");
+
+  document.getElementById("email").textContent =
+    currentUser.email;
+
+  document.getElementById("avatar").textContent =
+    (data.full_name?.[0] || "U").toUpperCase();
+
+  /* Country display */
+  const countryName =
+    countries.find(c => c.code === data.country)?.name || data.country;
+
+  document.getElementById("country").textContent =
+    getFlag(data.country) + " " + countryName;
+
+  document.getElementById("paypal-email").textContent =
+    data.paypal_email || currentUser.email;
+
+  
+  document.getElementById("since").textContent =
+    new Date(currentUser.created_at).getFullYear();
 }
-
 /* STATS */
 async function loadStats(){
 const {data}=await db.from("user_tasks").select("*").eq("user_id",currentUser.id);
