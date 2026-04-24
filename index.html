@@ -411,16 +411,12 @@ select.form-input{appearance:none;-webkit-appearance:none;cursor:pointer}
   </div>
 
   <div class="splash-cta">
-    <button class="btn-primary" onclick="openAuth('register')">
-      Start Earning Free
-      <i class="bi bi-arrow-right"></i>
+<button onclick="openAuth('register')">
+  Get Started free
+</button>
+    <button onclick="openAuth('login')">
+  Sign In now
     </button>
-    <button class="btn-outline" onclick="openAuth('login')">
-      <i class="bi bi-box-arrow-in-right"></i>
-      Sign In
-    </button>
-  </div>
-
   <div class="trust">
     <div class="trust-avatars">
       <span>A</span><span>K</span><span>M</span><span>J</span>
@@ -788,29 +784,47 @@ let usernameOk=false, emailOk=false;
 let usernameTimer=null, emailTimer=null;
 
 /* ── MODAL ─────────────────────────────────────── */
-function openAuth(tab='login'){
-  const ov=document.getElementById('authOverlay');
-  ov.classList.add('visible');
-  requestAnimationFrame(()=>ov.classList.add('shown'));
-  switchTab(tab);
-}
-function closeAuth(){
-  const ov=document.getElementById('authOverlay');
-  ov.classList.remove('shown');
-  setTimeout(()=>ov.classList.remove('visible'),320);
-}
-document.getElementById('authOverlay').addEventListener('click',e=>{
-  if(e.target===e.currentTarget) closeAuth();
-});
+document.addEventListener("DOMContentLoaded", () => {
 
-/* ── TABS ──────────────────────────────────────── */
-function switchTab(tab){
-  const L=tab==='login';
-  document.getElementById('loginBox').style.display    = L?'block':'none';
-  document.getElementById('registerBox').style.display = L?'none':'block';
-  document.getElementById('tab-login').classList.toggle('active', L);
-  document.getElementById('tab-register').classList.toggle('active',!L);
-}
+  const ov = document.getElementById('authOverlay');
+
+  if (!ov) return;
+
+  /* ── MODAL ── */
+  window.openAuth = function(tab='login'){
+    ov.classList.add('visible');
+    requestAnimationFrame(()=>ov.classList.add('shown'));
+    switchTab(tab);
+  }
+
+  window.closeAuth = function(){
+    ov.classList.remove('shown');
+    setTimeout(()=>ov.classList.remove('visible'),300);
+  }
+
+  ov.addEventListener('click', e=>{
+    if(e.target === ov) closeAuth();
+  });
+
+  /* ── TABS ── */
+  window.switchTab = function(tab){
+    const loginBox = document.getElementById('loginBox');
+    const registerBox = document.getElementById('registerBox');
+    const loginTab = document.getElementById('tab-login');
+    const registerTab = document.getElementById('tab-register');
+
+    if(!loginBox || !registerBox) return;
+
+    const isLogin = tab === 'login';
+
+    loginBox.style.display = isLogin ? 'block' : 'none';
+    registerBox.style.display = isLogin ? 'none' : 'block';
+
+    loginTab?.classList.toggle('active', isLogin);
+    registerTab?.classList.toggle('active', !isLogin);
+  }
+
+});
 
 /* ── EYE TOGGLE ────────────────────────────────── */
 function toggleEye(id,btn){
