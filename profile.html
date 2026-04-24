@@ -21,10 +21,10 @@ body{margin:0;font-family:system-ui;background:var(--bg)}
 
 /* PROFILE */
 .profile-card{background:#fff;margin:16px;padding:20px;border-radius:16px;text-align:center}
-.avatar{width:70px;height:70px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;margin:auto}
-.name{font-weight:700}
+.avatar{width:70px;height:70px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:28px;margin:auto}
+.name{font-weight:700;font-size:18px;margin-top:8px}
 .username,.email{font-size:13px;color:var(--gray)}
-.badge{margin-top:6px;font-size:12px;background:#eef2ff;color:var(--blue);padding:4px 8px;border-radius:20px}
+.badge{margin-top:6px;font-size:12px;background:#eef2ff;color:var(--blue);padding:4px 8px;border-radius:20px;display:inline-block}
 
 /* STATS */
 .stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:10px}
@@ -32,14 +32,10 @@ body{margin:0;font-family:system-ui;background:var(--bg)}
 
 /* BUTTON */
 .center{text-align:center}
-.btn{margin-top:12px;padding:10px 20px;border:none;border-radius:10px;background:var(--blue);color:#fff;cursor:pointer}
+.btn{margin-top:12px;padding:10px 20px;border:none;border-radius:10px;background:var(--blue);color:#fff;cursor:pointer;font-size:14px}
 
-/* MODAL */
-#edit-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);align-items:center;justify-content:center}
-.modal-box{background:#fff;width:90%;max-width:360px;padding:20px;border-radius:14px}
-input,select{width:100%;padding:10px;margin:8px 0;border:1px solid #ddd;border-radius:8px}
 /* EDIT MODAL */
-  #edit-modal{
+#edit-modal{
   display:none;
   position:fixed;
   inset:0;
@@ -47,7 +43,27 @@ input,select{width:100%;padding:10px;margin:8px 0;border:1px solid #ddd;border-r
   align-items:center;
   justify-content:center;
   z-index:99999;
-  }
+}
+.modal-box{
+  background:#fff;
+  width:92%;
+  max-width:420px;
+  padding:20px;
+  border-radius:14px;
+  max-height:90vh;
+  overflow:auto;
+  box-shadow:0 10px 30px rgba(0,0,0,0.2);
+}
+input,select{
+  width:100%;
+  padding:10px;
+  margin:8px 0;
+  border:1px solid #ddd;
+  border-radius:8px;
+  box-sizing:border-box;
+  font-size:14px;
+}
+
 /* CARD */
 .card{background:#fff;margin:16px;padding:15px;border-radius:12px}
 .item{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #eee}
@@ -56,9 +72,9 @@ input,select{width:100%;padding:10px;margin:8px 0;border:1px solid #ddd;border-r
 .bottom-nav{position:fixed;bottom:0;width:100%;background:#fff;border-top:1px solid #eee;display:flex}
 .nav-item{flex:1;text-align:center;padding:10px}
 .nav-item i{font-size:20px;color:var(--gray)}
-.nav-item.active i{color:var(--blue)
-}
-  .logout-btn{
+.nav-item.active i{color:var(--blue)}
+
+.logout-btn{
   display:block;
   width:calc(100% - 32px);
   margin:16px auto;
@@ -71,31 +87,30 @@ input,select{width:100%;padding:10px;margin:8px 0;border:1px solid #ddd;border-r
   cursor:pointer;
   transition:0.2s;
 }
+.logout-btn:hover{background:#dc2626}
+.logout-btn:active{transform:scale(0.97)}
 
-.logout-btn:hover{
-  background:#dc2626;
-}
-
-.logout-btn:active{
-  transform:scale(0.97);
-}
-  
+/* Loading spinner */
+.spinner{text-align:center;padding:20px;color:var(--gray)}
 </style>
 </head>
 
 <body>
 
+<!-- =====================
+     PROFILE VIEW
+     (everything lives inside this div so it only renders when authed)
+===================== -->
 <div class="view" id="view-profile">
 
+  <!-- PROFILE CARD -->
   <div class="profile-card">
     <div class="avatar" id="avatar">U</div>
-
     <div class="name" id="name">Loading...</div>
     <div id="verify-badge"></div>
-
     <div class="username" id="username"></div>
     <div class="email" id="email"></div>
-
+    <!-- FIX: country now shows flag + name correctly via countryNameToCode lookup -->
     <div class="badge" id="country">🌍</div>
 
     <div class="stats">
@@ -106,43 +121,61 @@ input,select{width:100%;padding:10px;margin:8px 0;border:1px solid #ddd;border-r
     </div>
   </div>
 
-</div>
+  <!-- EDIT BUTTON — moved INSIDE #view-profile so it only shows when authed -->
+  <div style="text-align:center;margin-top:15px;">
+    <button onclick="openEditModal()"
+      style="padding:10px 24px;background:#1a56db;color:#fff;border:none;border-radius:10px;cursor:pointer;font-weight:600;font-size:15px;">
+      ✏️ Edit Profile
+    </button>
+  </div>
 
-<!-- EDIT BUTTON (CENTERED) -->
-<div style="text-align:center;margin-top:15px;">
-  <button onclick="openEditModal()"
-  style="padding:10px 16px;background:#1a56db;color:#fff;border:none;border-radius:10px;cursor:pointer;font-weight:600;">
-  Edit Profile
+  <!-- PAYMENT -->
+  <div class="card">
+    <b>Payment</b>
+    <div class="item">
+      <span><i class="bi bi-paypal"></i> PayPal</span>
+      <span id="paypal-email">Not set</span>
+    </div>
+  </div>
+
+  <!-- ACTIVITY -->
+  <div class="card">
+    <b>Activity</b>
+    <div id="activity-list"><div class="spinner">Loading…</div></div>
+  </div>
+
+  <button class="logout-btn" onclick="logout()">
+    <i class="bi bi-box-arrow-right"></i> Sign Out
   </button>
-</div>
 
-<!-- MODAL OVERLAY -->
-<div id="edit-modal"
-     style="display:none;position:fixed;inset:0;
-     background:rgba(0,0,0,0.5);
-     align-items:center;
-     justify-content:center;
-     z-index:999;">
+</div><!-- end #view-profile -->
 
-  <!-- MODAL CARD -->
-  <div class="modal-box"
-       style="background:#fff;width:92%;max-width:420px;
-       padding:20px;border-radius:14px;
-       max-height:90vh;overflow:auto;
-       box-shadow:0 10px 30px rgba(0,0,0,0.2);">
 
-    <h3 style="margin-bottom:10px;">Edit Profile</h3>
+<!-- =====================
+     EDIT MODAL
+     FIX: clean single definition, no duplicate CSS
+===================== -->
+<div id="edit-modal">
+  <div class="modal-box">
 
+    <h3 style="margin:0 0 14px 0;">Edit Profile</h3>
+
+    <label style="font-size:13px;color:#555;">Full Name</label>
     <input id="edit-name" placeholder="Full name">
+
+    <label style="font-size:13px;color:#555;">Username</label>
     <input id="edit-username" placeholder="Username">
 
+    <label style="font-size:13px;color:#555;">Country</label>
     <select id="edit-country"></select>
     <small id="country-lock-msg" style="color:red;display:none;">
       Country cannot be changed after first save
     </small>
 
+    <label style="font-size:13px;color:#555;">Date of Birth</label>
     <input id="edit-dob" type="date">
 
+    <label style="font-size:13px;color:#555;">Gender</label>
     <select id="edit-gender">
       <option value="">Select Gender</option>
       <option>Male</option>
@@ -150,13 +183,16 @@ input,select{width:100%;padding:10px;margin:8px 0;border:1px solid #ddd;border-r
       <option>Transgender</option>
     </select>
 
+    <label style="font-size:13px;color:#555;">Phone Number</label>
     <input id="edit-phone" placeholder="Phone Number">
+
+    <label style="font-size:13px;color:#555;">Address</label>
     <input id="edit-address" placeholder="Address">
 
-    <h4 style="margin-top:10px;">Payment Settings</h4>
+    <h4 style="margin-top:14px;margin-bottom:0;">Payment Settings</h4>
     <input id="edit-paypal" placeholder="PayPal Email">
 
-    <h4 style="margin-top:10px;">Security</h4>
+    <h4 style="margin-top:14px;margin-bottom:4px;">Security</h4>
 
     <button onclick="resetPassword()" class="btn"
       style="width:100%;background:#f59e0b;color:#fff;margin-bottom:6px;">
@@ -169,7 +205,7 @@ input,select{width:100%;padding:10px;margin:8px 0;border:1px solid #ddd;border-r
     </button>
 
     <button onclick="saveProfile()" class="btn"
-      style="width:100%;margin-top:10px;">
+      style="width:100%;margin-top:14px;">
       Save Changes
     </button>
 
@@ -180,42 +216,108 @@ input,select{width:100%;padding:10px;margin:8px 0;border:1px solid #ddd;border-r
 
   </div>
 </div>
-<!-- PAYMENT -->
-<div class="card">
-  <b>Payment</b>
-  <div class="item">
-    <span><i class="bi bi-paypal"></i> PayPal</span>
-    <span id="paypal-email"></span>
-  </div>
-</div>
 
-<!-- ACTIVITY -->
-<div class="card">
-  <b>Activity</b>
-  <div id="activity-list"></div>
-</div>
 
-<button class="logout-btn" onclick="logout()">
-  <i class="bi bi-box-arrow-right"></i> Sign Out
-</button>
-</div>
 <script>
-  const db = supabase.createClient(
+/* =========================
+   SUPABASE CLIENT
+========================= */
+const db = supabase.createClient(
   "https://lwnbfjjsstxkyexeojcl.supabase.co",
   "sb_publishable_Pj9ocGkssu5Gh6qZXFnZQQ_LdghnZt9"
 );
 
-let currentUser;
+let currentUser = null;
+
+/* =========================
+   COUNTRY DATA
+   FIX: store both code + name so we can:
+   1. Show flag on profile page (need code → flag)
+   2. Match saved country name back to flag (need name → code)
+========================= */
+const COUNTRIES = [
+  {code:"KE",name:"Kenya"},
+  {code:"NG",name:"Nigeria"},
+  {code:"US",name:"United States"},
+  {code:"GB",name:"United Kingdom"},
+  {code:"IN",name:"India"},
+  {code:"CA",name:"Canada"},
+  {code:"DE",name:"Germany"},
+  {code:"FR",name:"France"},
+  {code:"ZA",name:"South Africa"},
+  {code:"TZ",name:"Tanzania"},
+  {code:"UG",name:"Uganda"},
+  {code:"RW",name:"Rwanda"},
+  {code:"ET",name:"Ethiopia"},
+  {code:"BR",name:"Brazil"},
+  {code:"CN",name:"China"},
+  {code:"JP",name:"Japan"},
+  {code:"RU",name:"Russia"},
+  {code:"AU",name:"Australia"},
+  {code:"IT",name:"Italy"},
+  {code:"ES",name:"Spain"},
+  {code:"MX",name:"Mexico"},
+  {code:"GH",name:"Ghana"},
+  {code:"EG",name:"Egypt"},
+  {code:"MA",name:"Morocco"},
+  {code:"AR",name:"Argentina"},
+  {code:"PK",name:"Pakistan"},
+  {code:"ID",name:"Indonesia"},
+  {code:"PH",name:"Philippines"},
+  {code:"TR",name:"Turkey"},
+  {code:"AE",name:"UAE"},
+  {code:"SA",name:"Saudi Arabia"},
+  {code:"KR",name:"South Korea"},
+  {code:"SG",name:"Singapore"},
+  {code:"NL",name:"Netherlands"},
+  {code:"SE",name:"Sweden"},
+  {code:"NO",name:"Norway"},
+  {code:"PL",name:"Poland"},
+];
+
+/* Build a fast lookup: country NAME → flag emoji */
+const NAME_TO_FLAG = {};
+COUNTRIES.forEach(c => {
+  NAME_TO_FLAG[c.name] = getFlag(c.code);
+});
+
+/* =========================
+   FLAGS (by ISO code)
+========================= */
+function getFlag(code) {
+  const flags = {
+    KE:"🇰🇪",NG:"🇳🇬",ZA:"🇿🇦",UG:"🇺🇬",TZ:"🇹🇿",RW:"🇷🇼",ET:"🇪🇹",
+    GH:"🇬🇭",SN:"🇸🇳",SO:"🇸🇴",SD:"🇸🇩",EG:"🇪🇬",DZ:"🇩🇿",MA:"🇲🇦",
+    TN:"🇹🇳",LY:"🇱🇾",CM:"🇨🇲",CI:"🇨🇮",CD:"🇨🇩",CG:"🇨🇬",AO:"🇦🇴",
+    BW:"🇧🇼",ZM:"🇿🇲",ZW:"🇿🇼",MZ:"🇲🇿",MG:"🇲🇬",MW:"🇲🇼",
+    GB:"🇬🇧",US:"🇺🇸",CA:"🇨🇦",AU:"🇦🇺",NZ:"🇳🇿",
+    DE:"🇩🇪",FR:"🇫🇷",IT:"🇮🇹",ES:"🇪🇸",PT:"🇵🇹",NL:"🇳🇱",
+    BE:"🇧🇪",CH:"🇨🇭",AT:"🇦🇹",SE:"🇸🇪",NO:"🇳🇴",DK:"🇩🇰",
+    FI:"🇫🇮",PL:"🇵🇱",CZ:"🇨🇿",GR:"🇬🇷",IE:"🇮🇪",UA:"🇺🇦",RU:"🇷🇺",
+    IN:"🇮🇳",CN:"🇨🇳",JP:"🇯🇵",KR:"🇰🇷",PK:"🇵🇰",BD:"🇧🇩",
+    ID:"🇮🇩",MY:"🇲🇾",SG:"🇸🇬",TH:"🇹🇭",VN:"🇻🇳",PH:"🇵🇭",
+    IR:"🇮🇷",IQ:"🇮🇶",SA:"🇸🇦",AE:"🇦🇪",TR:"🇹🇷",IL:"🇮🇱",
+    AF:"🇦🇫",NP:"🇳🇵",LK:"🇱🇰",
+    MX:"🇲🇽",BR:"🇧🇷",AR:"🇦🇷",CL:"🇨🇱",CO:"🇨🇴",PE:"🇵🇪",
+    VE:"🇻🇪",UY:"🇺🇾",PY:"🇵🇾",BO:"🇧🇴",
+    FJ:"🇫🇯",PG:"🇵🇬"
+  };
+  return flags[String(code||"").toUpperCase()] || "🌍";
+}
+
+/* =========================
+   HELPER: safely set text
+========================= */
+function setText(id, value) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = value;
+}
 
 /* =========================
    INIT
 ========================= */
 document.addEventListener("DOMContentLoaded", async () => {
-  const view = document.getElementById("view-profile");
-  if (view) view.style.display = "block";
-
   const { data, error } = await db.auth.getUser();
-
   console.log("AUTH:", data, error);
 
   if (!data?.user) {
@@ -225,21 +327,19 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   currentUser = data.user;
 
+  // Show the profile view only after auth confirmed
+  const view = document.getElementById("view-profile");
+  if (view) view.style.display = "block";
+
   await loadProfile();
   await loadStats();
   await loadActivity();
 });
 
 /* =========================
-   SAFE SET
-========================= */
-function setText(id, value) {
-  const el = document.getElementById(id);
-  if (el) el.textContent = value;
-}
-
-/* =========================
-   PROFILE LOAD (FIXED)
+   LOAD PROFILE
+   FIX: country flag now uses NAME_TO_FLAG lookup
+   so "Kenya" correctly shows 🇰🇪
 ========================= */
 async function loadProfile() {
   try {
@@ -261,20 +361,18 @@ async function loadProfile() {
       return;
     }
 
-    setText("name", data.full_name || "User");
-    setText("username", "@" + (data.username || "user"));
+    const displayName = data.full_name || "User";
+    setText("name", displayName);
+    setText("username", data.username ? "@" + data.username : "");
     setText("email", currentUser.email);
+    setText("avatar", displayName[0].toUpperCase());
 
-    setText("avatar", (data.full_name?.[0] || "U").toUpperCase());
-
-    // COUNTRY (ONLY ONE FIELD USED)
-    setText(
-      "country",
-      getFlag(data.country) + " " + (data.country || "Unknown")
-    );
+    // FIX: data.country is stored as a name (e.g. "Kenya")
+    // Use NAME_TO_FLAG to look up the flag emoji by name
+    const flag = NAME_TO_FLAG[data.country] || "🌍";
+    setText("country", flag + " " + (data.country || "Unknown"));
 
     setText("since", new Date(currentUser.created_at).getFullYear());
-
     setText("paypal-email", data.paypal_email || "Not set");
 
   } catch (err) {
@@ -283,7 +381,7 @@ async function loadProfile() {
 }
 
 /* =========================
-   STATS
+   LOAD STATS
 ========================= */
 async function loadStats() {
   const { data } = await db
@@ -295,7 +393,7 @@ async function loadStats() {
 }
 
 /* =========================
-   ACTIVITY
+   LOAD ACTIVITY
 ========================= */
 async function loadActivity() {
   const { data } = await db
@@ -305,90 +403,103 @@ async function loadActivity() {
     .limit(5);
 
   const box = document.getElementById("activity-list");
+  if (!box) return;
 
   if (!data?.length) {
-    box.innerHTML = "No activity";
+    box.innerHTML = "<div style='color:#9ca3af;font-size:13px;padding:10px 0'>No recent activity</div>";
     return;
   }
 
   box.innerHTML = data
-    .map((a) => `<div class="item"><span>${a.title}</span></div>`)
+    .map(a => `<div class="item"><span>${a.title}</span></div>`)
     .join("");
 }
 
 /* =========================
-   EDIT MODAL
+   EDIT MODAL — OPEN
+   FIX: merged the broken split function back into one clean async function.
+   Now correctly: shows modal → fetches data → populates all fields
 ========================= */
-  async function openEditModal(){
-  document.getElementById("edit-modal").style.display = "flex";
-}
-
-function closeEditModal(){
-  document.getElementById("edit-modal").style.display = "none";
-}
-
-  const modal = document.getElementById("edit-modal");
-  modal.style.display = "flex"; // ONLY METHOD USED
-
-  if(!currentUser?.id){
-    console.error("No user");
+async function openEditModal() {
+  if (!currentUser?.id) {
+    console.error("openEditModal: no currentUser");
     return;
   }
 
-  const { data } = await db
+  // Show modal first so user sees it loading
+  document.getElementById("edit-modal").style.display = "flex";
+
+  // Fetch latest profile data from DB
+  const { data, error } = await db
     .from("profiles")
     .select("*")
     .eq("id", currentUser.id)
     .maybeSingle();
 
-  if(!data) return;
+  console.log("EDIT MODAL DATA:", data, error);
 
-  document.getElementById("edit-name").value = data.full_name || "";
-  document.getElementById("edit-username").value = data.username || "";
-  document.getElementById("edit-paypal").value = data.paypal_email || "";
-
-  loadCountries(data.country);
+  if (!data) {
+    // Still show empty form if no profile row yet
+    loadCountries("");
+    return;
   }
 
+  // Populate all fields
+  document.getElementById("edit-name").value     = data.full_name    || "";
+  document.getElementById("edit-username").value = data.username     || "";
+  document.getElementById("edit-paypal").value   = data.paypal_email || "";
+  document.getElementById("edit-phone").value    = data.phone        || "";
+  document.getElementById("edit-address").value  = data.address      || "";
+  document.getElementById("edit-dob").value      = data.dob          || "";
+
+  // Gender
+  const genderSelect = document.getElementById("edit-gender");
+  if (data.gender) {
+    for (let i = 0; i < genderSelect.options.length; i++) {
+      if (genderSelect.options[i].text === data.gender) {
+        genderSelect.selectedIndex = i;
+        break;
+      }
+    }
+  }
+
+  // Country — load dropdown then select saved value
+  // FIX: country is stored as name ("Kenya"), so we pass name to loadCountries
+  loadCountries(data.country || "");
+
+  // Lock country if already set
+  const countrySelect = document.getElementById("edit-country");
+  const lockMsg = document.getElementById("country-lock-msg");
+  if (data.country) {
+    countrySelect.disabled = true;
+    lockMsg.style.display = "block";
+  } else {
+    countrySelect.disabled = false;
+    lockMsg.style.display = "none";
+  }
+}
+
 /* =========================
-   COUNTRIES
+   EDIT MODAL — CLOSE
 ========================= */
-function loadCountries(selected=""){
+function closeEditModal() {
+  document.getElementById("edit-modal").style.display = "none";
+}
 
-  const countries = [
-    {code:"KE",name:"Kenya"},
-    {code:"NG",name:"Nigeria"},
-    {code:"US",name:"United States"},
-    {code:"GB",name:"United Kingdom"},
-    {code:"IN",name:"India"},
-    {code:"CA",name:"Canada"},
-    {code:"DE",name:"Germany"},
-    {code:"FR",name:"France"},
-    {code:"ZA",name:"South Africa"},
-    {code:"TZ",name:"Tanzania"},
-    {code:"UG",name:"Uganda"},
-    {code:"RW",name:"Rwanda"},
-    {code:"ET",name:"Ethiopia"},
-    {code:"BR",name:"Brazil"},
-    {code:"CN",name:"China"},
-    {code:"JP",name:"Japan"},
-    {code:"RU",name:"Russia"},
-    {code:"AU",name:"Australia"},
-    {code:"IT",name:"Italy"},
-    {code:"ES",name:"Spain"},
-    {code:"MX",name:"Mexico"}
-  ];
-
+/* =========================
+   LOAD COUNTRY DROPDOWN
+   FIX: selected param is a country NAME (e.g. "Kenya")
+   Options use name as value, so comparison works correctly
+========================= */
+function loadCountries(selectedName) {
   const select = document.getElementById("edit-country");
   select.innerHTML = `<option value="">Select country</option>`;
 
-  countries.forEach(c=>{
+  COUNTRIES.forEach(c => {
     const opt = document.createElement("option");
-    opt.value = c.name;
-    opt.textContent = `${getFlag(c.code)} ${c.name}`;
-
-    if(c.name === selected) opt.selected = true;
-
+    opt.value = c.name;  // store name, not code
+    opt.textContent = getFlag(c.code) + " " + c.name;
+    if (c.name === selectedName) opt.selected = true;
     select.appendChild(opt);
   });
 }
@@ -398,19 +509,18 @@ function loadCountries(selected=""){
 ========================= */
 async function saveProfile() {
   const updates = {
-    full_name: document.getElementById("edit-name").value,
-    username: document.getElementById("edit-username").value,
-    paypal_email: document.getElementById("edit-paypal").value,
-    phone: document.getElementById("edit-phone").value,
-    address: document.getElementById("edit-address").value,
-    dob: document.getElementById("edit-dob").value,
-    gender: document.getElementById("edit-gender").value
+    full_name:    document.getElementById("edit-name").value.trim(),
+    username:     document.getElementById("edit-username").value.trim(),
+    paypal_email: document.getElementById("edit-paypal").value.trim(),
+    phone:        document.getElementById("edit-phone").value.trim(),
+    address:      document.getElementById("edit-address").value.trim(),
+    dob:          document.getElementById("edit-dob").value     || null,
+    gender:       document.getElementById("edit-gender").value  || null,
   };
 
-  const country = document.getElementById("edit-country");
-
-  if (!country.disabled) {
-    updates.country = country.value;
+  const countrySelect = document.getElementById("edit-country");
+  if (!countrySelect.disabled && countrySelect.value) {
+    updates.country = countrySelect.value; // saves country NAME
   }
 
   const { error } = await db
@@ -419,57 +529,58 @@ async function saveProfile() {
     .eq("id", currentUser.id);
 
   if (error) {
-    alert(error.message);
+    alert("Error saving: " + error.message);
     return;
   }
 
   alert("Profile updated!");
   closeEditModal();
-  loadProfile();
+  await loadProfile(); // refresh the profile card
 }
 
 /* =========================
-   LOGOUT FIXED STYLE
+   RESET PASSWORD
 ========================= */
-async function logout() {
+async function resetPassword() {
+  const { error } = await db.auth.resetPasswordForEmail(currentUser.email);
+  if (error) {
+    alert("Error: " + error.message);
+  } else {
+    alert("Password reset email sent to " + currentUser.email);
+  }
+}
+
+/* =========================
+   DEACTIVATE ACCOUNT
+========================= */
+async function deactivateAccount() {
+  const confirmed = confirm(
+    "Are you sure you want to deactivate your account? This cannot be undone."
+  );
+  if (!confirmed) return;
+
+  const { error } = await db
+    .from("profiles")
+    .update({ deactivated: true })
+    .eq("id", currentUser.id);
+
+  if (error) {
+    alert("Error: " + error.message);
+    return;
+  }
+
   await db.auth.signOut();
   location.href = "index.html";
 }
 
 /* =========================
-   FLAGS
+   LOGOUT
 ========================= */
-function getFlag(code) {
-  const flags = {
-    // Africa
-    KE:"🇰🇪", NG:"🇳🇬", ZA:"🇿🇦", UG:"🇺🇬", TZ:"🇹🇿", RW:"🇷🇼", ET:"🇪🇹",
-    GH:"🇬🇭", SN:"🇸🇳", SO:"🇸🇴", SD:"🇸🇩", EG:"🇪🇬", DZ:"🇩🇿", MA:"🇲🇦",
-    TN:"🇹🇳", LY:"🇱🇾", CM:"🇨🇲", CI:"🇨🇮", CD:"🇨🇩", CG:"🇨🇬", AO:"🇦🇴",
-    BW:"🇧🇼", ZM:"🇿🇲", ZW:"🇿🇼", MZ:"🇲🇿", MG:"🇲🇬", MW:"🇲🇼",
-
-    // Europe
-    GB:"🇬🇧", US:"🇺🇸", CA:"🇨🇦", AU:"🇦🇺", NZ:"🇳🇿",
-    DE:"🇩🇪", FR:"🇫🇷", IT:"🇮🇹", ES:"🇪🇸", PT:"🇵🇹", NL:"🇳🇱",
-    BE:"🇧🇪", CH:"🇨🇭", AT:"🇦🇹", SE:"🇸🇪", NO:"🇳🇴", DK:"🇩🇰",
-    FI:"🇫🇮", PL:"🇵🇱", CZ:"🇨🇿", GR:"🇬🇷", IE:"🇮🇪", UA:"🇺🇦",
-    RU:"🇷🇺",
-
-    // Asia
-    IN:"🇮🇳", CN:"🇨🇳", JP:"🇯🇵", KR:"🇰🇷", PK:"🇵🇰", BD:"🇧🇩",
-    ID:"🇮🇩", MY:"🇲🇾", SG:"🇸🇬", TH:"🇹🇭", VN:"🇻🇳", PH:"🇵🇭",
-    IR:"🇮🇷", IQ:"🇮🇶", SA:"🇸🇦", AE:"🇦🇪", TR:"🇹🇷", IL:"🇮🇱",
-    AF:"🇦🇫", NP:"🇳🇵", LK:"🇱🇰",
-
-    // Americas
-    MX:"🇲🇽", BR:"🇧🇷", AR:"🇦🇷", CL:"🇨🇱", CO:"🇨🇴", PE:"🇵🇪",
-    VE:"🇻🇪", UY:"🇺🇾", PY:"🇵🇾", BO:"🇧🇴",
-
-    // Oceania
-    FJ:"🇫🇯", PG:"🇵🇬", WS:"🇼🇸", TO:"🇹🇴"
-  };
-
-  return flags[String(code || "").toUpperCase()] || "🌍";
-      }
+async function logout() {
+  await db.auth.signOut();
+  location.href = "index.html";
+}
 </script>
 </body>
-</html>
+</html>  
+    
