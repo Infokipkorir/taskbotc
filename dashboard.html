@@ -89,61 +89,33 @@ img { display: block; max-width: 100%; }
 }
 .view.active { display: flex; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-   /* ═════════ BOTTOM NAV ═════════ */
-
-.bottom-nav {
-  position: fixed;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 100%;
-  max-width: 480px;
-
-  background: #fff;
-  border-top: 0.5px solid #e5e7eb;
-
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-
-  padding-bottom: env(safe-area-inset-bottom, 0);
-  z-index: 999;
-  box-shadow: 0 -4px 20px rgba(0,0,0,0.06);
+/* ═════════ NAV ═════════ */
+.bottom-nav{
+  position:fixed;
+  bottom:0;
+  left:50%;
+  transform:translateX(-50%);
+  width:100%;
+  max-width:480px;
+  background:#fff;
+  border-top:1px solid var(--border);
+  display:flex;
 }
 
-.nav-item {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 3px;
-
-  padding: 10px 4px 8px;
-  cursor: pointer;
-  transition: 0.2s;
+.nav-item{
+  flex:1;
+  text-align:center;
+  padding:10px;
 }
 
-.nav-item:active {
-  transform: scale(0.95);
-  opacity: 0.6;
-}
+.nav-item i{font-size:20px;color:var(--gray)}
+.nav-label{font-size:10px;color:var(--gray)}
 
-.nav-item i {
-  font-size: 20px;
-  color: #6b7280;
-}
-
-.nav-label {
-  font-size: 10px;
-  color: #6b7280;
-}
-
-/* ACTIVE */
 .nav-item.active i,
-.nav-item.active .nav-label {
-  color: var(--blue);
-  font-weight: 600;
+.nav-item.active .nav-label{
+  color:var(--blue);
 }
+
 
 /* ══════════════════════════════════════
    AUTH VIEW
@@ -830,45 +802,6 @@ button.action{
 .modal-submit:disabled { opacity: 0.6; }
 
 /* ══════════════════════════════════════
-   BOTTOM NAV
-══════════════════════════════════════ */
-.bottom-nav {
-  position: fixed;
-  bottom: 0; left: 50%;
-  transform: translateX(-50%);
-  width: 100%; max-width: 480px;
-  background: var(--white);
-  border-top: 0.5px solid var(--gray-border);
-  display: flex;
-  padding-bottom: env(safe-area-inset-bottom, 0);
-  z-index: 100;
-  box-shadow: 0 -4px 20px rgba(0,0,0,0.06);
-}
-.nav-item {
-  flex: 1; display: flex; flex-direction: column;
-  align-items: center; gap: 3px;
-  padding: 10px 4px 8px;
-  cursor: pointer;
-  transition: opacity 0.12s;
-  position: relative;
-}
-.nav-item:active { opacity: 0.7; }
-.nav-icon { position: relative; }
-.nav-icon svg { width: 22px; height: 22px; display: block; }
-.nav-badge {
-  position: absolute; top: -4px; right: -6px;
-  min-width: 16px; height: 16px;
-  background: var(--red);
-  border-radius: var(--r-pill);
-  font-size: 9px; font-weight: 700; color: #fff;
-  display: flex; align-items: center; justify-content: center;
-  padding: 0 4px;
-  border: 2px solid var(--white);
-}
-.nav-label { font-size: 10px; color: var(--text-3); font-weight: 400; }
-.nav-item.active .nav-label { color: var(--blue); font-weight: 600; }
-
-/* ══════════════════════════════════════
    SUPPORT VIEW
 ══════════════════════════════════════ */
 .support-option {
@@ -1376,57 +1309,14 @@ button.action{
     </div>
   </div>
 
-  <!-- BOTTOM NAV -->
+  <!-- NAV -->
 <nav class="bottom-nav">
-
-  <div class="nav-item active" onclick="navTo('home')">
-    <i class="bi bi-list-check"></i>
-    <div class="nav-label">Tasks</div>
-  </div>
-
-  <div class="nav-item" onclick="location.href='mytasks.html'">
-    <i class="bi bi-clipboard-check"></i>
-    <div class="nav-label">My Tasks</div>
-  </div>
-
-  <div class="nav-item" onclick="location.href='support.html'">
-    <i class="bi bi-chat-dots"></i>
-    <div class="nav-label">Support</div>
-  </div>
-
-  <div class="nav-item" onclick="location.href='referrals.html'">
-    <i class="bi bi-people"></i>
-    <div class="nav-label">Referrals</div>
-  </div>
-
-  <div class="nav-item" onclick="location.href='profile.html'">
-    <i class="bi bi-person"></i>
-    <div class="nav-label">Profile</div>
-  </div>
-
-  <!-- ══ TASK DETAIL MODAL ══ -->
-  <div class="modal-overlay" id="task-modal" onclick="handleModalBackdropClick(event)">
-    <div class="modal-sheet">
-      <div class="modal-handle"></div>
-      <div class="modal-task-icon" id="modal-icon">📋</div>
-      <div class="modal-task-title" id="modal-title">Task Title</div>
-      <div class="modal-task-reward" id="modal-reward">$0.00</div>
-      <div class="modal-task-desc" id="modal-desc">Task description</div>
-      <div class="modal-steps" id="modal-steps"></div>
-      <div class="modal-proof">
-        <label>Proof of completion (URL / screenshot link)</label>
-        <input type="url" id="modal-proof-input" placeholder="https://...">
-      </div>
-      <div class="modal-proof">
-        <label>Notes (optional)</label>
-        <textarea id="modal-notes" rows="2" placeholder="Any additional information…"></textarea>
-      </div>
-      <div class="modal-btn-row">
-        <button class="modal-cancel" onclick="closeModal()">Cancel</button>
-        <button class="modal-submit" id="modal-submit-btn" onclick="submitTask()">Submit Task</button>
-      </div>
-    </div>
-  </div>
+  <div class="nav-item" onclick="location.href='task.html'"><i class="bi bi-list-check"></i><div class="nav-label">Tasks</div></div>
+  <div class="nav-item" onclick="location.href='mytasks.html'"><i class="bi bi-clipboard-check"></i><div class="nav-label">My Tasks</div></div>
+  <div class="nav-item" onclick="location.href='support.html'"><i class="bi bi-chat-dots"></i><div class="nav-label">Support</div></div>
+  <div class="nav-item" onclick="location.href='referrals.html'"><i class="bi bi-people"></i><div class="nav-label">Referrals</div></div>
+  <div class="nav-item active"><i class="bi bi-person"></i><div class="nav-label">Profile</div></div>
+</nav>
 
   <!-- ══ TOAST ══ -->
   <div class="toast" id="toast"></div>
