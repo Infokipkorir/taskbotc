@@ -379,69 +379,81 @@ loadActivity();
 });
 
   /* PROFILE*/
-  document.getElementById("view-profile").style.display = "block";
-async function loadProfile() {
+  async function loadProfile() {
+  try {
 
-  console.log("Loading profile for:", currentUser?.id);
+    console.log("Loading profile for:", currentUser?.id);
 
-  if (!currentUser?.id) {
-    console.error("No current user");
-    return;
+    if (!currentUser?.id) {
+      console.error("No current user found");
+      return;
+    }
+
+    const { data, error } = await db
+      .from("profiles")
+      .select("*")
+      .eq("id", currentUser.id)
+      .single();
+
+    console.log("PROFILE DATA:", data);
+    console.log("PROFILE ERROR:", error);
+
+    /* ❌ STOP IF ERROR */
+    if (error) {
+      console.warn("DB error:", error.message);
+      return;
+    }
+
+    if (!data) {
+      console.warn("No profile found in DB");
+      return;
+    }
+
+    /* ========================
+       SAFE DOM UPDATES
+    ========================= */
+
+    const set = (id, value) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = value;
+    };
+
+    set("name", data.full_name || "User");
+    set("username", "@" + (data.username || "user"));
+    set("email", currentUser.email);
+
+    const avatar = document.getElementById("avatar");
+    if (avatar) {
+      avatar.textContent = (data.full_name?.[0] || "U").toUpperCase();
+    }
+
+    set(
+      "country",
+      getFlag(data.country_code || data.country) +
+      " " +
+      (data.country || "Unknown")
+    );
+
+    set("tasks", data.tasks_count || 0);
+    set("earnings", "$" + (data.earnings || 0));
+    set("members", data.members || 0);
+
+    set(
+      "since",
+      new Date(currentUser.created_at).getFullYear()
+    );
+
+    /* NEW FIELDS SAFE */
+    set("paypal-email", data.paypal_email || "Not set");
+    set("phone-display", data.phone || "Not set");
+    set("address-display", data.address || "Not set");
+
+    console.log("Profile loaded successfully");
+
+  } catch (err) {
+    console.error("Unexpected profile error:", err);
   }
-
-  const { data, error } = await db
-    .from("profiles")
-    .select("*")
-    .eq("id", currentUser.id)
-    .single();
-
-  console.log("PROFILE RESPONSE:", data, error);
-
-  /* =========================
-     FALLBACK (NO PROFILE)
-  ========================== */
-  if (error || !data) {
-
-    document.getElementById("name").textContent = "User";
-    document.getElementById("username").textContent = "@user";
-    document.getElementById("email").textContent = currentUser.email;
-
-    document.getElementById("avatar").textContent =
-      (currentUser.email?.[0] || "U").toUpperCase();
-
-    document.getElementById("country").textContent = "🌍 Unknown";
-
-    document.getElementById("tasks").textContent = "0";
-    document.getElementById("earnings").textContent = "$0";
-    document.getElementById("members").textContent = "0";
-
-    document.getElementById("since").textContent =
-      new Date(currentUser.created_at).getFullYear();
-
-    return;
-  }
-
-  /* =========================
-     MAIN PROFILE DATA
-  ========================== */
-
-  document.getElementById("name").textContent =
-    data.full_name || "User";
-
-  document.getElementById("username").textContent =
-    "@" + (data.username || "user");
-
-  document.getElementById("email").textContent =
-    currentUser.email;
-
-  document.getElementById("avatar").textContent =
-    (data.full_name?.[0] || "U").toUpperCase();
-
-  /* COUNTRY (supports code or name) */
-  document.getElementById("country").textContent =
-    getFlag(data.country_code || data.country) +
-    " " +
-    (data.country || "Unknown");
+  }y || "Unknown");
 
   /* STATS */
   document.getElementById("tasks").textContent =
