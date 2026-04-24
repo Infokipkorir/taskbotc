@@ -339,8 +339,7 @@ loadStats();
 loadActivity();
 });
 
-/* PROFILE */
-/* PROFILE */
+  /*Profile*/
 async function loadProfile(){
 
   const { data, error } = await db
@@ -350,28 +349,31 @@ async function loadProfile(){
     .single();
 
   if(error){
-    console.log("Profile error:", error.message);
+    console.log(error);
     return;
   }
 
   if(!data){
-    console.log("No profile found");
-    return;
+    console.log("No profile → creating...");
+
+    await db.from("profiles").insert({
+      id: currentUser.id,
+      full_name: currentUser.email.split("@")[0],
+      username: "user" + Date.now(),
+      country: "KE",
+      paypal_email: currentUser.email
+    });
+
+    return loadProfile();
   }
 
-  document.getElementById("name").textContent =
-    data.full_name || "User";
-
-  document.getElementById("username").textContent =
-    "@" + (data.username || "user");
-
-  document.getElementById("email").textContent =
-    currentUser.email;
+  document.getElementById("name").textContent = data.full_name;
+  document.getElementById("username").textContent = "@"+data.username;
+  document.getElementById("email").textContent = currentUser.email;
 
   document.getElementById("avatar").textContent =
     (data.full_name?.[0] || "U").toUpperCase();
 
-  /* Country display */
   const countryName =
     countries.find(c => c.code === data.country)?.name || data.country;
 
@@ -381,7 +383,6 @@ async function loadProfile(){
   document.getElementById("paypal-email").textContent =
     data.paypal_email || currentUser.email;
 
-  
   document.getElementById("since").textContent =
     new Date(currentUser.created_at).getFullYear();
 }
