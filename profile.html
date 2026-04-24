@@ -123,27 +123,183 @@ const db = supabase.createClient(
 let currentUser;
 
 /* FLAGS */
-function getFlag(name){
-const map={
-"Kenya":"🇰🇪","Nigeria":"🇳🇬","USA":"🇺🇸",
-"United States":"🇺🇸","UK":"🇬🇧","United Kingdom":"🇬🇧"
-};
-return map[name]||"🌍";
+function getFlag(code){
+
+  const flags = {
+    AF:"🇦🇫", AL:"🇦🇱", DZ:"🇩🇿", AD:"🇦🇩", AO:"🇦🇴", AR:"🇦🇷",
+    AM:"🇦🇲", AU:"🇦🇺", AT:"🇦🇹", AZ:"🇦🇿",
+
+    BH:"🇧🇭", BD:"🇧🇩", BY:"🇧🇾", BE:"🇧🇪", BJ:"🇧🇯", BO:"🇧🇴",
+    BA:"🇧🇦", BW:"🇧🇼", BR:"🇧🇷", BG:"🇧🇬",
+
+    BF:"🇧🇫", BI:"🇧🇮",
+
+    KH:"🇰🇭", CM:"🇨🇲", CA:"🇨🇦", CV:"🇨🇻", CF:"🇨🇫", TD:"🇹🇩",
+    CL:"🇨🇱", CN:"🇨🇳", CO:"🇨🇴", KM:"🇰🇲",
+
+    CG:"🇨🇬", CD:"🇨🇩", CR:"🇨🇷", CI:"🇨🇮", HR:"🇭🇷", CU:"🇨🇺",
+    CY:"🇨🇾", CZ:"🇨🇿",
+
+    DK:"🇩🇰", DJ:"🇩🇯", DO:"🇩🇴",
+
+    EC:"🇪🇨", EG:"🇪🇬", SV:"🇸🇻", EE:"🇪🇪", ET:"🇪🇹",
+
+    FI:"🇫🇮", FR:"🇫🇷",
+
+    GA:"🇬🇦", GM:"🇬🇲", GE:"🇬🇪", DE:"🇩🇪", GH:"🇬🇭", GR:"🇬🇷",
+    GT:"🇬🇹",
+
+    GN:"🇬🇳", GW:"🇬🇼", GY:"🇬🇾",
+
+    HT:"🇭🇹", HN:"🇭🇳", HU:"🇭🇺",
+
+    IS:"🇮🇸", IN:"🇮🇳", ID:"🇮🇩", IR:"🇮🇷", IQ:"🇮🇶",
+    IE:"🇮🇪", IL:"🇮🇱", IT:"🇮🇹",
+
+    JM:"🇯🇲", JP:"🇯🇵", JO:"🇯🇴",
+
+    KE:"🇰🇪", KW:"🇰🇼", KG:"🇰🇬",
+
+    LA:"🇱🇦", LV:"🇱🇻", LB:"🇱🇧", LS:"🇱🇸", LR:"🇱🇷", LY:"🇱🇾",
+    LT:"🇱🇹", LU:"🇱🇺",
+
+    MG:"🇲🇬", MW:"🇲🇼", MY:"🇲🇾", ML:"🇲🇱", MT:"🇲🇹", MX:"🇲🇽",
+    MA:"🇲🇦", MZ:"🇲🇿",
+
+    NA:"🇳🇦", NP:"🇳🇵", NL:"🇳🇱", NZ:"🇳🇿", NE:"🇳🇪", NG:"🇳🇬",
+    NO:"🇳🇴",
+
+    OM:"🇴🇲",
+
+    PK:"🇵🇰", PA:"🇵🇦", PG:"🇵🇬", PY:"🇵🇾", PE:"🇵🇪", PH:"🇵🇭",
+    PL:"🇵🇱", PT:"🇵🇹",
+
+    QA:"🇶🇦",
+
+    RO:"🇷🇴", RU:"🇷🇺", RW:"🇷🇼",
+
+    SA:"🇸🇦", SN:"🇸🇳", RS:"🇷🇸", SL:"🇸🇱", SG:"🇸🇬", SK:"🇸🇰",
+    SI:"🇸🇮", SO:"🇸🇴", ZA:"🇿🇦", KR:"🇰🇷", ES:"🇪🇸", LK:"🇱🇰",
+    SD:"🇸🇩", SE:"🇸🇪", CH:"🇨🇭", SY:"🇸🇾",
+
+    TW:"🇹🇼", TZ:"🇹🇿", TH:"🇹🇭", TG:"🇹🇬", TN:"🇹🇳", TR:"🇹🇷",
+
+    UG:"🇺🇬", UA:"🇺🇦", AE:"🇦🇪", GB:"🇬🇧", US:"🇺🇸", UY:"🇺🇾",
+    UZ:"🇺🇿",
+
+    VE:"🇻🇪", VN:"🇻🇳",
+
+    YE:"🇾🇪",
+
+    ZM:"🇿🇲", ZW:"🇿🇼"
+  };
+
+  return flags[code] || "🌍";
 }
 
-/* COUNTRIES */
-const countries=["Kenya","Nigeria","USA","United Kingdom","India","Canada","Germany","France"];
-function loadCountries(selected=""){
-const s=document.getElementById("edit-country");
-s.innerHTML="";
-countries.forEach(c=>{
-const o=document.createElement("option");
-o.value=c;
-o.textContent=getFlag(c)+" "+c;
-if(c===selected)o.selected=true;
-s.appendChild(o);
-});
-}
+/* COUNTRIES (ISO + Name) */
+const countries = [
+  {code:"AF", name:"Afghanistan"},
+  {code:"AL", name:"Albania"},
+  {code:"DZ", name:"Algeria"},
+  {code:"AD", name:"Andorra"},
+  {code:"AO", name:"Angola"},
+  {code:"AR", name:"Argentina"},
+  {code:"AM", name:"Armenia"},
+  {code:"AU", name:"Australia"},
+  {code:"AT", name:"Austria"},
+  {code:"AZ", name:"Azerbaijan"},
+
+  {code:"BD", name:"Bangladesh"},
+  {code:"BE", name:"Belgium"},
+  {code:"BR", name:"Brazil"},
+  {code:"BG", name:"Bulgaria"},
+  {code:"BF", name:"Burkina Faso"},
+  {code:"BI", name:"Burundi"},
+
+  {code:"KH", name:"Cambodia"},
+  {code:"CM", name:"Cameroon"},
+  {code:"CA", name:"Canada"},
+  {code:"TD", name:"Chad"},
+  {code:"CL", name:"Chile"},
+  {code:"CN", name:"China"},
+  {code:"CO", name:"Colombia"},
+
+  {code:"CD", name:"DR Congo"},
+  {code:"CG", name:"Congo"},
+  {code:"CI", name:"Ivory Coast"},
+  {code:"HR", name:"Croatia"},
+  {code:"CZ", name:"Czech Republic"},
+
+  {code:"DK", name:"Denmark"},
+  {code:"EG", name:"Egypt"},
+  {code:"ET", name:"Ethiopia"},
+
+  {code:"FI", name:"Finland"},
+  {code:"FR", name:"France"},
+
+  {code:"DE", name:"Germany"},
+  {code:"GH", name:"Ghana"},
+  {code:"GR", name:"Greece"},
+
+  {code:"HU", name:"Hungary"},
+
+  {code:"IN", name:"India"},
+  {code:"ID", name:"Indonesia"},
+  {code:"IR", name:"Iran"},
+  {code:"IQ", name:"Iraq"},
+  {code:"IE", name:"Ireland"},
+  {code:"IL", name:"Israel"},
+  {code:"IT", name:"Italy"},
+
+  {code:"JP", name:"Japan"},
+  {code:"JO", name:"Jordan"},
+
+  {code:"KE", name:"Kenya"},
+  {code:"KR", name:"South Korea"},
+
+  {code:"MY", name:"Malaysia"},
+  {code:"MX", name:"Mexico"},
+  {code:"MA", name:"Morocco"},
+
+  {code:"NG", name:"Nigeria"},
+  {code:"NL", name:"Netherlands"},
+  {code:"NO", name:"Norway"},
+
+  {code:"PK", name:"Pakistan"},
+  {code:"PH", name:"Philippines"},
+  {code:"PL", name:"Poland"},
+  {code:"PT", name:"Portugal"},
+
+  {code:"RO", name:"Romania"},
+  {code:"RU", name:"Russia"},
+  {code:"RW", name:"Rwanda"},
+
+  {code:"SA", name:"Saudi Arabia"},
+  {code:"SN", name:"Senegal"},
+  {code:"SG", name:"Singapore"},
+  {code:"SO", name:"Somalia"},
+  {code:"ZA", name:"South Africa"},
+  {code:"ES", name:"Spain"},
+  {code:"SE", name:"Sweden"},
+  {code:"CH", name:"Switzerland"},
+
+  {code:"TZ", name:"Tanzania"},
+  {code:"TH", name:"Thailand"},
+  {code:"TN", name:"Tunisia"},
+  {code:"TR", name:"Turkey"},
+
+  {code:"UG", name:"Uganda"},
+  {code:"UA", name:"Ukraine"},
+  {code:"AE", name:"UAE"},
+  {code:"GB", name:"United Kingdom"},
+  {code:"US", name:"United States"},
+
+  {code:"VN", name:"Vietnam"},
+
+  {code:"ZM", name:"Zambia"},
+  {code:"ZW", name:"Zimbabwe"}
+];
 
 /* INIT */
 document.addEventListener("DOMContentLoaded", async()=>{
