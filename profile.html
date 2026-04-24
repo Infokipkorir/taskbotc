@@ -264,6 +264,24 @@ z-index:999;
 
   </div>
 </div>
+  <script>
+function openEditModal(){
+  const modal = document.getElementById("edit-modal");
+  modal.style.display = "flex"; // MUST be flex
+
+  const meta = currentUser?.user_metadata || {};
+
+  document.getElementById("edit-name").value = meta.full_name || "";
+  document.getElementById("edit-username").value = meta.username || "";
+  document.getElementById("edit-paypal").value = meta.paypal || currentUser?.email || "";
+
+  loadCountries(meta.country); // load dropdown
+}
+
+function closeEditModal(){
+  document.getElementById("edit-modal").style.display = "none";
+}
+  </script>
 
 <!-- PAYMENT -->
 <div class="card">
