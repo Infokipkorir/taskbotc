@@ -242,13 +242,17 @@ z-index:999;
     <input id="edit-username" placeholder="Username"
       style="width:100%;padding:10px;margin:8px 0;border:1px solid #ddd;border-radius:8px">
 
-    <select id="edit-country"
-      style="width:100%;padding:10px;margin:8px 0;border:1px solid #ddd;border-radius:8px">
-      <option value="Kenya">🇰🇪 Kenya</option>
-      <option value="Nigeria">🇳🇬 Nigeria</option>
-      <option value="USA">🇺🇸 USA</option>
-      <option value="UK">🇬🇧 UK</option>
-    </select>
+    <div class="input-wrap">
+  <i class="bi bi-globe2 input-icon"></i>
+
+  <select id="edit-country" class="form-input">
+    <option value="">Detecting country...</option>
+  </select>
+
+  <span class="select-arrow">
+    <i class="bi bi-chevron-down"></i>
+  </span>
+    </div>
 
     <input id="edit-paypal" placeholder="PayPal Email"
       style="width:100%;padding:10px;margin:8px 0;border:1px solid #ddd;border-radius:8px">
@@ -317,8 +321,66 @@ const db = supabase.createClient(
   "https://lwnbfjjsstxkyexeojcl.supabase.co",
   "sb_publishable_Pj9ocGkssu5Gh6qZXFnZQQ_LdghnZt9"
 );
-
+/* ═════════ Detect country ═════════ */
 let currentUser = null;
+  const countries = [
+  {name:"Kenya", flag:"🇰🇪"},
+  {name:"Nigeria", flag:"🇳🇬"},
+  {name:"United States", flag:"🇺🇸"},
+  {name:"United Kingdom", flag:"🇬🇧"},
+  {name:"Uganda", flag:"🇺🇬"},
+  {name:"Tanzania", flag:"🇹🇿"},
+  {name:"Rwanda", flag:"🇷🇼"},
+  {name:"South Africa", flag:"🇿🇦"},
+  {name:"India", flag:"🇮🇳"},
+  {name:"China", flag:"🇨🇳"},
+  {name:"Canada", flag:"🇨🇦"},
+  {name:"Germany", flag:"🇩🇪"},
+  {name:"France", flag:"🇫🇷"},
+  {name:"Brazil", flag:"🇧🇷"},
+  {name:"Australia", flag:"🇦🇺"},
+  {name:"Japan", flag:"🇯🇵"},
+  {name:"UAE", flag:"🇦🇪"},
+  {name:"Saudi Arabia", flag:"🇸🇦"},
+  {name:"Egypt", flag:"🇪🇬"},
+  {name:"Ghana", flag:"🇬🇭"},
+  {name:"Ethiopia", flag:"🇪🇹"},
+  {name:"Somalia", flag:"🇸🇴"},
+  {name:"Sudan", flag:"🇸🇩"},
+  {name:"Turkey", flag:"🇹🇷"},
+  {name:"Spain", flag:"🇪🇸"},
+  {name:"Italy", flag:"🇮🇹"},
+  {name:"Netherlands", flag:"🇳🇱"},
+  {name:"Sweden", flag:"🇸🇪"},
+  {name:"Norway", flag:"🇳🇴"},
+  {name:"Finland", flag:"🇫🇮"},
+  {name:"Mexico", flag:"🇲🇽"},
+  {name:"Argentina", flag:"🇦🇷"},
+  {name:"Chile", flag:"🇨🇱"},
+  {name:"Pakistan", flag:"🇵🇰"},
+  {name:"Indonesia", flag:"🇮🇩"},
+  {name:"Philippines", flag:"🇵🇭"},
+  {name:"Thailand", flag:"🇹🇭"},
+  {name:"Vietnam", flag:"🇻🇳"},
+  {name:"Malaysia", flag:"🇲🇾"},
+  {name:"Singapore", flag:"🇸🇬"},
+  {name:"South Korea", flag:"🇰🇷"}
+];
+  function loadCountries(selected = "") {
+  const select = document.getElementById("edit-country");
+
+  select.innerHTML = `<option value="">Select your country...</option>`;
+
+  countries.forEach(c => {
+    const opt = document.createElement("option");
+    opt.value = c.name;
+    opt.textContent = `${c.flag} ${c.name}`;
+
+    if (c.name === selected) opt.selected = true;
+
+    select.appendChild(opt);
+  });
+  }
 
 /* FLAG */
 function getFlag(code){
