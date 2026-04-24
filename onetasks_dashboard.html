@@ -1,26 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OneTasks</title>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --navy: #0F1B3D;
-  --navy-mid: #162247;
-  --navy-light: #1E2E57;
-  --accent: #3B82F6;
-  --accent-light: #60A5FA;
-  --accent-glow: rgba(59,130,246,0.15);
-  --gold: #F59E0B;
+:root {
+  --bg: #F8FAFC;
+  --card: #FFFFFF;
+  --border: #E2E8F0;
+
+  --primary: #2563EB;
+  --primary-light: #3B82F6;
+
+  --text: #0F172A;
+  --text-muted: #64748B;
+
   --green: #10B981;
   --red: #EF4444;
-  --purple: #8B5CF6;
-  --text-main: #F1F5FF;
-  --text-muted: #8B9CC8;
-  --text-dim: #4A5A82;
-  --border: rgba(139,156,200,0.12);
-  --card-bg: rgba(30,46,87,0.5);
-  --sidebar-w: 200px;
+}
+
+/* GLOBAL */
+body {
+  background: var(--bg);
+  color: var(--text);
 }
 
 body { font-family: 'DM Sans', sans-serif; background: var(--navy); color: var(--text-main); min-height: 100vh; }
