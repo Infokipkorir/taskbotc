@@ -287,6 +287,38 @@ document.addEventListener("DOMContentLoaded", async () => {
   loadPaymentAndActivity();
   checkVerification();
 });
+  async function loadProfile(){
+
+  const userId = currentUser.id;
+
+  const { data, error } = await db
+    .from("profiles")
+    .select("*")
+    .eq("id", userId)
+    .single();
+
+  if(error || !data){
+    console.log("Profile fetch error:", error);
+    document.getElementById("name").textContent = "No profile found";
+    return;
+  }
+
+  document.getElementById("name").textContent = data.full_name || "User";
+  document.getElementById("username").textContent = "@"+(data.username || "user");
+  document.getElementById("email").textContent = currentUser.email;
+
+  document.getElementById("avatar").textContent =
+    (data.full_name || currentUser.email)[0].toUpperCase();
+
+  document.getElementById("country").textContent =
+    getFlag(data.country) + " " + (data.country || "Unknown");
+
+  document.getElementById("paypal-email").textContent =
+    data.paypal_email || "Not set";
+
+  document.getElementById("since").textContent =
+    new Date(currentUser.created_at).getFullYear();
+  }
 
 /* ═════════ PROFILE ═════════ */
 async function loadProfile(){
