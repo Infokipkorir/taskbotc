@@ -212,11 +212,13 @@ body{
     <div class="stat"><div class="stat-num" id="since">—</div><div class="stat-label">Joined</div></div>
   </div>
 </div>
+  <div style="text-align:center;">
   <button onclick="openEditModal()" 
-style="margin-top:12px;padding:10px 14px;border:none;border-radius:10px;background:#1a56db;color:#fff;cursor:pointer;">
-  <i class="bi bi-pencil"></i> Edit Profile
+    style="margin-top:12px;padding:10px 20px;border:none;border-radius:10px;background:#1a56db;color:#fff;cursor:pointer;">
+    <i class="bi bi-pencil"></i> Edit Profile
   </button>
-  <div id="edit-modal" style="
+  </div>
+<div id="edit-modal" style="
 display:none;
 position:fixed;
 inset:0;
@@ -234,7 +236,7 @@ z-index:999;
     border-radius:14px;
   ">
 
-    <h3>Edit Profile</h3>
+    <h3 style="text-align:center;">Edit Profile</h3>
 
     <input id="edit-name" placeholder="Full name"
       style="width:100%;padding:10px;margin:8px 0;border:1px solid #ddd;border-radius:8px">
@@ -242,17 +244,10 @@ z-index:999;
     <input id="edit-username" placeholder="Username"
       style="width:100%;padding:10px;margin:8px 0;border:1px solid #ddd;border-radius:8px">
 
-    <div class="input-wrap">
-  <i class="bi bi-globe2 input-icon"></i>
-
-  <select id="edit-country" class="form-input">
-    <option value="">Detecting country...</option>
-  </select>
-
-  <span class="select-arrow">
-    <i class="bi bi-chevron-down"></i>
-  </span>
-    </div>
+    <select id="edit-country"
+      style="width:100%;padding:10px;margin:8px 0;border:1px solid #ddd;border-radius:8px">
+      <option value="">Detecting country...</option>
+    </select>
 
     <input id="edit-paypal" placeholder="PayPal Email"
       style="width:100%;padding:10px;margin:8px 0;border:1px solid #ddd;border-radius:8px">
@@ -268,7 +263,7 @@ z-index:999;
     </button>
 
   </div>
-  </div>
+</div>
 
 <!-- PAYMENT -->
 <div class="card">
