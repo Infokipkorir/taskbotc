@@ -211,11 +211,14 @@ let currentUser;
    INIT
 ========================= */
 document.addEventListener("DOMContentLoaded", async () => {
-  document.getElementById("view-profile").style.display = "block";
+  const view = document.getElementById("view-profile");
+  if (view) view.style.display = "block";
 
-  const { data } = await db.auth.getUser();
+  const { data, error } = await db.auth.getUser();
 
-  if (!data.user) {
+  console.log("AUTH:", data, error);
+
+  if (!data?.user) {
     location.href = "index.html";
     return;
   }
