@@ -78,27 +78,25 @@ input,select{width:100%;padding:10px;margin:8px 0;border:1px solid #ddd;border-r
 
 <div class="view" id="view-profile">
 
-<div class="profile-card">
-  <div class="avatar" id="avatar">U</div>
-  <div class="name" id="name">Loading...</div>
-  <div id="verify-badge"></div>
-  <div class="username" id="username"></div>
-  <div class="email" id="email"></div>
+  <div class="profile-card">
+    <div class="avatar" id="avatar">U</div>
 
-  <div class="badge" id="country">🌍</div>
+    <div class="name" id="name">Loading...</div>
+    <div id="verify-badge"></div>
 
-  <div class="stats">
-    <div class="stat"><b id="tasks">0</b><br>Tasks</div>
-    <div class="stat"><b id="earnings">$0</b><br>Earnings</div>
-    <div class="stat"><b id="members">0</b><br>Members</div>
-    <div class="stat"><b id="since">—</b><br>Joined</div>
+    <div class="username" id="username"></div>
+    <div class="email" id="email"></div>
+
+    <div class="badge" id="country">🌍</div>
+
+    <div class="stats">
+      <div class="stat"><b id="tasks">0</b><br>Tasks</div>
+      <div class="stat"><b id="earnings">$0</b><br>Earnings</div>
+      <div class="stat"><b id="members">0</b><br>Members</div>
+      <div class="stat"><b id="since">—</b><br>Joined</div>
+    </div>
   </div>
-</div>
 
-<div class="center">
-  <button class="btn" onclick="openEditModal()">
-    <i class="bi bi-pencil"></i> Edit Profile
-  </button>
 </div>
 
 <!-- EDIT MODAL -->
@@ -466,16 +464,34 @@ data?.map(a=>`<div class="item"><span>${a.title}</span></div>`).join("")||"No ac
 }
 
 /* EDIT */
-function openEditModal(){
-document.getElementById("edit-modal").style.display="flex";
+async function openEditModal(){
 
-db.from("profiles").select("*").eq("id",currentUser.id).single()
-.then(({data})=>{
-document.getElementById("edit-name").value=data.full_name||"";
-document.getElementById("edit-username").value=data.username||"";
-document.getElementById("edit-paypal").value=data.paypal_email||"";
-loadCountries(data.country);
-});
+  const modal = document.getElementById("edit-modal");
+  modal.style.display = "flex";
+
+  const { data } = await db
+    .from("profiles")
+    .select("*")
+    .eq("id", currentUser.id)
+    .single();
+
+  if(!data) return;
+
+  document.getElementById("edit-name").value = data.full_name || "";
+  document.getElementById("edit-username").value = data.username || "";
+  document.getElementById("edit-paypal").value = data.paypal_email || "";
+  document.getElementById("edit-phone").value = data.phone || "";
+  document.getElementById("edit-address").value = data.address || "";
+  document.getElementById("edit-dob").value = data.dob || "";
+  document.getElementById("edit-gender").value = data.gender || "";
+
+  loadCountries(data.country);
+
+  // LOCK COUNTRY AFTER FIRST SAVE
+  if(data.country){
+    document.getElementById("edit-country").disabled = true;
+    document.getElementById("country-lock-msg").style.display = "block";
+  }
 }
 
 function closeEditModal(){
@@ -484,22 +500,68 @@ document.getElementById("edit-modal").style.display="none";
 
 /* SAVE */
 async function saveProfile(){
-const full_name=document.getElementById("edit-name").value;
-const username=document.getElementById("edit-username").value;
-const country=document.getElementById("edit-country").value;
-const paypal=document.getElementById("edit-paypal").value;
 
-await db.auth.updateUser({data:{full_name,username,country,paypal}});
+  const updates = {
+    full_name: document.getElementById("edit-name").value,
+    username: document.getElementById("edit-username").value,
+    paypal_email: document.getElementById("edit-paypal").value,
+    phone: document.getElementById("edit-phone").value,
+    address: document.getElementById("edit-address").value,
+    dob: document.getElementById("edit-dob").value,
+    gender: document.getElementById("edit-gender").value
+  };
 
-await db.from("profiles").update({
-full_name,username,country,paypal_email:paypal
-}).eq("id",currentUser.id);
+  // ONLY SET COUNTRY ONCE
+  const countrySelect = document.getElementById("edit-country");
 
-alert("Updated");
-closeEditModal();
-loadProfile();
+  if(!countrySelect.disabled){
+    updates.country = countrySelect.value;
+    updates.country_locked = true;
+  }
+
+  const { error } = await db
+    .from("profiles")
+    .update(updates)
+    .eq("id", currentUser.id);
+
+  if(error){
+    alert(error.message);
+    return;
+  }
+
+  alert("Profile updated!");
+  closeEditModal();
+  loadProfile();
 }
+/*Rest password*/
+  async function resetPassword(){
+  const { error } = await db.auth.resetPasswordForEmail(currentUser.email);
 
+  if(error){
+    alert(error.message);
+    return;
+  }
+
+  alert("Password reset email sent!");
+  }
+  /*Delete account*/
+  async function deactivateAccount(){
+
+  if(!confirm("Are you sure you want to deactivate your account?")) return;
+
+  const { error } = await db
+    .from("profiles")
+    .update({ status: "inactive" })
+    .eq("id", currentUser.id);
+
+  if(error){
+    alert(error.message);
+    return;
+  }
+
+  await db.auth.signOut();
+  location.href = "index.html";
+  }
 /* LOGOUT */
 async function logout(){
 await db.auth.signOut();
