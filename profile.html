@@ -342,50 +342,73 @@ loadActivity();
   /*Profile*/
 async function loadProfile(){
 
+  console.log("Loading profile for:", currentUser?.id);
+
+  if(!currentUser?.id){
+    console.error("No current user");
+    return;
+  }
+
   const { data, error } = await db
     .from("profiles")
     .select("*")
     .eq("id", currentUser.id)
     .single();
 
-  if(error){
-    console.log(error);
+  console.log("PROFILE RESPONSE:", data, error);
+
+  if(error || !data){
+    console.warn("No profile found, using fallback");
+
+    document.getElementById("name").textContent = "User";
+    document.getElementById("username").textContent = "@user";
+    document.getElementById("email").textContent = currentUser.email;
+
+    document.getElementById("avatar").textContent =
+      (currentUser.email?.[0] || "U").toUpperCase();
+
+    document.getElementById("country").textContent = "🌍 Unknown";
+
+    document.getElementById("tasks").textContent = "0";
+    document.getElementById("earnings").textContent = "$0";
+    document.getElementById("members").textContent = "0";
+
+    document.getElementById("since").textContent =
+      new Date(currentUser.created_at).getFullYear();
+
     return;
   }
 
-  if(!data){
-    console.log("No profile → creating...");
+  /* ✅ PROFILE DATA */
 
-    await db.from("profiles").insert({
-      id: currentUser.id,
-      full_name: currentUser.email.split("@")[0],
-      username: "user" + Date.now(),
-      country: "KE",
-      paypal_email: currentUser.email
-    });
+  document.getElementById("name").textContent =
+    data.full_name || "User";
 
-    return loadProfile();
-  }
+  document.getElementById("username").textContent =
+    "@" + (data.username || "user");
 
-  document.getElementById("name").textContent = data.full_name;
-  document.getElementById("username").textContent = "@"+data.username;
-  document.getElementById("email").textContent = currentUser.email;
+  document.getElementById("email").textContent =
+    currentUser.email;
 
   document.getElementById("avatar").textContent =
     (data.full_name?.[0] || "U").toUpperCase();
 
-  const countryName =
-    countries.find(c => c.code === data.country)?.name || data.country;
-
   document.getElementById("country").textContent =
-    getFlag(data.country) + " " + countryName;
+    getFlag(data.country) + " " + (data.country || "Unknown");
 
-  document.getElementById("paypal-email").textContent =
-    data.paypal_email || currentUser.email;
+  document.getElementById("tasks").textContent =
+    data.tasks || 0;
+
+  document.getElementById("earnings").textContent =
+    "$" + (data.earnings || 0);
+
+  document.getElementById("members").textContent =
+    data.members || 0;
 
   document.getElementById("since").textContent =
     new Date(currentUser.created_at).getFullYear();
 }
+  
 /* STATS */
 async function loadStats(){
 const {data}=await db.from("user_tasks").select("*").eq("user_id",currentUser.id);
