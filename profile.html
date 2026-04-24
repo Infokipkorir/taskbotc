@@ -378,12 +378,12 @@ loadStats();
 loadActivity();
 });
 
-  /*Profile*/
-async function loadProfile(){
+  /* PROFILE*/
+async function loadProfile() {
 
   console.log("Loading profile for:", currentUser?.id);
 
-  if(!currentUser?.id){
+  if (!currentUser?.id) {
     console.error("No current user");
     return;
   }
@@ -396,8 +396,10 @@ async function loadProfile(){
 
   console.log("PROFILE RESPONSE:", data, error);
 
-  if(error || !data){
-    console.warn("No profile found, using fallback");
+  /* =========================
+     FALLBACK (NO PROFILE)
+  ========================== */
+  if (error || !data) {
 
     document.getElementById("name").textContent = "User";
     document.getElementById("username").textContent = "@user";
@@ -418,7 +420,9 @@ async function loadProfile(){
     return;
   }
 
-  /* ✅ PROFILE DATA */
+  /* =========================
+     MAIN PROFILE DATA
+  ========================== */
 
   document.getElementById("name").textContent =
     data.full_name || "User";
@@ -432,11 +436,15 @@ async function loadProfile(){
   document.getElementById("avatar").textContent =
     (data.full_name?.[0] || "U").toUpperCase();
 
+  /* COUNTRY (supports code or name) */
   document.getElementById("country").textContent =
-    getFlag(data.country) + " " + (data.country || "Unknown");
+    getFlag(data.country_code || data.country) +
+    " " +
+    (data.country || "Unknown");
 
+  /* STATS */
   document.getElementById("tasks").textContent =
-    data.tasks || 0;
+    data.tasks_count || 0;
 
   document.getElementById("earnings").textContent =
     "$" + (data.earnings || 0);
@@ -446,8 +454,45 @@ async function loadProfile(){
 
   document.getElementById("since").textContent =
     new Date(currentUser.created_at).getFullYear();
+
+  /* =========================
+     NEW
+  ========================== */
+
+  // Payment
+  document.getElementById("paypal-email")?.textContent =
+    data.paypal_email || "Not set";
+
+  // Phone
+  document.getElementById("phone-display")?.textContent =
+    data.phone || "Not set";
+
+  // Address
+  document.getElementById("address-display")?.textContent =
+    data.address || "Not set";
+
+  // Gender
+  document.getElementById("gender-display")?.textContent =
+    data.gender || "Not set";
+
+  // DOB
+  document.getElementById("dob-display")?.textContent =
+    data.dob || "Not set";
+
+  /* =========================
+     VERIFICATION
+  ========================== */
+
+  const badge = document.getElementById("verify-badge");
+
+  if (data.verified) {
+    badge.textContent = "✔ Verified";
+    badge.style.color = "green";
+  } else {
+    badge.textContent = "⚠ Not Verified";
+    badge.style.color = "red";
+  }
 }
-  
 /* STATS */
 async function loadStats(){
 const {data}=await db.from("user_tasks").select("*").eq("user_id",currentUser.id);
