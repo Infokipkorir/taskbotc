@@ -1,0 +1,1671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>OneTasks — Admin Connect</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'>
+<rect width='100' height='100' rx='20' fill='%231d4ed8'/>
+<text x='50' y='55' font-size='36' text-anchor='middle' fill='white' font-family='Arial' font-weight='bold'>OT</text>
+<rect x='20' y='68' width='60' height='6' rx='3' fill='rgba(255,255,255,0.5)'/>
+</svg>">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+
+<style>
+/* ═══════════ TOKENS ═══════════ */
+:root {
+  --blue:       #1d4ed8;
+  --blue-mid:   #2563eb;
+  --blue-light: #3b82f6;
+  --blue-pale:  #eff6ff;
+  --blue-dim:   #1e3a8a;
+  --bg:         #f0f4ff;
+  --sidebar-w:  240px;
+  --white:      #ffffff;
+  --border:     #e0e7ff;
+  --text:       #0f172a;
+  --muted:      #64748b;
+  --green:      #10b981;
+  --green-bg:   #ecfdf5;
+  --amber:      #f59e0b;
+  --amber-bg:   #fffbeb;
+  --red:        #ef4444;
+  --red-bg:     #fef2f2;
+  --violet:     #8b5cf6;
+  --violet-bg:  #f5f3ff;
+  --radius:     14px;
+  --shadow:     0 2px 16px rgba(29,78,216,.09);
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  overflow-x: hidden;
+}
+
+/* ═══════════ SIDEBAR ═══════════ */
+.sidebar {
+  position: fixed;
+  top: 0; left: 0;
+  width: var(--sidebar-w);
+  height: 100vh;
+  background: linear-gradient(175deg, #1d4ed8 0%, #1e3a8a 100%);
+  display: flex;
+  flex-direction: column;
+  z-index: 300;
+  transition: transform .28s cubic-bezier(.4,0,.2,1);
+  overflow: hidden;
+}
+.sidebar::after {
+  content: '';
+  position: absolute;
+  top: -100px; right: -80px;
+  width: 260px; height: 260px;
+  background: rgba(255,255,255,.05);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.sb-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 22px 18px 18px;
+  border-bottom: 1px solid rgba(255,255,255,.1);
+}
+.sb-logo {
+  width: 34px; height: 34px;
+  background: rgba(255,255,255,.18);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; color: #fff;
+  flex-shrink: 0;
+}
+.sb-brand-name {
+  font-family: 'Syne', sans-serif;
+  font-size: 16px; font-weight: 800;
+  color: #fff;
+  letter-spacing: -.3px;
+}
+.sb-brand-tag {
+  font-size: 9.5px;
+  color: rgba(255,255,255,.45);
+  font-weight: 600;
+  letter-spacing: .5px;
+  text-transform: uppercase;
+}
+
+.sb-admin-pill {
+  margin: 12px 14px;
+  background: rgba(255,255,255,.12);
+  border: 1px solid rgba(255,255,255,.18);
+  border-radius: 8px;
+  padding: 7px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.admin-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: #34d399;
+  box-shadow: 0 0 6px rgba(52,211,153,.7);
+  flex-shrink: 0;
+}
+.admin-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(255,255,255,.85);
+  letter-spacing: .3px;
+}
+
+.sb-nav {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.sb-nav::-webkit-scrollbar { width: 0; }
+
+.nav-section {
+  font-size: 9.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .9px;
+  color: rgba(255,255,255,.32);
+  padding: 10px 8px 4px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  color: rgba(255,255,255,.7);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background .15s, color .15s;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+}
+.nav-item i { font-size: 16px; width: 20px; text-align: center; flex-shrink: 0; }
+.nav-item:hover { background: rgba(255,255,255,.12); color: #fff; }
+.nav-item.active { background: rgba(255,255,255,.18); color: #fff; font-weight: 700; }
+
+.nav-item .nav-badge {
+  margin-left: auto;
+  background: var(--red);
+  color: #fff;
+  font-size: 9.5px;
+  font-weight: 700;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0 4px;
+}
+.nav-item .nav-badge.hidden { display: none; }
+
+.sb-foot {
+  padding: 14px 16px;
+  border-top: 1px solid rgba(255,255,255,.08);
+  font-size: 10px;
+  color: rgba(255,255,255,.25);
+  text-align: center;
+}
+
+/* ═══════════ MAIN ═══════════ */
+.main {
+  flex: 1;
+  margin-left: var(--sidebar-w);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+}
+
+/* ═══════════ TOPBAR ═══════════ */
+.topbar {
+  position: sticky; top: 0; z-index: 100;
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  height: 58px;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 1px 8px rgba(29,78,216,.06);
+}
+.tb-page-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--text);
+}
+.tb-right {
+  display: flex; align-items: center; gap: 10px;
+}
+.tb-refresh {
+  width: 34px; height: 34px;
+  background: var(--blue-pale);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; color: var(--blue);
+  cursor: pointer;
+  transition: background .15s;
+}
+.tb-refresh:hover { background: #dbeafe; }
+.tb-user {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 12.5px; font-weight: 600;
+  color: var(--text);
+}
+.tb-ava {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: var(--blue);
+  color: #fff;
+  font-size: 12px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* ═══════════ CONTENT ═══════════ */
+.content {
+  flex: 1;
+  padding: 20px;
+  max-width: 1200px;
+  width: 100%;
+}
+
+/* ═══════════ PAGE SECTIONS (tab panes) ═══════════ */
+.page { display: none; }
+.page.active { display: block; }
+
+/* ═══════════ STAT GRID ═══════════ */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 22px;
+}
+@media (min-width: 700px) { .stat-grid { grid-template-columns: repeat(4, 1fr); } }
+
+.stat-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: var(--shadow);
+  animation: fadeUp .35s ease both;
+}
+@keyframes fadeUp { from { opacity:0; transform:translateY(10px) } to { opacity:1; transform:translateY(0) } }
+
+.stat-icon {
+  width: 38px; height: 38px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 17px;
+  margin-bottom: 10px;
+}
+.ic-blue   { background: var(--blue-pale); color: var(--blue); }
+.ic-green  { background: var(--green-bg);  color: var(--green); }
+.ic-amber  { background: var(--amber-bg);  color: var(--amber); }
+.ic-violet { background: var(--violet-bg); color: var(--violet); }
+.ic-red    { background: var(--red-bg);    color: var(--red); }
+
+.stat-lbl { font-size: 11px; color: var(--muted); font-weight: 500; }
+.stat-val {
+  font-size: 24px; font-weight: 800;
+  line-height: 1;
+  font-family: 'Syne', sans-serif;
+  margin-top: 4px;
+}
+
+/* ═══════════ SECTION HEAD ═══════════ */
+.sec-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.sec-head h3 {
+  font-size: 14px; font-weight: 700;
+  display: flex; align-items: center; gap: 7px;
+}
+.sec-head h3 i { color: var(--blue); }
+
+/* ═══════════ TABLE ═══════════ */
+.table-wrap {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  margin-bottom: 22px;
+}
+.table-header {
+  padding: 13px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.table-title {
+  font-size: 13.5px; font-weight: 700;
+  display: flex; align-items: center; gap: 7px;
+}
+.table-title i { color: var(--blue); }
+
+.search-input {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 7px 12px;
+  font-size: 12.5px;
+}
+.search-input i { color: var(--muted); font-size: 14px; }
+.search-input input {
+  border: none; outline: none; background: transparent;
+  font-size: 12.5px; font-family: 'DM Sans', sans-serif;
+  color: var(--text); width: 160px;
+}
+.search-input input::placeholder { color: var(--muted); }
+
+table { width: 100%; border-collapse: collapse; }
+thead tr { border-bottom: 1px solid var(--border); }
+thead th {
+  padding: 10px 16px;
+  font-size: 10.5px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .6px;
+  color: var(--muted);
+  text-align: left;
+  white-space: nowrap;
+}
+tbody tr {
+  border-bottom: 1px solid var(--border);
+  transition: background .12s;
+}
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: var(--bg); }
+tbody td {
+  padding: 11px 16px;
+  font-size: 13px;
+  vertical-align: middle;
+}
+
+/* ═══════════ USER ROW ═══════════ */
+.user-ava {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: var(--blue);
+  color: #fff;
+  font-size: 12px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.user-name { font-weight: 600; font-size: 13px; }
+.user-email { font-size: 11px; color: var(--muted); }
+.user-cell { display: flex; align-items: center; gap: 9px; }
+
+/* ═══════════ CHIPS ═══════════ */
+.chip {
+  display: inline-flex; align-items: center; gap: 3px;
+  font-size: 10.5px; font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 20px;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+.chip.approved, .chip.completed { background: var(--green-bg); color: #15803d; }
+.chip.pending   { background: var(--amber-bg);  color: #b45309; }
+.chip.rejected  { background: var(--red-bg);    color: #b91c1c; }
+.chip.disputed  { background: var(--violet-bg); color: #7c3aed; }
+.chip.active    { background: var(--green-bg);  color: #15803d; }
+.chip.inactive  { background: #f1f5f9;           color: #64748b; }
+.chip.admin     { background: var(--blue-pale);  color: var(--blue); }
+
+/* ═══════════ BUTTONS ═══════════ */
+.btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 7px 14px;
+  border-radius: 9px;
+  font-size: 12.5px; font-weight: 700;
+  font-family: 'DM Sans', sans-serif;
+  cursor: pointer;
+  border: none;
+  transition: background .15s, transform .1s;
+}
+.btn:active { transform: scale(.97); }
+.btn-primary { background: var(--blue); color: #fff; }
+.btn-primary:hover { background: var(--blue-dim); }
+.btn-green   { background: var(--green); color: #fff; }
+.btn-green:hover { background: #059669; }
+.btn-red     { background: var(--red); color: #fff; }
+.btn-red:hover { background: #dc2626; }
+.btn-ghost {
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+.btn-ghost:hover { background: #e2e8f0; }
+.btn-sm { padding: 5px 10px; font-size: 11.5px; }
+
+/* ═══════════ ACTION BUTTONS ═══════════ */
+.action-btns {
+  display: flex; gap: 5px;
+}
+
+/* ═══════════ FORM ELEMENTS ═══════════ */
+.form-group { margin-bottom: 14px; }
+.form-label {
+  display: block;
+  font-size: 12px; font-weight: 600;
+  color: var(--text);
+  margin-bottom: 5px;
+}
+.form-control {
+  width: 100%;
+  padding: 10px 13px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  font-size: 13.5px;
+  font-family: 'DM Sans', sans-serif;
+  color: var(--text);
+  background: var(--white);
+  outline: none;
+  transition: border-color .15s;
+}
+.form-control:focus { border-color: var(--blue); }
+.form-control.small { padding: 7px 11px; font-size: 13px; }
+select.form-control { cursor: pointer; }
+textarea.form-control { resize: vertical; min-height: 80px; }
+
+/* ═══════════ MODAL ═══════════ */
+.modal-backdrop {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(15,23,42,.5);
+  backdrop-filter: blur(4px);
+  z-index: 600;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.modal-backdrop.open { display: flex; }
+.modal-box {
+  background: var(--white);
+  border-radius: 18px;
+  width: 100%; max-width: 480px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 16px 48px rgba(0,0,0,.2);
+  animation: modalIn .25s ease;
+}
+@keyframes modalIn { from { opacity:0; transform:scale(.95) } to { opacity:1; transform:scale(1) } }
+.modal-head {
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.modal-head h3 { font-size: 15px; font-weight: 700; }
+.modal-close {
+  width: 30px; height: 30px;
+  background: var(--bg);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--muted);
+  display: flex; align-items: center; justify-content: center;
+  transition: background .15s;
+}
+.modal-close:hover { background: #e2e8f0; }
+.modal-body { padding: 18px 20px; }
+.modal-foot {
+  padding: 14px 20px;
+  border-top: 1px solid var(--border);
+  display: flex; gap: 9px; justify-content: flex-end;
+}
+
+/* ═══════════ NOTIFICATION SEND ═══════════ */
+.notif-send-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px;
+  box-shadow: var(--shadow);
+  margin-bottom: 20px;
+}
+.notif-send-card h4 {
+  font-size: 13.5px; font-weight: 700;
+  margin-bottom: 14px;
+  display: flex; align-items: center; gap: 7px;
+}
+.notif-send-card h4 i { color: var(--blue); }
+
+/* ═══════════ TASK FORM CARD ═══════════ */
+.task-form-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px;
+  box-shadow: var(--shadow);
+  margin-bottom: 20px;
+}
+.task-form-card h4 {
+  font-size: 13.5px; font-weight: 700;
+  margin-bottom: 16px;
+  display: flex; align-items: center; gap: 7px;
+}
+.task-form-card h4 i { color: var(--blue); }
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+@media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
+
+/* ═══════════ EMPTY STATE ═══════════ */
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--muted);
+}
+.empty-state i { font-size: 40px; opacity: .25; display: block; margin-bottom: 10px; }
+.empty-state p { font-size: 13px; }
+
+/* ═══════════ LOADER ═══════════ */
+.loader-row {
+  display: flex; align-items: center; justify-content: center;
+  gap: 8px; padding: 28px;
+  color: var(--muted); font-size: 13px;
+}
+.spin { animation: spin .7s linear infinite; display: inline-block; }
+@keyframes spin { to { transform: rotate(360deg) } }
+
+/* ═══════════ TOAST ═══════════ */
+.toast {
+  position: fixed; bottom: 20px; left: 50%;
+  transform: translateX(-50%) translateY(70px);
+  background: #1e293b; color: #fff;
+  padding: 9px 18px;
+  border-radius: 10px;
+  font-size: 13px; font-weight: 500;
+  z-index: 999;
+  transition: transform .28s;
+  pointer-events: none;
+  white-space: nowrap;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+/* ═══════════ AMOUNT DISPLAY ═══════════ */
+.amount-green { color: var(--green); font-weight: 700; }
+.amount-amber { color: var(--amber); font-weight: 700; }
+
+/* ═══════════ MOBILE MENU ═══════════ */
+.hamburger {
+  display: none;
+  width: 36px; height: 36px;
+  background: var(--blue-pale);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  align-items: center; justify-content: center;
+  font-size: 18px; color: var(--blue);
+  cursor: pointer;
+}
+.overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(15,23,42,.4);
+  z-index: 200;
+}
+.overlay.show { display: block; }
+
+@media (max-width: 768px) {
+  .sidebar { transform: translateX(calc(-1 * var(--sidebar-w))); }
+  .sidebar.open { transform: translateX(0); }
+  .main { margin-left: 0; }
+  .hamburger { display: flex; }
+  .content { padding: 14px; }
+}
+
+/* ═══════════ PAGINATION ═══════════ */
+.pagination {
+  display: flex; align-items: center; justify-content: flex-end;
+  gap: 6px; padding: 10px 16px;
+  border-top: 1px solid var(--border);
+  font-size: 12px; color: var(--muted);
+}
+.page-btn {
+  width: 28px; height: 28px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--white);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  font-size: 12px; color: var(--text);
+  transition: background .12s;
+}
+.page-btn:hover { background: var(--blue-pale); }
+.page-btn.active { background: var(--blue); color: #fff; border-color: var(--blue); }
+.page-btn:disabled { opacity: .4; cursor: default; }
+
+/* ═══════════ OVERVIEW CHART AREA ═══════════ */
+.overview-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+  margin-bottom: 22px;
+}
+@media (min-width: 800px) { .overview-grid { grid-template-columns: 2fr 1fr; } }
+
+.activity-feed {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+.activity-feed-head {
+  padding: 13px 16px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13.5px; font-weight: 700;
+  display: flex; align-items: center; gap: 7px;
+}
+.activity-feed-head i { color: var(--blue); }
+.activity-item {
+  display: flex; align-items: flex-start; gap: 11px;
+  padding: 11px 16px;
+  border-bottom: 1px solid var(--border);
+  transition: background .12s;
+}
+.activity-item:last-child { border-bottom: none; }
+.activity-item:hover { background: var(--bg); }
+.activity-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 5px;
+}
+.activity-text { font-size: 12.5px; line-height: 1.4; }
+.activity-time { font-size: 10.5px; color: var(--muted); margin-top: 2px; }
+
+.quick-actions {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: var(--shadow);
+}
+.quick-actions h4 {
+  font-size: 13px; font-weight: 700;
+  margin-bottom: 12px;
+  color: var(--text);
+}
+.quick-action-btn {
+  display: flex; align-items: center; gap: 11px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1.5px solid var(--border);
+  background: var(--white);
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+  text-align: left;
+  width: 100%;
+  font-family: 'DM Sans', sans-serif;
+}
+.quick-action-btn:hover { border-color: var(--blue); background: var(--blue-pale); }
+.qa-icon {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 17px;
+  flex-shrink: 0;
+}
+.qa-label { font-size: 13px; font-weight: 600; color: var(--text); }
+.qa-sub { font-size: 11px; color: var(--muted); }
+
+/* ═══════════ FILTER ROW ═══════════ */
+.filter-row {
+  display: flex; gap: 6px; flex-wrap: wrap;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.filter-chip {
+  display: flex; align-items: center; gap: 4px;
+  padding: 5px 11px;
+  border-radius: 20px;
+  border: 1.5px solid var(--border);
+  background: var(--white);
+  font-size: 11.5px; font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all .15s;
+}
+.filter-chip:hover { border-color: var(--blue); color: var(--blue); }
+.filter-chip.active { border-color: var(--blue); background: var(--blue-pale); color: var(--blue); }
+
+/* ═══════════ USER DETAIL PANEL ═══════════ */
+.detail-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+.detail-row:last-child { border-bottom: none; }
+.detail-lbl { color: var(--muted); font-size: 12px; }
+.detail-val { font-weight: 600; }
+</style>
+</head>
+<body>
+
+<div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+
+<!-- ═══════════ SIDEBAR ═══════════ -->
+<aside class="sidebar" id="sidebar">
+  <div class="sb-head">
+    <div class="sb-logo"><i class="bi bi-lightning-charge-fill"></i></div>
+    <div>
+      <div class="sb-brand-name">OneTasks</div>
+      <div class="sb-brand-tag">Admin Connect</div>
+    </div>
+  </div>
+
+  <div class="sb-admin-pill">
+    <div class="admin-dot"></div>
+    <div class="admin-label">Admin Session Active</div>
+  </div>
+
+  <nav class="sb-nav">
+    <div class="nav-section">Overview</div>
+    <button class="nav-item active" onclick="showPage('overview',this)">
+      <i class="bi bi-speedometer2"></i> Dashboard
+    </button>
+
+    <div class="nav-section">Management</div>
+    <button class="nav-item" onclick="showPage('users',this)">
+      <i class="bi bi-people"></i> Users
+    </button>
+    <button class="nav-item" onclick="showPage('submissions',this)">
+      <i class="bi bi-check2-square"></i> Submissions
+      <span class="nav-badge hidden" id="pendingBadge">0</span>
+    </button>
+    <button class="nav-item" onclick="showPage('tasks',this)">
+      <i class="bi bi-list-task"></i> Task Library
+    </button>
+
+    <div class="nav-section">Tools</div>
+    <button class="nav-item" onclick="showPage('notifications',this)">
+      <i class="bi bi-bell"></i> Notifications
+    </button>
+
+    <div class="nav-section">System</div>
+    <button class="nav-item" onclick="logout()">
+      <i class="bi bi-box-arrow-right"></i> Sign Out
+    </button>
+  </nav>
+
+  <div class="sb-foot">OneTasks Admin v1.0 · Connect</div>
+</aside>
+
+<!-- ═══════════ MAIN ═══════════ -->
+<div class="main">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div class="hamburger" onclick="openSidebar()"><i class="bi bi-list"></i></div>
+      <span class="tb-page-title" id="pageTitle">Dashboard</span>
+    </div>
+    <div class="tb-right">
+      <div class="tb-refresh" onclick="refreshPage()" title="Refresh data"><i class="bi bi-arrow-clockwise"></i></div>
+      <div class="tb-user">
+        <div class="tb-ava" id="tbAva">A</div>
+        <span id="tbName">Admin</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ CONTENT AREA ═══ -->
+  <div class="content">
+
+    <!-- ═══ PAGE: OVERVIEW ═══ -->
+    <div class="page active" id="page-overview">
+
+      <div class="stat-grid">
+        <div class="stat-card" style="animation-delay:.05s">
+          <div class="stat-icon ic-blue"><i class="bi bi-people-fill"></i></div>
+          <div class="stat-lbl">Total Users</div>
+          <div class="stat-val" id="ov-totalUsers">—</div>
+        </div>
+        <div class="stat-card" style="animation-delay:.10s">
+          <div class="stat-icon ic-amber"><i class="bi bi-hourglass-split"></i></div>
+          <div class="stat-lbl">Pending Reviews</div>
+          <div class="stat-val" id="ov-pending">—</div>
+        </div>
+        <div class="stat-card" style="animation-delay:.15s">
+          <div class="stat-icon ic-green"><i class="bi bi-cash-stack"></i></div>
+          <div class="stat-lbl">Total Paid Out</div>
+          <div class="stat-val" id="ov-paid">—</div>
+        </div>
+        <div class="stat-card" style="animation-delay:.20s">
+          <div class="stat-icon ic-violet"><i class="bi bi-list-check"></i></div>
+          <div class="stat-lbl">Active Tasks</div>
+          <div class="stat-val" id="ov-activeTasks">—</div>
+        </div>
+      </div>
+
+      <div class="overview-grid">
+        <!-- Activity feed -->
+        <div class="activity-feed">
+          <div class="activity-feed-head">
+            <i class="bi bi-activity"></i> Recent Submissions
+          </div>
+          <div id="recentFeed">
+            <div class="loader-row"><i class="bi bi-arrow-repeat spin"></i> Loading…</div>
+          </div>
+        </div>
+
+        <!-- Quick actions -->
+        <div class="quick-actions">
+          <h4>Quick Actions</h4>
+          <button class="quick-action-btn" onclick="showPage('submissions', document.querySelector('.nav-item[onclick*=submissions]'))">
+            <div class="qa-icon ic-amber"><i class="bi bi-check2-all"></i></div>
+            <div>
+              <div class="qa-label">Review Submissions</div>
+              <div class="qa-sub">Approve or reject tasks</div>
+            </div>
+          </button>
+          <button class="quick-action-btn" onclick="openCreateTaskModal()">
+            <div class="qa-icon ic-blue"><i class="bi bi-plus-circle-fill"></i></div>
+            <div>
+              <div class="qa-label">Create New Task</div>
+              <div class="qa-sub">Add to task library</div>
+            </div>
+          </button>
+          <button class="quick-action-btn" onclick="showPage('notifications', document.querySelector('.nav-item[onclick*=notifications]'))">
+            <div class="qa-icon ic-violet"><i class="bi bi-megaphone-fill"></i></div>
+            <div>
+              <div class="qa-label">Send Notification</div>
+              <div class="qa-sub">Broadcast to users</div>
+            </div>
+          </button>
+          <button class="quick-action-btn" onclick="showPage('users', document.querySelector('.nav-item[onclick*=users]'))">
+            <div class="qa-icon ic-green"><i class="bi bi-person-lines-fill"></i></div>
+            <div>
+              <div class="qa-label">Manage Users</div>
+              <div class="qa-sub">View all accounts</div>
+            </div>
+          </button>
+        </div>
+      </div>
+
+    </div><!-- /page-overview -->
+
+
+    <!-- ═══ PAGE: USERS ═══ -->
+    <div class="page" id="page-users">
+      <div class="table-wrap">
+        <div class="table-header">
+          <div class="table-title"><i class="bi bi-people-fill"></i> All Users <span id="userCount" style="font-size:11px;color:var(--muted);font-weight:500;margin-left:4px;"></span></div>
+          <div class="search-input">
+            <i class="bi bi-search"></i>
+            <input type="text" id="userSearch" placeholder="Search name or email…" oninput="filterUsers()">
+          </div>
+        </div>
+        <div id="usersTableWrap">
+          <div class="loader-row"><i class="bi bi-arrow-repeat spin"></i> Loading users…</div>
+        </div>
+      </div>
+    </div><!-- /page-users -->
+
+
+    <!-- ═══ PAGE: SUBMISSIONS ═══ -->
+    <div class="page" id="page-submissions">
+      <div class="table-wrap">
+        <div class="table-header">
+          <div class="table-title"><i class="bi bi-check2-square"></i> Task Submissions</div>
+          <div class="search-input">
+            <i class="bi bi-search"></i>
+            <input type="text" id="subSearch" placeholder="Search submissions…" oninput="filterSubmissions()">
+          </div>
+        </div>
+        <div class="filter-row" id="subFilters">
+          <div class="filter-chip active" onclick="setSubFilter('all',this)">All</div>
+          <div class="filter-chip" onclick="setSubFilter('pending',this)"><span class="chip pending">Pending</span></div>
+          <div class="filter-chip" onclick="setSubFilter('approved',this)"><span class="chip approved">Approved</span></div>
+          <div class="filter-chip" onclick="setSubFilter('rejected',this)"><span class="chip rejected">Rejected</span></div>
+          <div class="filter-chip" onclick="setSubFilter('disputed',this)"><span class="chip disputed">Disputed</span></div>
+        </div>
+        <div id="submissionsTableWrap">
+          <div class="loader-row"><i class="bi bi-arrow-repeat spin"></i> Loading submissions…</div>
+        </div>
+      </div>
+    </div><!-- /page-submissions -->
+
+
+    <!-- ═══ PAGE: TASKS ═══ -->
+    <div class="page" id="page-tasks">
+      <div class="task-form-card" id="taskFormCard" style="display:none">
+        <h4 id="taskFormTitle"><i class="bi bi-plus-circle-fill"></i> Create Task</h4>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Title *</label>
+            <input class="form-control" id="tf-title" placeholder="e.g. Follow us on Twitter">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Category *</label>
+            <select class="form-control" id="tf-category">
+              <option value="">Select category</option>
+              <option value="streak">Daily Streak</option>
+              <option value="signup">Sign Up</option>
+              <option value="apps">Apps</option>
+              <option value="survey">Survey</option>
+              <option value="clicks">Clicks</option>
+              <option value="video">Video</option>
+              <option value="follow">Follow</option>
+              <option value="review">Review</option>
+              <option value="social">Social</option>
+              <option value="writing">Writing</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Description</label>
+          <textarea class="form-control" id="tf-description" placeholder="Task instructions…" rows="3"></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Reward ($) *</label>
+            <input class="form-control" id="tf-reward" type="number" step="0.01" min="0" placeholder="0.50">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Max Submissions</label>
+            <input class="form-control" id="tf-maxsub" type="number" min="0" placeholder="Leave blank = unlimited">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Status</label>
+          <select class="form-control" id="tf-status">
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+        </div>
+        <div style="display:flex;gap:9px;justify-content:flex-end;margin-top:4px;">
+          <button class="btn btn-ghost" onclick="cancelTaskForm()">Cancel</button>
+          <button class="btn btn-primary" onclick="saveTask()"><i class="bi bi-save"></i> Save Task</button>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <div class="table-header">
+          <div class="table-title"><i class="bi bi-list-task"></i> Task Library <span id="taskCount" style="font-size:11px;color:var(--muted);font-weight:500;margin-left:4px;"></span></div>
+          <button class="btn btn-primary btn-sm" onclick="openCreateTaskModal()">
+            <i class="bi bi-plus-lg"></i> New Task
+          </button>
+        </div>
+        <div id="tasksTableWrap">
+          <div class="loader-row"><i class="bi bi-arrow-repeat spin"></i> Loading tasks…</div>
+        </div>
+      </div>
+    </div><!-- /page-tasks -->
+
+
+    <!-- ═══ PAGE: NOTIFICATIONS ═══ -->
+    <div class="page" id="page-notifications">
+      <div class="notif-send-card">
+        <h4><i class="bi bi-megaphone-fill"></i> Broadcast Notification</h4>
+        <div class="form-group">
+          <label class="form-label">Target</label>
+          <select class="form-control" id="notif-target">
+            <option value="all">All Users</option>
+            <option value="single">Specific User (by User ID)</option>
+          </select>
+        </div>
+        <div class="form-group" id="notif-uid-group" style="display:none">
+          <label class="form-label">User ID</label>
+          <input class="form-control" id="notif-uid" placeholder="Paste user UUID…">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Title *</label>
+          <input class="form-control" id="notif-title" placeholder="e.g. New task available!">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Message *</label>
+          <textarea class="form-control" id="notif-message" rows="3" placeholder="Notification body…"></textarea>
+        </div>
+        <div style="text-align:right;">
+          <button class="btn btn-primary" onclick="sendNotification()">
+            <i class="bi bi-send-fill"></i> Send Notification
+          </button>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <div class="table-header">
+          <div class="table-title"><i class="bi bi-bell-fill"></i> Recent Notifications Sent</div>
+        </div>
+        <div id="notifHistoryWrap">
+          <div class="loader-row"><i class="bi bi-arrow-repeat spin"></i> Loading…</div>
+        </div>
+      </div>
+    </div><!-- /page-notifications -->
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+
+<!-- ═══════════ MODALS ═══════════ -->
+
+<!-- User detail modal -->
+<div class="modal-backdrop" id="userModal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h3 id="umTitle">User Details</h3>
+      <button class="modal-close" onclick="closeModal('userModal')"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="modal-body" id="umBody"></div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('userModal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Submission review modal -->
+<div class="modal-backdrop" id="subModal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h3>Review Submission</h3>
+      <button class="modal-close" onclick="closeModal('subModal')"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="modal-body" id="subModalBody"></div>
+    <div class="modal-foot" id="subModalFoot"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ═══════════════ SUPABASE ═══════════════ */
+const SUPABASE_URL = "https://lwnbfjjsstxkyexeojcl.supabase.co";
+const SUPABASE_KEY = "sb_publishable_Pj9ocGkssu5Gh6qZXFnZQQ_LdghnZt9";
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+/* ═══════════════ STATE ═══════════════ */
+let allUsers       = [];
+let allSubmissions = [];
+let allTasks       = [];
+let subFilter      = "all";
+let editTaskId     = null;
+
+/* ═══════════════ HELPERS ═══════════════ */
+const fmt   = n  => "$" + parseFloat(n || 0).toFixed(2);
+const ini   = n  => (n || "U").split(" ").map(x => x[0]).join("").toUpperCase().slice(0, 2);
+const ago   = ts => {
+  if (!ts) return "—";
+  const s = Math.floor((Date.now() - new Date(ts)) / 1000);
+  if (s < 60)    return "Just now";
+  if (s < 3600)  return Math.floor(s / 60) + "m ago";
+  if (s < 86400) return Math.floor(s / 3600) + "h ago";
+  return new Date(ts).toLocaleDateString();
+};
+const fmtDate = ts => ts ? new Date(ts).toLocaleDateString("en-GB", { day:"2-digit", month:"short", year:"numeric" }) : "—";
+
+function showToast(msg, duration = 3000) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), duration);
+}
+
+function openModal(id)  { document.getElementById(id).classList.add("open"); }
+function closeModal(id) { document.getElementById(id).classList.remove("open"); }
+
+/* ═══════════════ SIDEBAR / NAV ═══════════════ */
+function openSidebar()  { document.getElementById("sidebar").classList.add("open"); document.getElementById("overlay").classList.add("show"); }
+function closeSidebar() { document.getElementById("sidebar").classList.remove("open"); document.getElementById("overlay").classList.remove("show"); }
+
+const pageTitles = { overview:"Dashboard", users:"Users", submissions:"Submissions", tasks:"Task Library", notifications:"Notifications" };
+
+function showPage(name, btn) {
+  document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+  document.querySelectorAll(".nav-item").forEach(b => b.classList.remove("active"));
+  document.getElementById("page-" + name).classList.add("active");
+  if (btn) btn.classList.add("active");
+  document.getElementById("pageTitle").textContent = pageTitles[name] || name;
+  closeSidebar();
+  refreshPage(name);
+}
+
+function refreshPage(name) {
+  if (!name) {
+    const active = document.querySelector(".page.active");
+    name = active ? active.id.replace("page-", "") : "overview";
+  }
+  if (name === "overview")      loadOverview();
+  if (name === "users")         loadUsers();
+  if (name === "submissions")   loadSubmissions();
+  if (name === "tasks")         loadTasks();
+  if (name === "notifications") loadNotifHistory();
+}
+
+/* ═══════════════ AUTH ═══════════════ */
+async function init() {
+  const { data: { session } } = await db.auth.getSession();
+  if (!session) { location.href = "index.html"; return; }
+
+  const uid = session.user.id;
+  document.getElementById("tbAva").textContent = session.user.email[0].toUpperCase();
+  document.getElementById("tbName").textContent = session.user.email.split("@")[0];
+
+  loadOverview();
+}
+
+async function logout() {
+  await db.auth.signOut();
+  location.href = "index.html";
+}
+
+/* ═══════════════ OVERVIEW ═══════════════ */
+async function loadOverview() {
+  /* stats in parallel */
+  const [usersRes, subRes, paidRes, taskRes] = await Promise.all([
+    db.from("users").select("id", { count: "exact", head: true }),
+    db.from("user_tasks").select("id", { count: "exact", head: true }).eq("status", "pending"),
+    db.from("user_tasks").select("reward").in("status", ["approved", "completed"]),
+    db.from("tasks").select("id", { count: "exact", head: true }).eq("status", "active"),
+  ]);
+
+  document.getElementById("ov-totalUsers").textContent    = usersRes.count ?? "—";
+  document.getElementById("ov-pending").textContent       = subRes.count ?? "—";
+  document.getElementById("ov-activeTasks").textContent   = taskRes.count ?? "—";
+
+  const totalPaid = (paidRes.data || []).reduce((a, r) => a + parseFloat(r.reward || 0), 0);
+  document.getElementById("ov-paid").textContent          = fmt(totalPaid);
+
+  /* update sidebar badge */
+  const cnt = subRes.count || 0;
+  const badge = document.getElementById("pendingBadge");
+  if (cnt > 0) { badge.textContent = cnt > 99 ? "99+" : cnt; badge.classList.remove("hidden"); }
+  else badge.classList.add("hidden");
+
+  /* recent feed */
+  const { data: recent } = await db.from("user_tasks")
+    .select("task_title, status, reward, created_at, user_id")
+    .order("created_at", { ascending: false }).limit(8);
+
+  const feed = document.getElementById("recentFeed");
+  if (!recent?.length) {
+    feed.innerHTML = `<div class="empty-state"><i class="bi bi-inbox"></i><p>No submissions yet.</p></div>`;
+    return;
+  }
+  const dotColor = { approved:"var(--green)", completed:"var(--green)", pending:"var(--amber)", rejected:"var(--red)", disputed:"var(--violet)" };
+
+  feed.innerHTML = recent.map(r => `
+    <div class="activity-item">
+      <div class="activity-dot" style="background:${dotColor[r.status] || 'var(--blue)'}"></div>
+      <div>
+        <div class="activity-text"><strong>${r.task_title || "Task"}</strong> — <span class="chip ${r.status}">${r.status}</span></div>
+        <div class="activity-time">${fmt(r.reward)} · ${ago(r.created_at)}</div>
+      </div>
+    </div>`).join("");
+}
+
+/* ═══════════════ USERS ═══════════════ */
+async function loadUsers() {
+  document.getElementById("usersTableWrap").innerHTML =
+    `<div class="loader-row"><i class="bi bi-arrow-repeat spin"></i> Loading…</div>`;
+
+  const { data, error } = await db.from("users")
+    .select("id, full_name, email, balance, pending_balance, referral_count, created_at")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    document.getElementById("usersTableWrap").innerHTML = `<div class="empty-state"><i class="bi bi-exclamation-circle"></i><p>${error.message}</p></div>`;
+    return;
+  }
+  allUsers = data || [];
+  renderUsers(allUsers);
+}
+
+function renderUsers(users) {
+  document.getElementById("userCount").textContent = `(${users.length})`;
+  if (!users.length) {
+    document.getElementById("usersTableWrap").innerHTML = `<div class="empty-state"><i class="bi bi-people"></i><p>No users found.</p></div>`;
+    return;
+  }
+  document.getElementById("usersTableWrap").innerHTML = `
+    <table>
+      <thead>
+        <tr>
+          <th>User</th>
+          <th>Balance</th>
+          <th>Pending</th>
+          <th>Referrals</th>
+          <th>Joined</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${users.map(u => `
+          <tr>
+            <td>
+              <div class="user-cell">
+                <div class="user-ava">${ini(u.full_name || u.email)}</div>
+                <div>
+                  <div class="user-name">${u.full_name || "—"}</div>
+                  <div class="user-email">${u.email || u.id.slice(0, 12) + "…"}</div>
+                </div>
+              </div>
+            </td>
+            <td class="amount-green">${fmt(u.balance)}</td>
+            <td class="amount-amber">${fmt(u.pending_balance)}</td>
+            <td>${u.referral_count || 0}</td>
+            <td>${fmtDate(u.created_at)}</td>
+            <td>
+              <div class="action-btns">
+                <button class="btn btn-ghost btn-sm" onclick="openUserDetail('${u.id}')">
+                  <i class="bi bi-eye"></i> View
+                </button>
+              </div>
+            </td>
+          </tr>`).join("")}
+      </tbody>
+    </table>`;
+}
+
+function filterUsers() {
+  const q = document.getElementById("userSearch").value.toLowerCase().trim();
+  if (!q) { renderUsers(allUsers); return; }
+  renderUsers(allUsers.filter(u =>
+    (u.full_name || "").toLowerCase().includes(q) ||
+    (u.email || "").toLowerCase().includes(q)
+  ));
+}
+
+async function openUserDetail(userId) {
+  document.getElementById("umTitle").textContent = "User Details";
+  document.getElementById("umBody").innerHTML = `<div class="loader-row"><i class="bi bi-arrow-repeat spin"></i></div>`;
+  openModal("userModal");
+
+  const [uRes, pRes, tRes] = await Promise.all([
+    db.from("users").select("*").eq("id", userId).single(),
+    db.from("profiles").select("*").eq("id", userId).maybeSingle(),
+    db.from("user_tasks").select("id,status,reward").eq("user_id", userId),
+  ]);
+
+  const u = uRes.data || {};
+  const p = pRes.data || {};
+  const tasks = tRes.data || [];
+  const totalEarned = tasks.filter(t => ["approved","completed"].includes(t.status))
+                          .reduce((a, t) => a + parseFloat(t.reward || 0), 0);
+
+  document.getElementById("umTitle").textContent = u.full_name || "User";
+  document.getElementById("umBody").innerHTML = `
+    <div style="text-align:center;margin-bottom:16px;">
+      <div style="width:52px;height:52px;border-radius:50%;background:var(--blue);color:#fff;font-size:20px;font-weight:700;display:flex;align-items:center;justify-content:center;margin:0 auto 8px;">${ini(u.full_name || u.email)}</div>
+      <div style="font-size:15px;font-weight:700;">${u.full_name || "—"}</div>
+      <div style="font-size:12px;color:var(--muted);">${u.email || ""}</div>
+    </div>
+    <div class="detail-row"><span class="detail-lbl">Username</span><span class="detail-val">${p.username ? "@"+p.username : "—"}</span></div>
+    <div class="detail-row"><span class="detail-lbl">Country</span><span class="detail-val">${p.country || "—"}</span></div>
+    <div class="detail-row"><span class="detail-lbl">Phone</span><span class="detail-val">${p.phone || "—"}</span></div>
+    <div class="detail-row"><span class="detail-lbl">PayPal Email</span><span class="detail-val">${p.paypal_email || "Not set"}</span></div>
+    <div class="detail-row"><span class="detail-lbl">Balance</span><span class="detail-val amount-green">${fmt(u.balance)}</span></div>
+    <div class="detail-row"><span class="detail-lbl">Pending Balance</span><span class="detail-val amount-amber">${fmt(u.pending_balance)}</span></div>
+    <div class="detail-row"><span class="detail-lbl">Bonus Balance</span><span class="detail-val">${fmt(u.bonus_balance)}</span></div>
+    <div class="detail-row"><span class="detail-lbl">Total Earned</span><span class="detail-val amount-green">${fmt(totalEarned)}</span></div>
+    <div class="detail-row"><span class="detail-lbl">Tasks Submitted</span><span class="detail-val">${tasks.length}</span></div>
+    <div class="detail-row"><span class="detail-lbl">Referrals</span><span class="detail-val">${u.referral_count || 0}</span></div>
+    <div class="detail-row"><span class="detail-lbl">Referral Code</span><span class="detail-val">${u.referral_code || "—"}</span></div>
+    <div class="detail-row"><span class="detail-lbl">Joined</span><span class="detail-val">${fmtDate(u.created_at)}</span></div>
+    <div class="detail-row"><span class="detail-lbl">User ID</span><span style="font-size:10.5px;color:var(--muted);font-family:monospace;word-break:break-all;">${u.id}</span></div>
+  `;
+}
+
+/* ═══════════════ SUBMISSIONS ═══════════════ */
+async function loadSubmissions() {
+  document.getElementById("submissionsTableWrap").innerHTML =
+    `<div class="loader-row"><i class="bi bi-arrow-repeat spin"></i> Loading…</div>`;
+
+  const { data, error } = await db.from("user_tasks")
+    .select("id, user_id, task_title, task_type, category, reward, status, proof, created_at")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    document.getElementById("submissionsTableWrap").innerHTML = `<div class="empty-state"><i class="bi bi-exclamation-circle"></i><p>${error.message}</p></div>`;
+    return;
+  }
+  allSubmissions = data || [];
+  renderSubmissions();
+}
+
+function setSubFilter(f, el) {
+  subFilter = f;
+  document.querySelectorAll("#subFilters .filter-chip").forEach(c => c.classList.remove("active"));
+  el.classList.add("active");
+  renderSubmissions();
+}
+
+function filterSubmissions() {
+  renderSubmissions();
+}
+
+function renderSubmissions() {
+  const q    = (document.getElementById("subSearch").value || "").toLowerCase().trim();
+  let data   = allSubmissions;
+  if (subFilter !== "all") data = data.filter(s => s.status === subFilter);
+  if (q) data = data.filter(s => (s.task_title + (s.category||"")).toLowerCase().includes(q));
+
+  if (!data.length) {
+    document.getElementById("submissionsTableWrap").innerHTML =
+      `<div class="empty-state"><i class="bi bi-inbox"></i><p>No submissions found.</p></div>`;
+    return;
+  }
+
+  document.getElementById("submissionsTableWrap").innerHTML = `
+    <table>
+      <thead>
+        <tr>
+          <th>Task</th>
+          <th>Category</th>
+          <th>Reward</th>
+          <th>Status</th>
+          <th>Submitted</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${data.map(s => `
+          <tr>
+            <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600;">${s.task_title || "Task"}</td>
+            <td><span style="font-size:12px;color:var(--muted);text-transform:capitalize;">${s.category || s.task_type || "—"}</span></td>
+            <td class="amount-green">${fmt(s.reward)}</td>
+            <td><span class="chip ${s.status}">${s.status || "pending"}</span></td>
+            <td style="font-size:12px;color:var(--muted);">${ago(s.created_at)}</td>
+            <td>
+              <div class="action-btns">
+                <button class="btn btn-ghost btn-sm" onclick="openSubReview('${s.id}')">
+                  <i class="bi bi-eye"></i> Review
+                </button>
+                ${s.status === "pending" ? `
+                  <button class="btn btn-green btn-sm" onclick="updateSubStatus('${s.id}','approved')">✓</button>
+                  <button class="btn btn-red btn-sm"   onclick="updateSubStatus('${s.id}','rejected')">✗</button>
+                ` : ""}
+              </div>
+            </td>
+          </tr>`).join("")}
+      </tbody>
+    </table>`;
+}
+
+async function openSubReview(subId) {
+  const sub = allSubmissions.find(s => s.id === subId);
+  if (!sub) return;
+
+  document.getElementById("subModalBody").innerHTML = `
+    <div class="detail-row"><span class="detail-lbl">Task</span><span class="detail-val">${sub.task_title || "—"}</span></div>
+    <div class="detail-row"><span class="detail-lbl">Category</span><span class="detail-val" style="text-transform:capitalize;">${sub.category || sub.task_type || "—"}</span></div>
+    <div class="detail-row"><span class="detail-lbl">Reward</span><span class="detail-val amount-green">${fmt(sub.reward)}</span></div>
+    <div class="detail-row"><span class="detail-lbl">Status</span><span class="chip ${sub.status}">${sub.status}</span></div>
+    <div class="detail-row"><span class="detail-lbl">Submitted</span><span class="detail-val">${fmtDate(sub.created_at)}</span></div>
+    <div class="detail-row"><span class="detail-lbl">User ID</span><span style="font-size:10.5px;color:var(--muted);font-family:monospace;word-break:break-all;">${sub.user_id}</span></div>
+    <div class="detail-row"><span class="detail-lbl">Proof / Link</span>
+      <span>${sub.proof ? `<a href="${sub.proof}" target="_blank" style="color:var(--blue);font-size:12px;">View proof <i class="bi bi-arrow-up-right"></i></a>` : "None provided"}</span>
+    </div>
+  `;
+
+  const foot = document.getElementById("subModalFoot");
+  if (sub.status === "pending") {
+    foot.innerHTML = `
+      <button class="btn btn-ghost" onclick="closeModal('subModal')">Close</button>
+      <button class="btn btn-red" onclick="updateSubStatus('${sub.id}','rejected');closeModal('subModal')"><i class="bi bi-x-lg"></i> Reject</button>
+      <button class="btn btn-green" onclick="updateSubStatus('${sub.id}','approved');closeModal('subModal')"><i class="bi bi-check-lg"></i> Approve</button>
+    `;
+  } else {
+    foot.innerHTML = `<button class="btn btn-ghost" onclick="closeModal('subModal')">Close</button>`;
+  }
+
+  openModal("subModal");
+}
+
+async function updateSubStatus(subId, newStatus) {
+  const sub = allSubmissions.find(s => s.id === subId);
+  if (!sub) return;
+
+  const { error } = await db.from("user_tasks").update({ status: newStatus }).eq("id", subId);
+  if (error) { showToast("❌ " + error.message); return; }
+
+  /* Update balance if approved */
+  if (newStatus === "approved" && sub.user_id) {
+    const { data: u } = await db.from("users").select("balance, pending_balance").eq("id", sub.user_id).single();
+    if (u) {
+      await db.from("users").update({
+        balance:         parseFloat(u.balance || 0) + parseFloat(sub.reward || 0),
+        pending_balance: Math.max(0, parseFloat(u.pending_balance || 0) - parseFloat(sub.reward || 0)),
+      }).eq("id", sub.user_id);
+    }
+
+    /* Send notification */
+    await db.from("notifications").insert([{
+      user_id: sub.user_id,
+      title:   "Task Approved! 🎉",
+      message: `Your submission for "${sub.task_title}" has been approved. ${fmt(sub.reward)} has been added to your balance.`,
+      is_read: false,
+    }]);
+  }
+
+  if (newStatus === "rejected" && sub.user_id) {
+    await db.from("notifications").insert([{
+      user_id: sub.user_id,
+      title:   "Task Update",
+      message: `Your submission for "${sub.task_title}" was not approved this time.`,
+      is_read: false,
+    }]);
+  }
+
+  sub.status = newStatus;
+  showToast(`✅ Submission ${newStatus}`);
+  renderSubmissions();
+  loadOverview();
+}
+
+/* ═══════════════ TASKS ═══════════════ */
+async function loadTasks() {
+  document.getElementById("tasksTableWrap").innerHTML =
+    `<div class="loader-row"><i class="bi bi-arrow-repeat spin"></i> Loading…</div>`;
+
+  const { data, error } = await db.from("tasks")
+    .select("*").order("created_at", { ascending: false });
+
+  if (error) {
+    document.getElementById("tasksTableWrap").innerHTML = `<div class="empty-state"><i class="bi bi-exclamation-circle"></i><p>${error.message}</p></div>`;
+    return;
+  }
+  allTasks = data || [];
+  renderTasks();
+}
+
+function renderTasks() {
+  document.getElementById("taskCount").textContent = `(${allTasks.length})`;
+  if (!allTasks.length) {
+    document.getElementById("tasksTableWrap").innerHTML =
+      `<div class="empty-state"><i class="bi bi-list-task"></i><p>No tasks yet. Create your first task!</p></div>`;
+    return;
+  }
+  document.getElementById("tasksTableWrap").innerHTML = `
+    <table>
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Category</th>
+          <th>Reward</th>
+          <th>Slots</th>
+          <th>Status</th>
+          <th>Created</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${allTasks.map(t => `
+          <tr>
+            <td style="font-weight:600;max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${t.title || "—"}</td>
+            <td><span style="font-size:12px;text-transform:capitalize;color:var(--muted);">${t.category || "—"}</span></td>
+            <td class="amount-green">${fmt(t.reward)}</td>
+            <td style="font-size:12px;">
+              ${t.max_submissions
+                ? `${t.submission_count || 0} / ${t.max_submissions}`
+                : '<span style="color:var(--muted);">Unlimited</span>'}
+            </td>
+            <td><span class="chip ${t.status || 'inactive'}">${t.status || "inactive"}</span></td>
+            <td style="font-size:12px;color:var(--muted);">${fmtDate(t.created_at)}</td>
+            <td>
+              <div class="action-btns">
+                <button class="btn btn-ghost btn-sm" onclick="editTask('${t.id}')">
+                  <i class="bi bi-pencil"></i>
+                </button>
+                <button class="btn btn-red btn-sm" onclick="deleteTask('${t.id}')">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </div>
+            </td>
+          </tr>`).join("")}
+      </tbody>
+    </table>`;
+}
+
+function openCreateTaskModal() {
+  editTaskId = null;
+  const card = document.getElementById("taskFormCard");
+  document.getElementById("taskFormTitle").innerHTML = '<i class="bi bi-plus-circle-fill"></i> Create New Task';
+  document.getElementById("tf-title").value      = "";
+  document.getElementById("tf-category").value   = "";
+  document.getElementById("tf-description").value = "";
+  document.getElementById("tf-reward").value     = "";
+  document.getElementById("tf-maxsub").value     = "";
+  document.getElementById("tf-status").value     = "active";
+  card.style.display = "block";
+  card.scrollIntoView({ behavior: "smooth" });
+
+  /* Make sure tasks page is visible */
+  showPage("tasks", document.querySelector('.nav-item[onclick*=tasks]'));
+}
+
+function editTask(taskId) {
+  editTaskId = taskId;
+  const t = allTasks.find(x => x.id === taskId);
+  if (!t) return;
+  document.getElementById("taskFormTitle").innerHTML = '<i class="bi bi-pencil-fill"></i> Edit Task';
+  document.getElementById("tf-title").value       = t.title || "";
+  document.getElementById("tf-category").value    = t.category || "";
+  document.getElementById("tf-description").value = t.description || "";
+  document.getElementById("tf-reward").value      = t.reward || "";
+  document.getElementById("tf-maxsub").value      = t.max_submissions || "";
+  document.getElementById("tf-status").value      = t.status || "active";
+  const card = document.getElementById("taskFormCard");
+  card.style.display = "block";
+  card.scrollIntoView({ behavior: "smooth" });
+}
+
+function cancelTaskForm() {
+  document.getElementById("taskFormCard").style.display = "none";
+  editTaskId = null;
+}
+
+async function saveTask() {
+  const title    = document.getElementById("tf-title").value.trim();
+  const category = document.getElementById("tf-category").value;
+  const reward   = parseFloat(document.getElementById("tf-reward").value);
+  const maxsub   = document.getElementById("tf-maxsub").value;
+
+  if (!title || !category || isNaN(reward)) {
+    showToast("⚠️ Please fill required fields (title, category, reward)");
+    return;
+  }
+
+  const payload = {
+    title,
+    category,
+    description: document.getElementById("tf-description").value.trim(),
+    reward,
+    max_submissions: maxsub ? parseInt(maxsub) : null,
+    status: document.getElementById("tf-status").value,
+  };
+
+  let error;
+  if (editTaskId) {
+    ({ error } = await db.from("tasks").update(payload).eq("id", editTaskId));
+  } else {
+    ({ error } = await db.from("tasks").insert([{ ...payload, submission_count: 0 }]));
+  }
+
+  if (error) { showToast("❌ " + error.message); return; }
+
+  showToast(editTaskId ? "✅ Task updated!" : "✅ Task created!");
+  cancelTaskForm();
+  loadTasks();
+}
+
+async function deleteTask(taskId) {
+  if (!confirm("Delete this task? This cannot be undone.")) return;
+  const { error } = await db.from("tasks").delete().eq("id", taskId);
+  if (error) { showToast("❌ " + error.message); return; }
+  showToast("🗑️ Task deleted");
+  loadTasks();
+}
+
+/* ═══════════════ NOTIFICATIONS ═══════════════ */
+document.getElementById("notif-target").addEventListener("change", function() {
+  document.getElementById("notif-uid-group").style.display =
+    this.value === "single" ? "block" : "none";
+});
+
+async function sendNotification() {
+  const title   = document.getElementById("notif-title").value.trim();
+  const message = document.getElementById("notif-message").value.trim();
+  const target  = document.getElementById("notif-target").value;
+
+  if (!title || !message) { showToast("⚠️ Title and message required"); return; }
+
+  if (target === "single") {
+    const uid = document.getElementById("notif-uid").value.trim();
+    if (!uid) { showToast("⚠️ Please enter a user ID"); return; }
+    const { error } = await db.from("notifications").insert([{ user_id: uid, title, message, is_read: false }]);
+    if (error) { showToast("❌ " + error.message); return; }
+    showToast("✅ Notification sent to user!");
+  } else {
+    /* Broadcast: get all user IDs */
+    const { data: users } = await db.from("users").select("id");
+    if (!users?.length) { showToast("⚠️ No users found"); return; }
+    const rows = users.map(u => ({ user_id: u.id, title, message, is_read: false }));
+    const { error } = await db.from("notifications").insert(rows);
+    if (error) { showToast("❌ " + error.message); return; }
+    showToast(`✅ Notification sent to ${users.length} users!`);
+  }
+
+  document.getElementById("notif-title").value   = "";
+  document.getElementById("notif-message").value = "";
+  loadNotifHistory();
+}
+
+async function loadNotifHistory() {
+  document.getElementById("notifHistoryWrap").innerHTML =
+    `<div class="loader-row"><i class="bi bi-arrow-repeat spin"></i> Loading…</div>`;
+
+  const { data, error } = await db.from("notifications")
+    .select("id, title, message, created_at, is_read")
+    .order("created_at", { ascending: false }).limit(30);
+
+  if (error || !data?.length) {
+    document.getElementById("notifHistoryWrap").innerHTML =
+      `<div class="empty-state"><i class="bi bi-bell-slash"></i><p>No notifications sent yet.</p></div>`;
+    return;
+  }
+
+  document.getElementById("notifHistoryWrap").innerHTML = `
+    <table>
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Message</th>
+          <th>Read</th>
+          <th>Sent</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${data.map(n => `
+          <tr>
+            <td style="font-weight:600;">${n.title || "—"}</td>
+            <td style="font-size:12px;color:var(--muted);max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${n.message || ""}</td>
+            <td>${n.is_read ? '<span class="chip approved">Read</span>' : '<span class="chip pending">Unread</span>'}</td>
+            <td style="font-size:12px;color:var(--muted);">${ago(n.created_at)}</td>
+          </tr>`).join("")}
+      </tbody>
+    </table>`;
+}
+
+/* ═══════════════ BOOT ═══════════════ */
+init();
+</script>
+</body>
+</html>
