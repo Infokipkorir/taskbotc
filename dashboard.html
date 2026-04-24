@@ -8,150 +8,142 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
-*{box-sizing:border-box;margin:0;padding:0;font-family:Arial}
+*{margin:0;padding:0;box-sizing:border-box;font-family:Inter,sans-serif}
 
-/* MAIN */
-body{
-  background:#f0f2f5;
-  display:flex;
-  justify-content:center;
-}
-
-/* PHONE FRAME */
-.phone{
-  width:360px;
-  background:#fff;
-  min-height:100vh;
-}
+body{background:#f5f7fb;padding:10px}
 
 /* HEADER */
 .header{
-  background:#1a56db;
-  color:#fff;
-  padding:16px;
-}
-
-.balance-card{
   display:flex;
-  gap:10px;
-  background:rgba(255,255,255,0.15);
-  padding:12px;
-  border-radius:10px;
+  justify-content:space-between;
   align-items:center;
+  margin-bottom:15px;
 }
-
+.header h2{font-size:18px}
 .avatar{
-  width:40px;height:40px;
-  border-radius:8px;
-  background:#e74c3c;
+  width:36px;height:36px;
+  border-radius:50%;
+  background:#2563eb;
+  color:#fff;
   display:flex;
   align-items:center;
   justify-content:center;
   font-weight:bold;
 }
 
-.username{font-size:14px}
-.useremail{font-size:11px;opacity:.8}
-
-.balance-value{
-  margin-left:auto;
-  font-size:18px;
-  font-weight:bold;
-}
-
-/* ACTIONS */
-.actions{
+/* CARDS */
+.cards{
   display:grid;
-  grid-template-columns:repeat(4,1fr);
+  grid-template-columns:repeat(2,1fr);
   gap:10px;
-  padding:12px;
 }
+.card{
+  background:#fff;
+  padding:14px;
+  border-radius:12px;
+  box-shadow:0 4px 12px rgba(0,0,0,0.05);
+}
+.card h4{font-size:12px;color:#777}
+.card h2{margin-top:5px}
 
-.action{
-  background:#f5f7fa;
+/* BIG CTA */
+.cta{
+  margin:15px 0;
+  padding:15px;
+  border-radius:12px;
+  background:#2563eb;
+  color:#fff;
+}
+.cta button{
+  margin-top:10px;
   padding:10px;
-  text-align:center;
-  border-radius:10px;
-  cursor:pointer;
+  border:none;
+  border-radius:8px;
+  background:#fff;
+  color:#2563eb;
+  font-weight:600;
 }
 
-/* MENU */
-.menu{
+/* LIST */
+.list{
+  background:#fff;
+  padding:12px;
+  border-radius:12px;
   margin-top:10px;
 }
-
-.menu-item{
-  padding:14px;
-  border-bottom:1px solid #eee;
-  cursor:pointer;
+.item{
+  display:flex;
+  justify-content:space-between;
+  margin-bottom:10px;
 }
 
 /* NAV */
-.bottom-nav{
+.nav{
   position:fixed;
   bottom:0;
-  width:360px;
+  left:0;
+  right:0;
   background:#fff;
   display:flex;
+  justify-content:space-around;
+  padding:10px;
   border-top:1px solid #eee;
 }
-
-.nav-item{
-  flex:1;
-  text-align:center;
-  padding:10px;
-  cursor:pointer;
-  font-size:12px;
-}
-
-.active{color:#1a56db;font-weight:bold}
+.nav div{font-size:12px;cursor:pointer}
+.active{color:#2563eb;font-weight:bold}
 </style>
 </head>
 
 <body>
 
-<div class="phone">
-
-  <!-- HEADER -->
-  <div class="header">
-    <h3>OneTasks</h3>
-
-    <div class="balance-card">
-      <div class="avatar">U</div>
-
-      <div>
-        <div class="username">User</div>
-        <div class="useremail">email</div>
-      </div>
-
-      <div class="balance-value">$0.00</div>
-    </div>
+<!-- HEADER -->
+<div class="header">
+  <div>
+    <h2 id="welcome">Welcome</h2>
+    <small id="email"></small>
   </div>
+  <div class="avatar" id="avatar">U</div>
+</div>
 
-  <!-- ACTIONS -->
-  <div class="actions">
-    <div class="action" onclick="go('tasks')">Tasks</div>
-    <div class="action" onclick="go('mytasks')">My Tasks</div>
-    <div class="action" onclick="go('referrals')">Referrals</div>
-    <div class="action" onclick="go('withdraw')">Withdraw</div>
+<!-- STATS -->
+<div class="cards">
+  <div class="card">
+    <h4>Total Earnings</h4>
+    <h2 id="balance">$0.00</h2>
   </div>
-
-  <!-- MENU -->
-  <div class="menu">
-    <div class="menu-item" onclick="go('profile')">Profile</div>
-    <div class="menu-item" onclick="go('support')">Support</div>
-    <div class="menu-item" onclick="go('settings')">Settings</div>
-    <div class="menu-item" onclick="logout()">Sign Out</div>
+  <div class="card">
+    <h4>Tasks Completed</h4>
+    <h2 id="completed">0</h2>
   </div>
+  <div class="card">
+    <h4>Pending Tasks</h4>
+    <h2 id="pending">0</h2>
+  </div>
+  <div class="card">
+    <h4>Referrals</h4>
+    <h2 id="referrals">0</h2>
+  </div>
+</div>
 
+<!-- CTA -->
+<div class="cta">
+  <h3>Complete tasks, earn more!</h3>
+  <p>Stay active and increase your earnings</p>
+  <button onclick="go('tasks')">Browse Tasks</button>
+</div>
+
+<!-- RECENT -->
+<div class="list">
+  <h4>Recent Earnings</h4>
+  <div id="activity"></div>
 </div>
 
 <!-- NAV -->
-<div class="bottom-nav">
-  <div class="nav-item active" onclick="go('tasks')">Tasks</div>
-  <div class="nav-item" onclick="go('mytasks')">My Tasks</div>
-  <div class="nav-item" onclick="go('support')">Support</div>
-  <div class="nav-item" onclick="go('profile')">Profile</div>
+<div class="nav">
+  <div class="active" onclick="go('tasks')">Tasks</div>
+  <div onclick="go('mytasks')">My Tasks</div>
+  <div onclick="go('support')">Support</div>
+  <div onclick="go('profile')">Profile</div>
 </div>
 
 <script>
@@ -160,56 +152,71 @@ const db = supabase.createClient(
   "YOUR_PUBLIC_KEY"
 );
 
-/* LOAD USER */
-async function loadUser(){
+/* LOAD DASHBOARD */
+async function loadDashboard(){
   const { data:{ user } } = await db.auth.getUser();
 
   if(!user){
-    window.location.href = "index.html";
+    window.location.href="index.html";
     return;
   }
 
-  // Fetch DB profile
+  // profile
   const { data: profile } = await db
     .from("users")
     .select("*")
     .eq("id", user.id)
     .single();
 
-  document.querySelector(".username").textContent = profile.full_name;
-  document.querySelector(".useremail").textContent = profile.email;
-  document.querySelector(".balance-value").textContent = "$" + profile.balance;
+  document.getElementById("welcome").textContent = "Welcome, " + profile.full_name;
+  document.getElementById("email").textContent = profile.email;
+  document.getElementById("balance").textContent = "$" + profile.balance;
 
-  // Avatar initials
-  const initials = profile.full_name.split(" ").map(n=>n[0]).join("");
-  document.querySelector(".avatar").textContent = initials;
+  // avatar
+  document.getElementById("avatar").textContent =
+    profile.full_name.split(" ").map(n=>n[0]).join("");
+
+  // tasks stats
+  const { data: tasks } = await db
+    .from("user_tasks")
+    .select("*")
+    .eq("user_id", user.id);
+
+  document.getElementById("completed").textContent =
+    tasks.filter(t=>t.status==="completed").length;
+
+  document.getElementById("pending").textContent =
+    tasks.filter(t=>t.status==="pending").length;
+
+  // activity
+  const activity = tasks.slice(0,5);
+  const container = document.getElementById("activity");
+
+  container.innerHTML = "";
+
+  activity.forEach(t=>{
+    container.innerHTML += `
+      <div class="item">
+        <span>Task</span>
+        <b>+$${t.reward}</b>
+      </div>
+    `;
+  });
 }
 
-/* NAVIGATION */
+/* NAV */
 function go(page){
-  const routes = {
+  const routes={
     tasks:"index.html",
     mytasks:"mytasks.html",
-    referrals:"referrals.html",
-    withdraw:"withdraw.html",
     support:"support.html",
-    profile:"profile.html",
-    settings:"settings.html"
+    profile:"profile.html"
   };
-
-  if(routes[page]){
-    window.location.href = routes[page];
-  }
-}
-
-/* LOGOUT */
-async function logout(){
-  await db.auth.signOut();
-  window.location.href = "index.html";
+  window.location.href = routes[page];
 }
 
 /* INIT */
-loadUser();
+loadDashboard();
 </script>
 
 </body>
