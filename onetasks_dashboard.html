@@ -1,0 +1,589 @@
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --navy: #0F1B3D;
+  --navy-mid: #162247;
+  --navy-light: #1E2E57;
+  --accent: #3B82F6;
+  --accent-light: #60A5FA;
+  --accent-glow: rgba(59,130,246,0.15);
+  --gold: #F59E0B;
+  --green: #10B981;
+  --red: #EF4444;
+  --purple: #8B5CF6;
+  --text-main: #F1F5FF;
+  --text-muted: #8B9CC8;
+  --text-dim: #4A5A82;
+  --border: rgba(139,156,200,0.12);
+  --card-bg: rgba(30,46,87,0.5);
+  --sidebar-w: 200px;
+}
+
+body { font-family: 'DM Sans', sans-serif; background: var(--navy); color: var(--text-main); min-height: 100vh; }
+
+.shell { display: flex; min-height: 100vh; }
+
+.sidebar {
+  width: var(--sidebar-w);
+  min-width: var(--sidebar-w);
+  background: var(--navy-mid);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.logo {
+  padding: 20px 16px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.logo-mark {
+  display: flex; align-items: center; gap: 8px;
+}
+.logo-icon {
+  width: 32px; height: 32px; background: var(--accent); border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+}
+.logo-icon svg { width: 16px; height: 16px; }
+.logo-name { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 15px; color: var(--text-main); letter-spacing: -0.3px; }
+.logo-tag { font-size: 10px; color: var(--text-muted); margin-top: 2px; letter-spacing: 0.5px; }
+
+.nav { flex: 1; padding: 12px 8px; display: flex; flex-direction: column; gap: 2px; }
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 12px; border-radius: 8px; cursor: pointer;
+  font-size: 13px; font-weight: 400; color: var(--text-muted);
+  transition: all 0.15s;
+  border: 1px solid transparent;
+}
+.nav-item:hover { background: rgba(59,130,246,0.08); color: var(--text-main); }
+.nav-item.active {
+  background: var(--accent); color: #fff;
+  font-weight: 500;
+  box-shadow: 0 4px 12px rgba(59,130,246,0.35);
+}
+.nav-item svg { width: 15px; height: 15px; flex-shrink: 0; }
+
+.wallet-card {
+  margin: 8px; border-radius: 12px;
+  background: linear-gradient(135deg, #1a3a6e, #0f1b3d);
+  border: 1px solid rgba(59,130,246,0.3);
+  padding: 14px;
+}
+.wallet-label { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+.wallet-amount { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; color: var(--text-main); }
+.wallet-badge { display: inline-block; background: rgba(16,185,129,0.2); color: var(--green); font-size: 10px; font-weight: 500; padding: 2px 8px; border-radius: 20px; margin-top: 6px; border: 1px solid rgba(16,185,129,0.3); }
+.withdraw-btn {
+  width: 100%; margin-top: 10px; padding: 8px;
+  background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.3);
+  border-radius: 8px; color: var(--accent-light); font-family: 'DM Sans', sans-serif;
+  font-size: 12px; font-weight: 500; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  transition: all 0.15s;
+}
+.withdraw-btn:hover { background: rgba(59,130,246,0.25); }
+
+.user-row {
+  padding: 12px 14px; border-top: 1px solid var(--border);
+  display: flex; align-items: center; gap: 10px;
+}
+.avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 700; color: #fff; flex-shrink: 0; }
+.user-name { font-size: 12px; font-weight: 500; }
+.user-email { font-size: 10px; color: var(--text-muted); }
+.verified { display: flex; align-items: center; gap: 4px; font-size: 10px; color: var(--green); margin-top: 2px; }
+
+.main { flex: 1; overflow-y: auto; }
+
+.topbar {
+  padding: 20px 24px 0;
+  display: flex; justify-content: space-between; align-items: flex-start;
+}
+.greeting-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 4px; }
+.greeting-name { font-family: 'Syne', sans-serif; font-size: 24px; font-weight: 800; letter-spacing: -0.5px; }
+.topbar-right { display: flex; align-items: center; gap: 12px; }
+.notif-btn {
+  position: relative; width: 38px; height: 38px; border-radius: 10px;
+  background: var(--card-bg); border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+}
+.notif-badge {
+  position: absolute; top: 6px; right: 6px; width: 16px; height: 16px;
+  background: #EF4444; border-radius: 50%; font-size: 9px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center; color: #fff;
+  border: 2px solid var(--navy-mid);
+}
+.avatar-lg { width: 38px; height: 38px; border-radius: 10px; background: var(--accent); display: flex; align-items: center; justify-content: center; font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; color: #fff; }
+
+.stats-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 12px; padding: 16px 24px;
+}
+.stat-card {
+  background: var(--card-bg); border: 1px solid var(--border);
+  border-radius: 14px; padding: 16px;
+  backdrop-filter: blur(10px);
+  transition: border-color 0.2s;
+}
+.stat-card:hover { border-color: rgba(59,130,246,0.3); }
+.stat-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; }
+.stat-icon.green { background: rgba(16,185,129,0.15); }
+.stat-icon.blue { background: rgba(59,130,246,0.15); }
+.stat-icon.purple { background: rgba(139,92,246,0.15); }
+.stat-icon.gold { background: rgba(245,158,11,0.15); }
+.stat-label { font-size: 12px; color: var(--text-muted); margin-bottom: 4px; }
+.stat-value { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; }
+.stat-delta { font-size: 11px; color: var(--green); margin-top: 4px; display: flex; align-items: center; gap: 4px; }
+.stat-delta.neutral { color: var(--text-muted); }
+.stat-link { font-size: 11px; color: var(--accent-light); margin-top: 4px; cursor: pointer; }
+
+.promo-banner {
+  margin: 0 24px 16px;
+  background: linear-gradient(120deg, rgba(30,46,87,0.9), rgba(59,130,246,0.15));
+  border: 1px solid rgba(59,130,246,0.25);
+  border-radius: 16px; padding: 20px 24px;
+  display: flex; justify-content: space-between; align-items: center;
+  position: relative; overflow: hidden;
+}
+.promo-banner::before {
+  content: ''; position: absolute; right: 140px; top: -20px;
+  width: 100px; height: 100px;
+  background: radial-gradient(circle, rgba(59,130,246,0.15), transparent);
+  border-radius: 50%;
+}
+.promo-close {
+  position: absolute; top: 12px; right: 14px; width: 20px; height: 20px;
+  cursor: pointer; color: var(--text-muted); font-size: 16px;
+  display: flex; align-items: center; justify-content: center;
+}
+.promo-title { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+.promo-sub { font-size: 12px; color: var(--text-muted); margin-bottom: 12px; }
+.promo-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--accent); color: #fff; border: none;
+  padding: 8px 16px; border-radius: 8px; font-family: 'DM Sans', sans-serif;
+  font-size: 13px; font-weight: 500; cursor: pointer;
+  transition: opacity 0.15s;
+}
+.promo-btn:hover { opacity: 0.9; }
+.promo-art {
+  width: 80px; height: 70px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.mid-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 0 24px 16px; }
+
+.panel {
+  background: var(--card-bg); border: 1px solid var(--border);
+  border-radius: 14px; padding: 16px;
+}
+.panel-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+.panel-title { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; }
+.view-all { font-size: 12px; color: var(--accent-light); cursor: pointer; }
+
+.earning-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); }
+.earning-row:last-child { border-bottom: none; }
+.earning-ico { width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+.earning-ico.yt { background: rgba(239,68,68,0.15); }
+.earning-ico.ig { background: rgba(139,92,246,0.15); }
+.earning-ico.sv { background: rgba(16,185,129,0.15); }
+.earning-ico.fb { background: rgba(59,130,246,0.15); }
+.earning-name { font-size: 13px; font-weight: 500; flex: 1; }
+.earning-sub { font-size: 11px; color: var(--text-muted); }
+.earning-right { text-align: right; }
+.earning-amt { font-size: 13px; font-weight: 600; color: var(--green); }
+.earning-time { font-size: 11px; color: var(--text-muted); }
+
+.task-row { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--border); }
+.task-row:last-child { border-bottom: none; }
+.task-ico { width: 30px; height: 30px; border-radius: 8px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; }
+.task-name { font-size: 13px; font-weight: 500; flex: 1; }
+.task-price { font-size: 12px; color: var(--text-muted); }
+.diff { font-size: 10px; padding: 2px 6px; border-radius: 20px; font-weight: 500; }
+.diff.easy { background: rgba(16,185,129,0.15); color: var(--green); }
+.diff.medium { background: rgba(245,158,11,0.15); color: var(--gold); }
+.start-btn {
+  padding: 5px 12px; border-radius: 6px; background: var(--accent);
+  color: #fff; font-size: 11px; font-weight: 500; border: none; cursor: pointer;
+  transition: opacity 0.15s;
+}
+.start-btn:hover { opacity: 0.85; }
+
+.bot-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 0 24px 16px; }
+
+.goal-bar-track { height: 6px; background: var(--border); border-radius: 3px; margin: 10px 0 6px; }
+.goal-bar-fill { height: 6px; width: 60%; background: var(--accent); border-radius: 3px; }
+.goal-fraction { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; }
+.goal-msg { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+
+.ref-row { display: flex; justify-content: space-between; align-items: center; }
+.ref-count { font-family: 'Syne', sans-serif; font-size: 26px; font-weight: 800; margin: 6px 0 2px; }
+.ref-delta { font-size: 12px; color: var(--green); }
+.ref-icon { width: 44px; height: 44px; border-radius: 50%; background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.2); display: flex; align-items: center; justify-content: center; }
+
+.chart-panel { margin: 0 24px 24px; background: var(--card-bg); border: 1px solid var(--border); border-radius: 14px; padding: 16px; }
+.chart-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.chart-select {
+  background: var(--navy-mid); border: 1px solid var(--border);
+  color: var(--text-main); font-family: 'DM Sans', sans-serif;
+  font-size: 12px; padding: 4px 10px; border-radius: 6px; cursor: pointer;
+}
+</style>
+
+<h2 class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);">Onetasks dashboard showing earnings, tasks, and referrals for John Doe</h2>
+
+<div class="shell">
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-mark">
+        <div class="logo-icon">
+          <svg viewBox="0 0 16 16" fill="none"><path d="M3 4h10M3 8h10M3 12h6" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>
+        </div>
+        <div>
+          <div class="logo-name">Onetasks</div>
+          <div class="logo-tag">Earn. Complete. Grow.</div>
+        </div>
+      </div>
+    </div>
+    <nav class="nav">
+      <div class="nav-item active">
+        <svg viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="6" height="6" rx="1.5" fill="currentColor"/><rect x="9" y="1" width="6" height="6" rx="1.5" fill="currentColor" opacity=".6"/><rect x="1" y="9" width="6" height="6" rx="1.5" fill="currentColor" opacity=".6"/><rect x="9" y="9" width="6" height="6" rx="1.5" fill="currentColor" opacity=".6"/></svg>
+        Dashboard
+      </div>
+      <div class="nav-item">
+        <svg viewBox="0 0 16 16" fill="none"><rect x="1" y="2" width="14" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M5 7h6M5 10h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Tasks
+      </div>
+      <div class="nav-item">
+        <svg viewBox="0 0 16 16" fill="none"><rect x="1" y="2" width="14" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M4 6l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        My Tasks
+      </div>
+      <div class="nav-item">
+        <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="5" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M2 13c0-3 2.7-5 6-5s6 2 6 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Referrals
+      </div>
+      <div class="nav-item">
+        <svg viewBox="0 0 16 16" fill="none"><path d="M3 5h10l-1 7H4L3 5z" stroke="currentColor" stroke-width="1.5"/><path d="M1 3h14M6 3V2h4v1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Withdraw
+      </div>
+      <div class="nav-item">
+        <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M8 5v3l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Earnings
+      </div>
+      <div class="nav-item">
+        <svg viewBox="0 0 16 16" fill="none"><path d="M2 12V4l4 4 2-3 2 3 4-4v8H2z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+        Leaderboard
+      </div>
+      <div class="nav-item">
+        <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M8 7v4M8 5v.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Support
+      </div>
+      <div class="nav-item">
+        <svg viewBox="0 0 16 16" fill="none"><path d="M8 2a6 6 0 100 12A6 6 0 008 2zm0 0v2m0 8v2M2 8H4m8 0h2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Settings
+      </div>
+    </nav>
+    <div class="wallet-card">
+      <div class="wallet-label">Wallet Balance</div>
+      <div class="wallet-amount">$12.45</div>
+      <div class="wallet-badge">USD</div>
+      <button class="withdraw-btn">
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M3 5h10l-1 7H4L3 5z" stroke="currentColor" stroke-width="1.5"/></svg>
+        Withdraw
+      </button>
+    </div>
+    <div class="user-row">
+      <div class="avatar">JD</div>
+      <div>
+        <div class="user-name">John Doe</div>
+        <div class="user-email" style="font-size:10px;color:var(--text-muted)">john.doe@email.com</div>
+        <div class="verified">
+          <svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          Verified
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <div class="greeting-sub">Welcome back,</div>
+        <div class="greeting-name">John Doe! 👋</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:4px">Complete tasks and earn rewards</div>
+      </div>
+      <div class="topbar-right">
+        <div class="notif-btn">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1.5C5.5 1.5 3.5 3.5 3.5 6v3L2 11h12l-1.5-2V6C12.5 3.5 10.5 1.5 8 1.5zM6.5 11.5a1.5 1.5 0 003 0" stroke="var(--text-muted)" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <div class="notif-badge">3</div>
+        </div>
+        <div class="avatar-lg">JD</div>
+      </div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon green">
+          <svg width="18" height="18" viewBox="0 0 16 16" fill="none"><rect x="1" y="4" width="14" height="10" rx="2" stroke="#10B981" stroke-width="1.5"/><path d="M5 4V3a3 3 0 016 0v1" stroke="#10B981" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </div>
+        <div class="stat-label">Total Earnings</div>
+        <div class="stat-value">$12.45</div>
+        <div class="stat-delta">
+          <svg width="10" height="10" viewBox="0 0 10 10"><path d="M5 8V2M2 5l3-3 3 3" stroke="#10B981" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          +12.5% this week
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon blue">
+          <svg width="18" height="18" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="2" stroke="#3B82F6" stroke-width="1.5"/><path d="M5 8l2 2 4-4" stroke="#3B82F6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="stat-label">Tasks Completed</div>
+        <div class="stat-value">23</div>
+        <div class="stat-delta">
+          <svg width="10" height="10" viewBox="0 0 10 10"><path d="M5 8V2M2 5l3-3 3 3" stroke="#10B981" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          +5 this week
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon purple">
+          <svg width="18" height="18" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="#8B5CF6" stroke-width="1.5"/><path d="M8 5v3l2 2" stroke="#8B5CF6" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </div>
+        <div class="stat-label">Tasks Pending</div>
+        <div class="stat-value">7</div>
+        <div class="stat-link">View tasks →</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon gold">
+          <svg width="18" height="18" viewBox="0 0 16 16" fill="none"><circle cx="6" cy="7" r="3" stroke="#F59E0B" stroke-width="1.5"/><path d="M10 4.5a3 3 0 010 5M12 13c0-2.5-2-4-4-4s-4 1.5-4 4" stroke="#F59E0B" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </div>
+        <div class="stat-label">Referrals</div>
+        <div class="stat-value">8</div>
+        <div class="stat-delta">+2 this week</div>
+      </div>
+    </div>
+
+    <div class="promo-banner">
+      <div>
+        <div class="promo-title">Complete tasks, earn more!</div>
+        <div class="promo-sub">Stay active and earn bonuses</div>
+        <button class="promo-btn">Browse Tasks</button>
+      </div>
+      <div class="promo-art">
+        <svg width="70" height="65" viewBox="0 0 70 65" fill="none">
+          <rect x="15" y="5" width="40" height="50" rx="5" fill="rgba(59,130,246,0.2)" stroke="rgba(59,130,246,0.4)" stroke-width="1.5"/>
+          <path d="M22 20h26M22 28h20M22 36h14" stroke="#60A5FA" stroke-width="2" stroke-linecap="round"/>
+          <circle cx="18" cy="20" r="3" fill="#10B981"/>
+          <circle cx="18" cy="28" r="3" fill="#10B981"/>
+          <circle cx="18" cy="36" r="3" fill="#F59E0B"/>
+          <circle cx="52" cy="48" r="12" fill="rgba(245,158,11,0.2)" stroke="rgba(245,158,11,0.4)" stroke-width="1.5"/>
+          <text x="48" y="53" font-size="14" fill="#F59E0B">$</text>
+        </svg>
+      </div>
+      <div class="promo-close">×</div>
+    </div>
+
+    <div class="mid-grid">
+      <div class="panel">
+        <div class="panel-head">
+          <span class="panel-title">Recent Earnings</span>
+          <span class="view-all">View all</span>
+        </div>
+        <div class="earning-row">
+          <div class="earning-ico yt">▶</div>
+          <div style="flex:1">
+            <div class="earning-name">YouTube Video</div>
+            <div class="earning-sub">Task Completed</div>
+          </div>
+          <div class="earning-right">
+            <div class="earning-amt">+$0.45</div>
+            <div class="earning-time">2 hours ago</div>
+          </div>
+        </div>
+        <div class="earning-row">
+          <div class="earning-ico ig">📷</div>
+          <div style="flex:1">
+            <div class="earning-name">Instagram Follow</div>
+            <div class="earning-sub">Task Completed</div>
+          </div>
+          <div class="earning-right">
+            <div class="earning-amt">+$0.25</div>
+            <div class="earning-time">5 hours ago</div>
+          </div>
+        </div>
+        <div class="earning-row">
+          <div class="earning-ico sv">📋</div>
+          <div style="flex:1">
+            <div class="earning-name">Survey Complete</div>
+            <div class="earning-sub">Task Completed</div>
+          </div>
+          <div class="earning-right">
+            <div class="earning-amt">+$0.80</div>
+            <div class="earning-time">1 day ago</div>
+          </div>
+        </div>
+        <div class="earning-row">
+          <div class="earning-ico fb">f</div>
+          <div style="flex:1">
+            <div class="earning-name">Facebook Like</div>
+            <div class="earning-sub">Task Completed</div>
+          </div>
+          <div class="earning-right">
+            <div class="earning-amt">+$0.20</div>
+            <div class="earning-time">2 days ago</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <span class="panel-title">Top Tasks</span>
+          <span class="view-all">View all</span>
+        </div>
+        <div class="task-row">
+          <div class="task-ico" style="background:rgba(239,68,68,0.15);font-size:12px">▶</div>
+          <div style="flex:1">
+            <div class="task-name">YouTube Subscribe</div>
+            <div style="display:flex;align-items:center;gap:6px;margin-top:2px">
+              <span class="task-price">$0.50</span>
+              <span class="diff easy">Easy</span>
+            </div>
+          </div>
+          <button class="start-btn">Start</button>
+        </div>
+        <div class="task-row">
+          <div class="task-ico" style="background:rgba(139,92,246,0.15);font-size:12px">📷</div>
+          <div style="flex:1">
+            <div class="task-name">Instagram Follow</div>
+            <div style="display:flex;align-items:center;gap:6px;margin-top:2px">
+              <span class="task-price">$0.30</span>
+              <span class="diff easy">Easy</span>
+            </div>
+          </div>
+          <button class="start-btn">Start</button>
+        </div>
+        <div class="task-row">
+          <div class="task-ico" style="background:rgba(16,185,129,0.15);font-size:12px">📋</div>
+          <div style="flex:1">
+            <div class="task-name">Survey Complete</div>
+            <div style="display:flex;align-items:center;gap:6px;margin-top:2px">
+              <span class="task-price">$1.00</span>
+              <span class="diff medium">Medium</span>
+            </div>
+          </div>
+          <button class="start-btn">Start</button>
+        </div>
+        <div class="task-row">
+          <div class="task-ico" style="background:rgba(0,0,0,0.2);font-size:12px;color:#fff">♪</div>
+          <div style="flex:1">
+            <div class="task-name">TikTok Follow</div>
+            <div style="display:flex;align-items:center;gap:6px;margin-top:2px">
+              <span class="task-price">$0.40</span>
+              <span class="diff easy">Easy</span>
+            </div>
+          </div>
+          <button class="start-btn">Start</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="bot-grid">
+      <div class="panel">
+        <div class="panel-head">
+          <span class="panel-title">Daily Goal</span>
+          <span class="view-all">View all</span>
+        </div>
+        <div style="font-size:13px;color:var(--text-muted)">Complete 5 tasks today</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
+          <div class="goal-bar-track" style="flex:1;margin-right:12px">
+            <div class="goal-bar-fill"></div>
+          </div>
+          <div class="goal-fraction">3/5</div>
+        </div>
+        <div class="goal-msg">You're doing great! Keep it up 🔥</div>
+      </div>
+      <div class="panel">
+        <div class="panel-head">
+          <span class="panel-title">Referral Summary</span>
+          <span class="view-all">View all</span>
+        </div>
+        <div class="ref-row">
+          <div>
+            <div style="font-size:12px;color:var(--text-muted)">Total Referrals</div>
+            <div class="ref-count">8</div>
+            <div class="ref-delta">+2 this week</div>
+          </div>
+          <div class="ref-icon">
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="8" cy="8" r="4" stroke="#3B82F6" stroke-width="1.5"/><circle cx="16" cy="6" r="3" stroke="#3B82F6" stroke-width="1.5" opacity=".6"/><path d="M2 18c0-3.3 2.7-6 6-6" stroke="#3B82F6" stroke-width="1.5" stroke-linecap="round"/><path d="M13 14c0-2 1.3-3.5 3-3.5" stroke="#3B82F6" stroke-width="1.5" stroke-linecap="round" opacity=".6"/></svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="chart-panel">
+      <div class="chart-head">
+        <span class="panel-title">Earnings Overview</span>
+        <select class="chart-select" id="chartPeriod">
+          <option>This Week</option>
+          <option>This Month</option>
+          <option>3 Months</option>
+        </select>
+      </div>
+      <div style="position:relative;width:100%;height:200px">
+        <canvas id="earningsChart" role="img" aria-label="Area chart of daily earnings this week from Monday to Sunday">Mon $1.2, Tue $2.8, Wed $3.5, Thu $7.2, Fri $4.5, Sat $5.1, Sun $6.8</canvas>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const ctx = document.getElementById('earningsChart').getContext('2d');
+const grad = ctx.createLinearGradient(0, 0, 0, 200);
+grad.addColorStop(0, 'rgba(59,130,246,0.35)');
+grad.addColorStop(1, 'rgba(59,130,246,0)');
+
+new Chart(ctx, {
+  type: 'line',
+  data: {
+    labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
+    datasets: [{
+      data: [1.2, 2.8, 3.5, 7.2, 4.5, 5.1, 6.8],
+      borderColor: '#3B82F6',
+      backgroundColor: grad,
+      borderWidth: 2,
+      fill: true,
+      tension: 0.45,
+      pointBackgroundColor: '#3B82F6',
+      pointRadius: 4,
+      pointHoverRadius: 6
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false }, tooltip: {
+      backgroundColor: '#162247',
+      borderColor: 'rgba(59,130,246,0.3)',
+      borderWidth: 1,
+      titleColor: '#8B9CC8',
+      bodyColor: '#F1F5FF',
+      callbacks: { label: (c) => ' $' + c.parsed.y.toFixed(2) }
+    }},
+    scales: {
+      x: { grid: { color: 'rgba(139,156,200,0.08)' }, ticks: { color: '#8B9CC8', font: { size: 11 } } },
+      y: {
+        grid: { color: 'rgba(139,156,200,0.08)' },
+        ticks: { color: '#8B9CC8', font: { size: 11 }, callback: (v) => '$' + v.toFixed(0) },
+        min: 0, max: 9
+      }
+    }
+  }
+});
+</script>
