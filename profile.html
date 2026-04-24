@@ -4,190 +4,50 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Profile</title>
+
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,
 <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'>
-<rect width='100' height='100' rx='20' fill='%232563eb'/>
-<text x='50' y='60' font-size='40' text-anchor='middle' fill='white' font-family='Arial' font-weight='bold'>OT</text>
+<rect width='100' height='100' rx='20' fill='%231a56db'/>
+<text x='50' y='60' font-size='40' text-anchor='middle' fill='white'>OT</text>
 </svg>">
+
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 
 <style>
+:root{--blue:#1a56db;--gray:#6b7280;--bg:#f9fafb;--card:#fff}
+body{margin:0;font-family:system-ui;background:var(--bg)}
+.view{display:none;padding-bottom:90px}
 
-/* ═════════ ROOT ═════════ */
-:root{
-  --blue:#1a56db;
-  --gray:#6b7280;
-  --bg:#f9fafb;
-  --card:#ffffff;
-  --border:#eee;
-}
+/* PROFILE */
+.profile-card{background:#fff;margin:16px;padding:20px;border-radius:16px;text-align:center}
+.avatar{width:70px;height:70px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;margin:auto}
+.name{font-weight:700}
+.username,.email{font-size:13px;color:var(--gray)}
+.badge{margin-top:6px;font-size:12px;background:#eef2ff;color:var(--blue);padding:4px 8px;border-radius:20px}
 
-/* ═════════ GLOBAL ═════════ */
-body{
-  margin:0;
-  font-family:system-ui;
-  background:var(--bg);
-}
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:10px}
+.stat{background:#f3f4f6;padding:10px;border-radius:10px;text-align:center}
 
-.view{
-  display:none;
-  padding-bottom:90px;
-}
+/* BUTTON */
+.center{text-align:center}
+.btn{margin-top:12px;padding:10px 20px;border:none;border-radius:10px;background:var(--blue);color:#fff;cursor:pointer}
 
-/* ═════════ PROFILE CARD ═════════ */
-.profile-card{
-  background:var(--card);
-  margin:16px;
-  padding:20px;
-  border-radius:16px;
-  text-align:center;
-  box-shadow:0 4px 14px rgba(0,0,0,0.05);
-}
+/* MODAL */
+#edit-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);align-items:center;justify-content:center}
+.modal-box{background:#fff;width:90%;max-width:360px;padding:20px;border-radius:14px}
+input,select{width:100%;padding:10px;margin:8px 0;border:1px solid #ddd;border-radius:8px}
 
-.avatar{
-  width:70px;height:70px;
-  border-radius:50%;
-  background:var(--blue);
-  color:#fff;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:22px;
-  font-weight:700;
-  margin:0 auto 10px;
-}
+/* CARD */
+.card{background:#fff;margin:16px;padding:15px;border-radius:12px}
+.item{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #eee}
 
-.name{font-weight:700;font-size:16px}
-.username{font-size:13px;color:var(--gray)}
-.email{font-size:12px;color:var(--gray)}
-
-.badge{
-  display:inline-block;
-  margin-top:6px;
-  font-size:12px;
-  background:#eef2ff;
-  color:var(--blue);
-  padding:4px 8px;
-  border-radius:20px;
-}
-
-/* ═════════ STATS ═════════ */
-.stats{
-  display:grid;
-  grid-template-columns:repeat(2,1fr);
-  gap:10px;
-  margin-top:15px;
-}
-
-.stat{
-  background:#f3f4f6;
-  padding:10px;
-  border-radius:10px;
-}
-
-.stat-num{font-weight:700;color:var(--blue)}
-.stat-label{font-size:11px;color:var(--gray)}
-
-/* ═════════ CARDS (PAYMENT / ACTIVITY) ═════════ */
-.card{
-  background:#fff;
-  margin:16px;
-  padding:15px;
-  border-radius:12px;
-  box-shadow:0 2px 10px rgba(0,0,0,0.05);
-}
-
-.card b{
-  display:block;
-  margin-bottom:10px;
-}
-
-.item{
-  display:flex;
-  justify-content:space-between;
-  padding:10px 0;
-  border-bottom:1px solid #f1f1f1;
-}
-
-/* ═════════ MENU ═════════ */
-.menu{margin:16px}
-
-.menu-item{
-  background:#fff;
-  padding:14px;
-  border-radius:12px;
-  margin-bottom:10px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-}
-
-.menu-left{
-  display:flex;
-  gap:10px;
-  align-items:center;
-}
-
-.menu-left i{color:var(--blue)}
-
-/* ═════════ BUTTONS ═════════ */
-.logout{
-  background:#ef4444;
-  color:#fff;
-  text-align:center;
-  padding:14px;
-  margin:16px;
-  border-radius:12px;
-  cursor:pointer;
-}
-
-/* ═════════ MODAL ═════════ */
-#verify-modal{
-  display:none;
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,0.5);
-  align-items:center;
-  justify-content:center;
-  z-index:999;
-}
-
-#verify-modal div{
-  background:#fff;
-  padding:20px;
-  border-radius:12px;
-  width:90%;
-  max-width:350px;
-}
-
-/* ═════════ NAV ═════════ */
-.bottom-nav{
-  position:fixed;
-  bottom:0;
-  left:50%;
-  transform:translateX(-50%);
-  width:100%;
-  max-width:480px;
-  background:#fff;
-  border-top:1px solid var(--border);
-  display:flex;
-}
-
-.nav-item{
-  flex:1;
-  text-align:center;
-  padding:10px;
-}
-
+/* NAV */
+.bottom-nav{position:fixed;bottom:0;width:100%;background:#fff;border-top:1px solid #eee;display:flex}
+.nav-item{flex:1;text-align:center;padding:10px}
 .nav-item i{font-size:20px;color:var(--gray)}
-.nav-label{font-size:10px;color:var(--gray)}
-
-.nav-item.active i,
-.nav-item.active .nav-label{
-  color:var(--blue);
-}
-
+.nav-item.active i{color:var(--blue)}
 </style>
 </head>
 
@@ -195,457 +55,183 @@ body{
 
 <div class="view" id="view-profile">
 
-<!-- PROFILE -->
 <div class="profile-card">
   <div class="avatar" id="avatar">U</div>
   <div class="name" id="name">Loading...</div>
   <div id="verify-badge"></div>
-  <div class="username" id="username">@username</div>
-  <div class="email" id="email">email</div>
+  <div class="username" id="username"></div>
+  <div class="email" id="email"></div>
 
-  <div class="badge" id="country">🌍 Loading country</div>
+  <div class="badge" id="country">🌍</div>
 
   <div class="stats">
-    <div class="stat"><div class="stat-num" id="tasks">0</div><div class="stat-label">Tasks</div></div>
-    <div class="stat"><div class="stat-num" id="earnings">$0</div><div class="stat-label">Earnings</div></div>
-    <div class="stat"><div class="stat-num" id="members">0</div><div class="stat-label">Members</div></div>
-    <div class="stat"><div class="stat-num" id="since">—</div><div class="stat-label">Joined</div></div>
+    <div class="stat"><b id="tasks">0</b><br>Tasks</div>
+    <div class="stat"><b id="earnings">$0</b><br>Earnings</div>
+    <div class="stat"><b id="members">0</b><br>Members</div>
+    <div class="stat"><b id="since">—</b><br>Joined</div>
   </div>
 </div>
-  <div style="text-align:center;">
-  <button onclick="openEditModal()" 
-    style="margin-top:12px;padding:10px 20px;border:none;border-radius:10px;background:#1a56db;color:#fff;cursor:pointer;">
+
+<div class="center">
+  <button class="btn" onclick="openEditModal()">
     <i class="bi bi-pencil"></i> Edit Profile
   </button>
-  </div>
-<div id="edit-modal" style="
-display:none;
-position:fixed;
-inset:0;
-background:rgba(0,0,0,0.5);
-align-items:center;
-justify-content:center;
-z-index:999;
-">
+</div>
 
-  <div style="
-    background:#fff;
-    width:90%;
-    max-width:360px;
-    padding:20px;
-    border-radius:14px;
-  ">
+<!-- EDIT MODAL -->
+<div id="edit-modal">
+  <div class="modal-box">
+    <h3>Edit Profile</h3>
 
-    <h3 style="text-align:center;">Edit Profile</h3>
+    <input id="edit-name" placeholder="Full name">
+    <input id="edit-username" placeholder="Username">
 
-    <input id="edit-name" placeholder="Full name"
-      style="width:100%;padding:10px;margin:8px 0;border:1px solid #ddd;border-radius:8px">
+    <select id="edit-country"></select>
 
-    <input id="edit-username" placeholder="Username"
-      style="width:100%;padding:10px;margin:8px 0;border:1px solid #ddd;border-radius:8px">
+    <input id="edit-paypal" placeholder="PayPal Email">
 
-    <select id="edit-country"
-      style="width:100%;padding:10px;margin:8px 0;border:1px solid #ddd;border-radius:8px">
-      <option value="">Detecting country...</option>
-    </select>
-
-    <input id="edit-paypal" placeholder="PayPal Email"
-      style="width:100%;padding:10px;margin:8px 0;border:1px solid #ddd;border-radius:8px">
-
-    <button onclick="saveProfile()" 
-      style="width:100%;padding:10px;background:#1a56db;color:#fff;border:none;border-radius:8px;">
-      Save Changes
-    </button>
-
-    <button onclick="closeEditModal()" 
-      style="width:100%;margin-top:8px;padding:10px;border:none;background:#eee;border-radius:8px;">
-      Cancel
-    </button>
-
+    <button class="btn" onclick="saveProfile()">Save</button>
+    <button class="btn" style="background:#eee;color:#000" onclick="closeEditModal()">Cancel</button>
   </div>
 </div>
 
 <!-- PAYMENT -->
 <div class="card">
-  <b>Payment Method</b>
+  <b>Payment</b>
   <div class="item">
-    <span><i class="bi bi-paypal"></i> PayPal Email</span>
-    <span id="paypal-email">Loading...</span>
+    <span><i class="bi bi-paypal"></i> PayPal</span>
+    <span id="paypal-email"></span>
   </div>
 </div>
 
 <!-- ACTIVITY -->
 <div class="card">
-  <b>Recent Activity</b>
-  <div id="activity-list">Loading...</div>
+  <b>Activity</b>
+  <div id="activity-list"></div>
 </div>
 
-<!-- LOGOUT -->
-<div class="logout" onclick="logout()">Sign Out</div>
+<div class="btn" onclick="logout()" style="background:red">Sign Out</div>
 
 </div>
-
-<!-- VERIFY MODAL -->
-<div id="verify-modal">
-  <div>
-    <h3>Verify Account</h3>
-    <p>Enter OTP sent to your email</p>
-
-    <input id="otp-input" placeholder="Enter OTP"
-      style="width:100%;padding:10px;margin:10px 0;border:1px solid #ccc;border-radius:6px">
-
-    <button onclick="sendOTP()" style="width:100%;margin-bottom:10px">Send OTP</button>
-    <button onclick="confirmOTP()" style="width:100%;background:#1a56db;color:#fff">Verify</button>
-    <button onclick="closeVerifyModal()" style="margin-top:10px;width:100%">Cancel</button>
-  </div>
-</div>
-
-<!-- NAV -->
-<nav class="bottom-nav">
-  <div class="nav-item" onclick="location.href='task.html'"><i class="bi bi-list-check"></i><div class="nav-label">Tasks</div></div>
-  <div class="nav-item" onclick="location.href='mytasks.html'"><i class="bi bi-clipboard-check"></i><div class="nav-label">My Tasks</div></div>
-  <div class="nav-item" onclick="location.href='support.html'"><i class="bi bi-chat-dots"></i><div class="nav-label">Support</div></div>
-  <div class="nav-item" onclick="location.href='referrals.html'"><i class="bi bi-people"></i><div class="nav-label">Referrals</div></div>
-  <div class="nav-item active"><i class="bi bi-person"></i><div class="nav-label">Profile</div></div>
-</nav>
 
 <script>
-
-/* ═════════ SUPABASE ═════════ */
 const db = supabase.createClient(
-  "https://lwnbfjjsstxkyexeojcl.supabase.co",
-  "sb_publishable_Pj9ocGkssu5Gh6qZXFnZQQ_LdghnZt9"
+"https://lwnbfjjsstxkyexeojcl.supabase.co",
+"sb_publishable_Pj9ocGkssu5Gh6qZXFnZQQ_LdghnZt9"
 );
-/* ═════════ Detect country ═════════ */
-let currentUser = null;
-  const countries = [
-  {name:"Kenya", flag:"🇰🇪"},
-  {name:"Nigeria", flag:"🇳🇬"},
-  {name:"United States", flag:"🇺🇸"},
-  {name:"United Kingdom", flag:"🇬🇧"},
-  {name:"Uganda", flag:"🇺🇬"},
-  {name:"Tanzania", flag:"🇹🇿"},
-  {name:"Rwanda", flag:"🇷🇼"},
-  {name:"South Africa", flag:"🇿🇦"},
-  {name:"India", flag:"🇮🇳"},
-  {name:"China", flag:"🇨🇳"},
-  {name:"Canada", flag:"🇨🇦"},
-  {name:"Germany", flag:"🇩🇪"},
-  {name:"France", flag:"🇫🇷"},
-  {name:"Brazil", flag:"🇧🇷"},
-  {name:"Australia", flag:"🇦🇺"},
-  {name:"Japan", flag:"🇯🇵"},
-  {name:"UAE", flag:"🇦🇪"},
-  {name:"Saudi Arabia", flag:"🇸🇦"},
-  {name:"Egypt", flag:"🇪🇬"},
-  {name:"Ghana", flag:"🇬🇭"},
-  {name:"Ethiopia", flag:"🇪🇹"},
-  {name:"Somalia", flag:"🇸🇴"},
-  {name:"Sudan", flag:"🇸🇩"},
-  {name:"Turkey", flag:"🇹🇷"},
-  {name:"Spain", flag:"🇪🇸"},
-  {name:"Italy", flag:"🇮🇹"},
-  {name:"Netherlands", flag:"🇳🇱"},
-  {name:"Sweden", flag:"🇸🇪"},
-  {name:"Norway", flag:"🇳🇴"},
-  {name:"Finland", flag:"🇫🇮"},
-  {name:"Mexico", flag:"🇲🇽"},
-  {name:"Argentina", flag:"🇦🇷"},
-  {name:"Chile", flag:"🇨🇱"},
-  {name:"Pakistan", flag:"🇵🇰"},
-  {name:"Indonesia", flag:"🇮🇩"},
-  {name:"Philippines", flag:"🇵🇭"},
-  {name:"Thailand", flag:"🇹🇭"},
-  {name:"Vietnam", flag:"🇻🇳"},
-  {name:"Malaysia", flag:"🇲🇾"},
-  {name:"Singapore", flag:"🇸🇬"},
-  {name:"South Korea", flag:"🇰🇷"}
-];
-  function loadCountries(selected = "") {
-  const select = document.getElementById("edit-country");
 
-  select.innerHTML = `<option value="">Select your country...</option>`;
+let currentUser;
 
-  countries.forEach(c => {
-    const opt = document.createElement("option");
-    opt.value = c.name;
-    opt.textContent = `${c.flag} ${c.name}`;
+/* FLAGS */
+function getFlag(name){
+const map={
+"Kenya":"🇰🇪","Nigeria":"🇳🇬","USA":"🇺🇸",
+"United States":"🇺🇸","UK":"🇬🇧","United Kingdom":"🇬🇧"
+};
+return map[name]||"🌍";
+}
 
-    if (c.name === selected) opt.selected = true;
+/* COUNTRIES */
+const countries=["Kenya","Nigeria","USA","United Kingdom","India","Canada","Germany","France"];
+function loadCountries(selected=""){
+const s=document.getElementById("edit-country");
+s.innerHTML="";
+countries.forEach(c=>{
+const o=document.createElement("option");
+o.value=c;
+o.textContent=getFlag(c)+" "+c;
+if(c===selected)o.selected=true;
+s.appendChild(o);
+});
+}
 
-    select.appendChild(opt);
-  });
-  }
+/* INIT */
+document.addEventListener("DOMContentLoaded", async()=>{
+document.getElementById("view-profile").style.display="block";
 
-  function openEditModal(){
-  const modal = document.getElementById("edit-modal");
-  modal.style.display = "flex"; // MUST be flex
+const {data}=await db.auth.getUser();
+if(!data.user) return location.href="index.html";
 
-  const meta = currentUser?.user_metadata || {};
+currentUser=data.user;
 
-  document.getElementById("edit-name").value = meta.full_name || "";
-  document.getElementById("edit-username").value = meta.username || "";
-  document.getElementById("edit-paypal").value = meta.paypal || currentUser?.email || "";
+loadProfile();
+loadStats();
+loadActivity();
+});
 
-  loadCountries(meta.country); // load dropdown
+/* PROFILE */
+async function loadProfile(){
+const {data}=await db.from("profiles")
+.select("*").eq("id",currentUser.id).single();
+
+if(!data) return;
+
+document.getElementById("name").textContent=data.full_name;
+document.getElementById("username").textContent="@"+data.username;
+document.getElementById("email").textContent=currentUser.email;
+
+document.getElementById("avatar").textContent=data.full_name?.[0]||"U";
+document.getElementById("country").textContent=getFlag(data.country)+" "+data.country;
+
+document.getElementById("paypal-email").textContent=data.paypal_email||currentUser.email;
+document.getElementById("since").textContent=new Date(currentUser.created_at).getFullYear();
+}
+
+/* STATS */
+async function loadStats(){
+const {data}=await db.from("user_tasks").select("*").eq("user_id",currentUser.id);
+document.getElementById("tasks").textContent=data?.length||0;
+}
+
+/* ACTIVITY */
+async function loadActivity(){
+const {data}=await db.from("activities")
+.select("*").eq("user_id",currentUser.id).limit(5);
+
+document.getElementById("activity-list").innerHTML=
+data?.map(a=>`<div class="item"><span>${a.title}</span></div>`).join("")||"No activity";
+}
+
+/* EDIT */
+function openEditModal(){
+document.getElementById("edit-modal").style.display="flex";
+
+db.from("profiles").select("*").eq("id",currentUser.id).single()
+.then(({data})=>{
+document.getElementById("edit-name").value=data.full_name||"";
+document.getElementById("edit-username").value=data.username||"";
+document.getElementById("edit-paypal").value=data.paypal_email||"";
+loadCountries(data.country);
+});
 }
 
 function closeEditModal(){
-  document.getElementById("edit-modal").style.display = "none";
-}
-/* FLAG */
-function getFlag(code){
-
-  const flags = {
-    AF:"🇦🇫", AL:"🇦🇱", DZ:"🇩🇿", AD:"🇦🇩", AO:"🇦🇴", AR:"🇦🇷",
-    AM:"🇦🇲", AU:"🇦🇺", AT:"🇦🇹", AZ:"🇦🇿",
-
-    BH:"🇧🇭", BD:"🇧🇩", BY:"🇧🇾", BE:"🇧🇪", BJ:"🇧🇯", BO:"🇧🇴",
-    BA:"🇧🇦", BW:"🇧🇼", BR:"🇧🇷", BG:"🇧🇬",
-
-    BF:"🇧🇫", BI:"🇧🇮",
-
-    KH:"🇰🇭", CM:"🇨🇲", CA:"🇨🇦", CV:"🇨🇻", CF:"🇨🇫", TD:"🇹🇩",
-    CL:"🇨🇱", CN:"🇨🇳", CO:"🇨🇴", KM:"🇰🇲",
-
-    CG:"🇨🇬", CD:"🇨🇩", CR:"🇨🇷", CI:"🇨🇮", HR:"🇭🇷", CU:"🇨🇺",
-    CY:"🇨🇾", CZ:"🇨🇿",
-
-    DK:"🇩🇰", DJ:"🇩🇯", DO:"🇩🇴",
-
-    EC:"🇪🇨", EG:"🇪🇬", SV:"🇸🇻", EE:"🇪🇪", ET:"🇪🇹",
-
-    FI:"🇫🇮", FR:"🇫🇷",
-
-    GA:"🇬🇦", GM:"🇬🇲", GE:"🇬🇪", DE:"🇩🇪", GH:"🇬🇭", GR:"🇬🇷",
-    GT:"🇬🇹",
-
-    GN:"🇬🇳", GW:"🇬🇼", GY:"🇬🇾",
-
-    HT:"🇭🇹", HN:"🇭🇳", HU:"🇭🇺",
-
-    IS:"🇮🇸", IN:"🇮🇳", ID:"🇮🇩", IR:"🇮🇷", IQ:"🇮🇶",
-    IE:"🇮🇪", IL:"🇮🇱", IT:"🇮🇹",
-
-    JM:"🇯🇲", JP:"🇯🇵", JO:"🇯🇴",
-
-    KE:"🇰🇪", KW:"🇰🇼", KG:"🇰🇬",
-
-    LA:"🇱🇦", LV:"🇱🇻", LB:"🇱🇧", LS:"🇱🇸", LR:"🇱🇷", LY:"🇱🇾",
-    LT:"🇱🇹", LU:"🇱🇺",
-
-    MG:"🇲🇬", MW:"🇲🇼", MY:"🇲🇾", ML:"🇲🇱", MT:"🇲🇹", MX:"🇲🇽",
-    MA:"🇲🇦", MZ:"🇲🇿",
-
-    NA:"🇳🇦", NP:"🇳🇵", NL:"🇳🇱", NZ:"🇳🇿", NE:"🇳🇪", NG:"🇳🇬",
-    NO:"🇳🇴",
-
-    OM:"🇴🇲",
-
-    PK:"🇵🇰", PA:"🇵🇦", PG:"🇵🇬", PY:"🇵🇾", PE:"🇵🇪", PH:"🇵🇭",
-    PL:"🇵🇱", PT:"🇵🇹",
-
-    QA:"🇶🇦",
-
-    RO:"🇷🇴", RU:"🇷🇺", RW:"🇷🇼",
-
-    SA:"🇸🇦", SN:"🇸🇳", RS:"🇷🇸", SL:"🇸🇱", SG:"🇸🇬", SK:"🇸🇰",
-    SI:"🇸🇮", SO:"🇸🇴", ZA:"🇿🇦", KR:"🇰🇷", ES:"🇪🇸", LK:"🇱🇰",
-    SD:"🇸🇩", SE:"🇸🇪", CH:"🇨🇭", SY:"🇸🇾",
-
-    TW:"🇹🇼", TZ:"🇹🇿", TH:"🇹🇭", TG:"🇹🇬", TN:"🇹🇳", TR:"🇹🇷",
-
-    UG:"🇺🇬", UA:"🇺🇦", AE:"🇦🇪", GB:"🇬🇧", US:"🇺🇸", UY:"🇺🇾",
-    UZ:"🇺🇿",
-
-    VE:"🇻🇪", VN:"🇻🇳",
-
-    YE:"🇾🇪",
-
-    ZM:"🇿🇲", ZW:"🇿🇼"
-  };
-
-  return flags[code] || "🌍";
+document.getElementById("edit-modal").style.display="none";
 }
 
-/* ═════════ INIT ═════════ */
-document.addEventListener("DOMContentLoaded", async () => {
+/* SAVE */
+async function saveProfile(){
+const full_name=document.getElementById("edit-name").value;
+const username=document.getElementById("edit-username").value;
+const country=document.getElementById("edit-country").value;
+const paypal=document.getElementById("edit-paypal").value;
 
-  document.getElementById("view-profile").style.display = "block";
+await db.auth.updateUser({data:{full_name,username,country,paypal}});
 
-  const { data } = await db.auth.getUser();
-  if (!data.user) return location.href = "index.html";
+await db.from("profiles").update({
+full_name,username,country,paypal_email:paypal
+}).eq("id",currentUser.id);
 
-  currentUser = data.user;
-
-  loadProfile();
-  loadStats();
-  loadPaymentAndActivity();
-  checkVerification();
-});
-  async function loadProfile(){
-
-  const userId = currentUser.id;
-
-  const { data, error } = await db
-    .from("profiles")
-    .select("*")
-    .eq("id", userId)
-    .single();
-
-  if(error || !data){
-    console.log("Profile fetch error:", error);
-    document.getElementById("name").textContent = "No profile found";
-    return;
-  }
-
-  document.getElementById("name").textContent = data.full_name || "User";
-  document.getElementById("username").textContent = "@"+(data.username || "user");
-  document.getElementById("email").textContent = currentUser.email;
-
-  document.getElementById("avatar").textContent =
-    (data.full_name || currentUser.email)[0].toUpperCase();
-
-  document.getElementById("country").textContent =
-    getFlag(data.country) + " " + (data.country || "Unknown");
-
-  document.getElementById("paypal-email").textContent =
-    data.paypal_email || "Not set";
-
-  document.getElementById("since").textContent =
-    new Date(currentUser.created_at).getFullYear();
-  }
-
-/* ═════════ PROFILE ═════════ */
-async function loadProfile(){
-  const meta = currentUser.user_metadata || {};
-
-  document.getElementById("name").textContent = meta.full_name || "User";
-  document.getElementById("username").textContent = "@"+(meta.username || "user");
-  document.getElementById("email").textContent = currentUser.email;
-
-  document.getElementById("avatar").textContent =
-    (meta.full_name || currentUser.email)[0].toUpperCase();
-
-  document.getElementById("country").textContent =
-    getFlag(meta.country) + " " + (meta.country || "Unknown");
-
-  document.getElementById("since").textContent =
-    new Date(currentUser.created_at).getFullYear();
+alert("Updated");
+closeEditModal();
+loadProfile();
 }
 
-/* ═════════ STATS ═════════ */
-async function loadStats(){
-
-  const { data } = await db.from("user_tasks")
-    .select("*")
-    .eq("user_id", currentUser.id);
-
-  document.getElementById("tasks").textContent = data?.length || 0;
-
-  let total = data?.reduce((s,t)=>s+(t.reward||0),0) || 0;
-  document.getElementById("earnings").textContent = "$"+total;
-
-  const { count } = await db.from("profiles")
-    .select("*",{count:"exact",head:true});
-
-  document.getElementById("members").textContent = count || 0;
-}
-
-/* ═════════ PAYMENT + ACTIVITY ═════════ */
-async function loadPaymentAndActivity(){
-
-  document.getElementById("paypal-email").textContent = currentUser.email;
-
-  const { data } = await db.from("activities")
-    .select("*")
-    .eq("user_id", currentUser.id)
-    .order("created_at",{ascending:false})
-    .limit(10);
-
-  const box = document.getElementById("activity-list");
-
-  if(!data?.length){
-    box.innerHTML = "No activity";
-    return;
-  }
-
-  box.innerHTML = data.map(a=>`
-    <div class="item">
-      <span>${a.title}</span>
-      <span>${new Date(a.created_at).toLocaleDateString()}</span>
-    </div>
-  `).join("");
-}
-  /* ═════════ Edit Profile ═════════ */
-  async function saveProfile(){
-
-  const full_name = document.getElementById("edit-name").value;
-  const username = document.getElementById("edit-username").value;
-  const country = document.getElementById("edit-country").value;
-  const paypal = document.getElementById("edit-paypal").value;
-
-  const { error } = await db.auth.updateUser({
-    data:{
-      full_name,
-      username,
-      country,
-      paypal
-    }
-  });
-
-  if(error){
-    alert("Update failed: " + error.message);
-    return;
-  }
-
-  alert("Profile updated successfully!");
-
-  closeEditModal();
-
-  // reload profile UI
-  location.reload();
-  }
-
-/* ═════════ VERIFY ═════════ */
-function checkVerification(){
-  const badge = document.getElementById("verify-badge");
-
-  if(currentUser.user_metadata?.verified){
-    badge.textContent = "✔ Verified";
-    badge.style.color = "green";
-  }else{
-    badge.textContent = "⚠ Not Verified";
-    badge.style.color = "red";
-    badge.onclick = openVerifyModal;
-  }
-}
-
-function openVerifyModal(){
-  document.getElementById("verify-modal").style.display="flex";
-}
-
-function closeVerifyModal(){
-  document.getElementById("verify-modal").style.display="none";
-}
-
-async function sendOTP(){
-  alert("OTP sent");
-}
-
-async function confirmOTP(){
-  await db.auth.updateUser({ data:{ verified:true } });
-  alert("Verified");
-  closeVerifyModal();
-  checkVerification();
-}
-
-/* ═════════ LOGOUT ═════════ */
+/* LOGOUT */
 async function logout(){
-  await db.auth.signOut();
-  location.href="index.html";
+await db.auth.signOut();
+location.href="index.html";
 }
-
 </script>
 
 </body>
