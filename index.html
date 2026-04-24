@@ -475,10 +475,19 @@ select.form-input{appearance:none;-webkit-appearance:none;cursor:pointer}
       </div>
 
       <div class="check-row">
-        <input type="checkbox" id="rememberMe">
-        <label for="rememberMe">Remember me</label>
-        <span class="forgot" onclick="handleForgot()">Forgot password?</span>
-      </div>
+  <input type="checkbox" id="rememberMe">
+  <label for="rememberMe">Remember me</label>
+
+  <!-- FORGOT PASSWORD REDIRECT -->
+  <span class="forgot" onclick="handleForgot()">Forgot password?</span>
+</div>
+
+<button class="submit-btn" id="loginBtn" onclick="handleLogin()">
+  <span id="loginBtnText">Sign In</span>
+  <div class="spinner" id="loginSpinner"></div>
+</button>
+
+<div id="loginToast" class="toast"></div>
 
       <button class="submit-btn" id="loginBtn" onclick="handleLogin()">
         <span id="loginBtnText">Sign In</span>
@@ -943,16 +952,36 @@ function checkConfirm(){
 }
 
 /* ── FORGOT PASSWORD ───────────────────────────── */
-async function handleForgot(){
-  const email=document.getElementById('l-email').value.trim();
-  if(!email){showToast('loginToast','Please enter your email address first.','error');return;}
-  setLoading('loginBtn','loginSpinner','loginBtnText',true,'Sign In');
-  const {error}=await db.auth.resetPasswordForEmail(email,{
-    redirectTo:window.location.origin+'/reset-password.html'
-  });
-  setLoading('loginBtn','loginSpinner','loginBtnText',false,'Sign In');
-  if(error) showToast('loginToast',error.message,'error');
-  else showToast('loginToast','Reset link sent — check your inbox!','success');
+  
+function handleForgot(){
+  // redirect to OTP reset page
+  window.location.href = "reset_password.html";
+}
+
+function handleLogin(){
+  const btn = document.getElementById("loginBtn");
+  const text = document.getElementById("loginBtnText");
+  const spin = document.getElementById("loginSpinner");
+  const toast = document.getElementById("loginToast");
+
+  btn.disabled = true;
+  spin.style.display = "inline-block";
+  text.textContent = "Signing in...";
+
+  setTimeout(() => {
+    btn.disabled = false;
+    spin.style.display = "none";
+    text.textContent = "Sign In";
+
+    toast.style.display = "block";
+    toast.innerHTML = '<i class="bi bi-check-circle-fill"></i> Login successful';
+
+    // redirect after login success
+    setTimeout(() => {
+      window.location.href = "forgo_password.html";
+    }, 1000);
+
+  }, 1200);
 }
 
 /* ── LOGIN ─────────────────────────────────────── */
