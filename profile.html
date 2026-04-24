@@ -382,10 +382,10 @@ loadActivity();
   async function loadProfile() {
   try {
 
-    console.log("Loading profile for:", currentUser?.id);
+    document.getElementById("view-profile").style.display = "block";
 
     if (!currentUser?.id) {
-      console.error("No current user found");
+      console.error("No user");
       return;
     }
 
@@ -393,68 +393,53 @@ loadActivity();
       .from("profiles")
       .select("*")
       .eq("id", currentUser.id)
-      .single();
+      .maybeSingle();
 
-    console.log("PROFILE DATA:", data);
-    console.log("PROFILE ERROR:", error);
+    console.log("PROFILE:", data, error);
 
-    /* ❌ STOP IF ERROR */
-    if (error) {
-      console.warn("DB error:", error.message);
-      return;
-    }
-
+    /* fallback if no profile */
     if (!data) {
-      console.warn("No profile found in DB");
+      setText("name", "User");
+      setText("username", "@user");
+      setText("email", currentUser.email);
+      setText("country", "🌍 Unknown");
+      setText("tasks", 0);
+      setText("earnings", "$0");
+      setText("members", 0);
+      setText("since", new Date(currentUser.created_at).getFullYear());
       return;
     }
 
-    /* ========================
-       SAFE DOM UPDATES
-    ========================= */
+    setText("name", data.full_name || "User");
+    setText("username", "@" + (data.username || "user"));
+    setText("email", currentUser.email);
 
-    const set = (id, value) => {
-      const el = document.getElementById(id);
-      if (el) el.textContent = value;
-    };
+    setText("avatar", (data.full_name?.[0] || "U").toUpperCase());
 
-    set("name", data.full_name || "User");
-    set("username", "@" + (data.username || "user"));
-    set("email", currentUser.email);
-
-    const avatar = document.getElementById("avatar");
-    if (avatar) {
-      avatar.textContent = (data.full_name?.[0] || "U").toUpperCase();
-    }
-
-    set(
+    setText(
       "country",
-      getFlag(data.country_code || data.country) +
-      " " +
-      (data.country || "Unknown")
+      getFlag(data.country_code) + " " + (data.country || "Unknown")
     );
 
-    set("tasks", data.tasks_count || 0);
-    set("earnings", "$" + (data.earnings || 0));
-    set("members", data.members || 0);
+    setText("tasks", data.tasks_count || 0);
+    setText("earnings", "$" + (data.earnings || 0));
+    setText("members", data.members || 0);
 
-    set(
+    setText(
       "since",
       new Date(currentUser.created_at).getFullYear()
     );
 
-    /* NEW FIELDS SAFE */
-    set("paypal-email", data.paypal_email || "Not set");
-    set("phone-display", data.phone || "Not set");
-    set("address-display", data.address || "Not set");
-
-    console.log("Profile loaded successfully");
-
   } catch (err) {
-    console.error("Unexpected profile error:", err);
+    console.error("PROFILE CRASH:", err);
   }
-  }y || "Unknown");
+}
 
+/* safe helper */
+function setText(id, value) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = value;
+    }
   /* STATS */
   document.getElementById("tasks").textContent =
     data.tasks_count || 0;
