@@ -102,19 +102,60 @@ input,select{width:100%;padding:10px;margin:8px 0;border:1px solid #ddd;border-r
 </div>
 
 <!-- EDIT MODAL -->
-<div id="edit-modal">
-  <div class="modal-box">
+<div id="edit-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);align-items:center;justify-content:center;z-index:999;">
+  
+  <div class="modal-box" style="background:#fff;width:92%;max-width:420px;padding:20px;border-radius:14px;max-height:90vh;overflow:auto;">
+
     <h3>Edit Profile</h3>
 
+    <!-- BASIC INFO -->
     <input id="edit-name" placeholder="Full name">
     <input id="edit-username" placeholder="Username">
 
+    <!-- COUNTRY (LOCK AFTER SAVE) -->
     <select id="edit-country"></select>
+    <small id="country-lock-msg" style="color:red;display:none;">
+      Country cannot be changed after first save
+    </small>
 
+    <!-- PERSONAL INFO -->
+    <input id="edit-dob" type="date" placeholder="Date of Birth">
+
+    <select id="edit-gender">
+      <option value="">Select Gender</option>
+      <option value="Male">Male</option>
+      <option value="Female">Female</option>
+      <option value="Transgender">Transgender</option>
+    </select>
+
+    <!-- CONTACT -->
+    <input id="edit-phone" placeholder="Phone Number">
+    <input id="edit-address" placeholder="Address">
+
+    <!-- PAYMENT -->
+    <h4 style="margin-top:10px;">Payment Settings</h4>
     <input id="edit-paypal" placeholder="PayPal Email">
 
-    <button class="btn" onclick="saveProfile()">Save</button>
-    <button class="btn" style="background:#eee;color:#000" onclick="closeEditModal()">Cancel</button>
+    <!-- SECURITY -->
+    <h4 style="margin-top:10px;">Security</h4>
+
+    <button onclick="resetPassword()" class="btn" style="width:100%;background:#f59e0b;color:#fff;margin-bottom:6px;">
+      Reset Password
+    </button>
+
+    <button onclick="deactivateAccount()" class="btn" style="width:100%;background:#ef4444;color:#fff;">
+      Deactivate Account
+    </button>
+
+    <!-- ACTIONS -->
+    <button class="btn" onclick="saveProfile()" style="width:100%;margin-top:10px;">
+      Save Changes
+    </button>
+
+    <button class="btn" onclick="closeEditModal()" style="width:100%;background:#eee;color:#000;margin-top:6px;">
+      Cancel
+    </button>
+
   </div>
 </div>
 
