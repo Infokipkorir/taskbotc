@@ -306,19 +306,16 @@ async function loadActivity() {
 /* =========================
    EDIT MODAL
 ========================= */
-  function openEditModal(){
-  document.getElementById("edit-modal").classList.add("active");
-}
-
-function closeEditModal(){
-  document.getElementById("edit-modal").classList.remove("active");
-}
-async function openEditModal(){
+  async function openEditModal(){
 
   const modal = document.getElementById("edit-modal");
-  modal.style.display = "flex";
+  modal.style.display = "flex"; // ONLY METHOD USED
 
-  // load user profile first
+  if(!currentUser?.id){
+    console.error("No user");
+    return;
+  }
+
   const { data } = await db
     .from("profiles")
     .select("*")
@@ -327,14 +324,12 @@ async function openEditModal(){
 
   if(!data) return;
 
-  // fill inputs
   document.getElementById("edit-name").value = data.full_name || "";
   document.getElementById("edit-username").value = data.username || "";
   document.getElementById("edit-paypal").value = data.paypal_email || "";
 
-  // IMPORTANT: load countries HERE
   loadCountries(data.country);
-    }
+  }
 
 /* =========================
    COUNTRIES
