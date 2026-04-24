@@ -47,7 +47,30 @@ input,select{width:100%;padding:10px;margin:8px 0;border:1px solid #ddd;border-r
 .bottom-nav{position:fixed;bottom:0;width:100%;background:#fff;border-top:1px solid #eee;display:flex}
 .nav-item{flex:1;text-align:center;padding:10px}
 .nav-item i{font-size:20px;color:var(--gray)}
-.nav-item.active i{color:var(--blue)}
+.nav-item.active i{color:var(--blue)
+}
+  .logout-btn{
+  display:block;
+  width:calc(100% - 32px);
+  margin:16px auto;
+  padding:14px;
+  border:none;
+  border-radius:12px;
+  background:#ef4444;
+  color:#fff;
+  font-weight:600;
+  cursor:pointer;
+  transition:0.2s;
+}
+
+.logout-btn:hover{
+  background:#dc2626;
+}
+
+.logout-btn:active{
+  transform:scale(0.97);
+}
+  
 </style>
 </head>
 
@@ -110,8 +133,9 @@ input,select{width:100%;padding:10px;margin:8px 0;border:1px solid #ddd;border-r
   <div id="activity-list"></div>
 </div>
 
-<div class="btn" onclick="logout()" style="background:red">Sign Out</div>
-
+<button class="logout-btn" onclick="logout()">
+  <i class="bi bi-box-arrow-right"></i> Sign Out
+</button>
 </div>
 
 <script>
