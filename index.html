@@ -675,20 +675,31 @@ let usernameOk=false, emailOk=false;
 let usernameTimer=null, emailTimer=null;
 
 /* ── MODAL ─────────────────────────────────────── */
-function openAuth(tab='login'){
-  const ov=document.getElementById('authOverlay');
+function openAuth(tab = 'login') {
+  const ov = document.getElementById('authOverlay');
+  if (!ov) return;
+
   ov.classList.add('visible');
-  requestAnimationFrame(()=>ov.classList.add('shown'));
-  switchTab(tab);
+
+  requestAnimationFrame(() => {
+    ov.classList.add('shown');
+  });
+
+  if (typeof switchTab === "function") {
+    switchTab(tab);
+  }
 }
-function closeAuth(){
-  const ov=document.getElementById('authOverlay');
+
+function closeAuth() {
+  const ov = document.getElementById('authOverlay');
+  if (!ov) return;
+
   ov.classList.remove('shown');
-  setTimeout(()=>ov.classList.remove('visible'),320);
+
+  setTimeout(() => {
+    ov.classList.remove('visible');
+  }, 300);
 }
-document.getElementById('authOverlay').addEventListener('click',e=>{
-  if(e.target===e.currentTarget) closeAuth();
-});
 
 /* ── TABS ──────────────────────────────────────── */
 function switchTab(tab){
