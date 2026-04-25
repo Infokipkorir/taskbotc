@@ -1339,38 +1339,6 @@ async function handleRegister(){
   );
   setTimeout(()=>switchTab('login'),3200);
 }
-
-/* ── PRE-FILL REMEMBERED EMAIL ─────────────────── */
-window.addEventListener('DOMContentLoaded',()=>{
-  const saved=localStorage.getItem('ot_remember');
-  if(saved){
-    document.getElementById('l-email').value=saved;
-    document.getElementById('rememberMe').checked=true;
-  }
-});
-  const urlCode = window.location.pathname.split("/")[1];
-
-if(urlCode){
-
-  const refUser = await supabase
-    .from("profiles")
-    .select("id")
-    .eq("referral_code", urlCode)
-    .single();
-
-  if(refUser.data){
-
-    await supabase.from("referrals").insert({
-      referrer_id: refUser.data.id,
-      referred_id: newUser.id
-    });
-
-    await supabase
-      .from("profiles")
-      .update({ referred_by: urlCode })
-      .eq("id", newUser.id);
-  }
-}
 </script>
 </body>
 </html>
