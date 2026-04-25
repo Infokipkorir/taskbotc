@@ -1,1 +1,342 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OneTasks — Profile</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+:root{
+  --bg:#f4f7ff;
+  --card:#fff;
+  --text:#0f172a;
+  --muted:#64748b;
+  --blue:#2563eb;
+  --green:#10b981;
+  --orange:#f59e0b;
+  --red:#ef4444;
+  --border:#e5e7eb;
+  --shadow:0 10px 30px rgba(0,0,0,.06);
+}
+
+*{margin:0;padding:0;box-sizing:border-box;font-family:system-ui;}
+
+body{
+  background:var(--bg);
+  color:var(--text);
+  padding-bottom:70px;
+}
+
+/* TOP PROFILE */
+.header{
+  background:linear-gradient(135deg,#2563eb,#1d4ed8);
+  padding:22px 16px;
+  color:#fff;
+  border-bottom-left-radius:18px;
+  border-bottom-right-radius:18px;
+}
+
+.profile-box{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.avatar{
+  width:60px;
+  height:60px;
+  border-radius:50%;
+  background:rgba(255,255,255,.2);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:22px;
+  font-weight:800;
+}
+
+.name{
+  font-size:16px;
+  font-weight:800;
+}
+
+.email{
+  font-size:12px;
+  opacity:.8;
+}
+
+/* CARDS */
+.container{
+  padding:14px;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:12px;
+  margin-top:12px;
+}
+
+.card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:14px;
+  box-shadow:var(--shadow);
+}
+
+.card h3{
+  font-size:12px;
+  color:var(--muted);
+}
+
+.card .value{
+  font-size:20px;
+  font-weight:800;
+  margin-top:6px;
+}
+
+/* SECTION */
+.section{
+  margin-top:14px;
+}
+
+.section h4{
+  font-size:13px;
+  margin-bottom:8px;
+  color:var(--muted);
+}
+
+.activity{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:12px;
+  box-shadow:var(--shadow);
+}
+
+.item{
+  display:flex;
+  justify-content:space-between;
+  padding:10px 0;
+  border-bottom:1px solid var(--border);
+}
+
+.item:last-child{border:none;}
+
+.small{
+  font-size:12px;
+  color:var(--muted);
+}
+
+/* BOTTOM NAV */
+.bottom-nav{
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  background:#fff;
+  border-top:1px solid var(--border);
+  display:flex;
+  justify-content:space-around;
+  padding:10px 0;
+  box-shadow:0 -6px 20px rgba(0,0,0,.05);
+}
+
+.nav-item{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  font-size:11px;
+  color:var(--muted);
+  text-decoration:none;
+  gap:3px;
+}
+
+.nav-item i{
+  font-size:18px;
+}
+
+.nav-item.active{
+  color:var(--blue);
+  font-weight:700;
+}
+
+/* LOADING */
+.skeleton{
+  background:#e5e7eb;
+  height:14px;
+  border-radius:6px;
+  animation:pulse 1.2s infinite;
+}
+
+@keyframes pulse{
+  0%{opacity:1}
+  50%{opacity:.5}
+  100%{opacity:1}
+}
+</style>
+</head>
+
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="profile-box">
+    <div class="avatar" id="avatar">U</div>
+
+    <div>
+      <div class="name" id="name">Loading...</div>
+      <div class="email" id="email">user@email.com</div>
+    </div>
+  </div>
+</div>
+
+<!-- CONTENT -->
+<div class="container">
+
+  <!-- STATS -->
+  <div class="grid">
+    <div class="card">
+      <h3>Total Tasks</h3>
+      <div class="value" id="totalTasks">0</div>
+    </div>
+
+    <div class="card">
+      <h3>Approved</h3>
+      <div class="value" style="color:var(--green)" id="approved">0</div>
+    </div>
+
+    <div class="card">
+      <h3>Pending</h3>
+      <div class="value" style="color:var(--orange)" id="pending">0</div>
+    </div>
+
+    <div class="card">
+      <h3>Earnings</h3>
+      <div class="value" style="color:var(--blue)" id="earnings">$0.0</div>
+    </div>
+  </div>
+
+  <!-- ACTIVITY -->
+  <div class="section">
+    <h4>Recent Activity</h4>
+
+    <div class="activity" id="activity">
+      <div class="item">
+        <div class="small">Loading activity...</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <a class="nav-item" href="dashboard.html">
+    <i class="bi bi-grid"></i>
+    Home
+  </a>
+
+  <a class="nav-item" href="tasks_history.html">
+    <i class="bi bi-list-task"></i>
+    Tasks
+  </a>
+
+  <a class="nav-item active" href="#">
+    <i class="bi bi-person-circle"></i>
+    Profile
+  </a>
+
+  <a class="nav-item" href="wallet.html">
+    <i class="bi bi-wallet2"></i>
+    Wallet
+  </a>
+</div>
+
+<script>
+// ================= SUPABASE =================
+const supabase = window.supabase.createClient(
+  "https://lwnbfjjsstxkyexeojcl.supabase.co",
+  "sb_publishable_Pj9ocGkssu5Gh6qZXFnZQQ_LdghnZt9"
+);
+
+let userId = null;
+
+// ================= LOAD PROFILE =================
+async function loadProfile(){
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if(!user){
+    window.location.href = "login.html";
+    return;
+  }
+
+  userId = user.id;
+
+  document.getElementById("email").textContent = user.email;
+  document.getElementById("name").textContent = user.user_metadata?.name || "User";
+  document.getElementById("avatar").textContent = (user.email[0] || "U").toUpperCase();
+
+  loadStats();
+  loadActivity();
+}
+
+// ================= STATS =================
+async function loadStats(){
+
+  const { data: tasks } = await supabase
+    .from("tasks")
+    .select("*")
+    .eq("user_id", userId);
+
+  if(!tasks) return;
+
+  let total = tasks.length;
+  let approved = tasks.filter(t=>t.status==="approved").length;
+  let pending = tasks.filter(t=>t.status==="pending").length;
+  let earnings = approved * 50; // adjust per task reward
+
+  document.getElementById("totalTasks").textContent = total;
+  document.getElementById("approved").textContent = approved;
+  document.getElementById("pending").textContent = pending;
+  document.getElementById("earnings").textContent = "KSh " + earnings;
+}
+
+// ================= ACTIVITY =================
+async function loadActivity(){
+
+  const { data } = await supabase
+    .from("tasks")
+    .select("title,status,created_at")
+    .eq("user_id", userId)
+    .order("created_at",{ascending:false})
+    .limit(5);
+
+  let html = "";
+
+  (data || []).forEach(t=>{
+    html += `
+      <div class="item">
+        <div>
+          <div style="font-size:13px;font-weight:700">${t.title}</div>
+          <div class="small">${new Date(t.created_at).toLocaleString()}</div>
+        </div>
+
+        <div class="small">${t.status}</div>
+      </div>
+    `;
+  });
+
+  document.getElementById("activity").innerHTML = html || "<div class='small'>No activity yet</div>";
+}
+
+// START
+loadProfile();
+</script>
+
+</body>
+</html>
