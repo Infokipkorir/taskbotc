@@ -505,9 +505,32 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 
 <script>
 /* SUPABASE */
-const SUPABASE_URL = "https://lwnbfjjsstxkyexeojcl.supabase.co";
-const SUPABASE_KEY = "sb_publishable_Pj9ocGkssu5Gh6qZXFnZQQ_LdghnZt9"; // ←  anon/public key
-const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+(async () => {
+  const db = supabase.createClient(
+    "https://lwnbfjjsstxkyexeojcl.supabase.co",
+    "sb_publishable_Pj9ocGkssu5Gh6qZXFnZQQ_LdghnZt9"
+  );
+
+  const { data: { user } } = await db.auth.getUser();
+  if (!user) return;
+
+  const { data } = await db
+    .from("profiles")
+    .select("full_name, avatar_url")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  const name = data?.full_name || user.email?.split("@")[0] || "User";
+  document.getElementById("sbName").textContent = name;
+
+  const ava = document.getElementById("sbAva");
+  if (data?.avatar_url) {
+    ava.style.cssText = `background-image:url(${data.avatar_url});background-size:cover;background-position:center;`;
+    ava.textContent = "";
+  } else {
+    ava.textContent = name[0].toUpperCase();
+  }
+})();
 
 /* SIDEBAR */
 function openSidebar()  { document.getElementById("sidebar").classList.add("open");   document.getElementById("overlay").classList.add("show"); }
