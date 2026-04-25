@@ -258,26 +258,46 @@ const supabase = window.supabase.createClient(
   "sb_publishable_Pj9ocGkssu5Gh6qZXFnZQQ_LdghnZt9"
 );
 
-let userId = null;
+async function loadUserHeader() {
 
-// ================= LOAD PROFILE =================
-async function loadProfile(){
+  // 1. Get auth user
   const { data: { user } } = await supabase.auth.getUser();
 
-  if(!user){
+  if (!user) {
     window.location.href = "login.html";
     return;
   }
 
-  userId = user.id;
+  // 2. Load profile from DB
+  let { data: profile, error } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", user.id)
+    .single();
 
-  document.getElementById("email").textContent = user.email;
-  document.getElementById("name").textContent = user.user_metadata?.name || "User";
-  document.getElementById("avatar").textContent = (user.email[0] || "U").toUpperCase();
+  // 3. Fallback if profile not found
+  if (error || !profile) {
+    profile = {
+      full_name: user.email.split("@")[0],
+      email: user.email
+    };
+  }
 
-  loadStats();
-  loadActivity();
+  // 4. Update UI safely
+  document.getElementById("name").textContent =
+    profile.full_name || "User";
+
+  document.getElementById("email").textContent =
+    profile.email || user.email;
+
+  document.getElementById("avatar").textContent =
+    (profile.full_name || user.email || "U")
+      .charAt(0)
+      .toUpperCase();
 }
+
+// RUN ON PAGE LOAD
+loadUserHeader();
 
 // ================= STATS =================
 async function loadStats(){
