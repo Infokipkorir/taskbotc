@@ -1,39 +1,3 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>OneTasks — Help & Support</title>
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%231d4ed8'/><text x='50' y='55' font-size='36' text-anchor='middle' fill='white' font-family='Arial' font-weight='bold'>OT</text></svg>">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
-<style>
-:root{
-  --blue:#1d4ed8;--blue-mid:#2563eb;--blue-light:#3b82f6;
-  --blue-pale:#eff6ff;--bg:#f0f4ff;--white:#fff;
-  --border:#e0e7ff;--text:#0f172a;--muted:#64748b;
-  --green:#10b981;--green-bg:#ecfdf5;
-  --amber:#f59e0b;--amber-bg:#fffbeb;
-  --red:#ef4444;--red-bg:#fef2f2;
-  --violet:#8b5cf6;--violet-bg:#f5f3ff;
-  --radius:14px;--shadow:0 2px 16px rgba(29,78,216,.09);
-}
-*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:80px}
-
-/* TOPBAR */
-.topbar{background:var(--white);border-bottom:1px solid var(--border);padding:0 20px;height:56px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 1px 8px rgba(29,78,216,.06);position:sticky;top:0;z-index:100}
-.tb-brand{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--blue);display:flex;align-items:center;gap:8px}
-.tb-brand span{background:linear-gradient(135deg,#1d4ed8,#3b82f6);color:#fff;width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px}
-.tb-right{display:flex;align-items:center;gap:8px}
-.tb-user-ava{width:32px;height:32px;border-radius:50%;background:var(--blue);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
-
-/* HERO */
-.hero{background:linear-gradient(135deg,#1e3a8a 0%,#1d4ed8 50%,#3b82f6 100%);padding:40px 20px 80px;text-align:center;position:relative;overflow:hidden}
-.hero::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Ccircle cx='30' cy='30' r='20'/%3E%3C/g%3E%3C/svg%3E")}
-.hero-title{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:#fff;position:relative}
-.hero-sub{font-size:14px;color:rgba(255,255,255,.75);margin-top:6px;position:relative}
 .hero-search{position:relative;max-width:460px;margin:20px auto 0}
 .hero-search input{width:100%;padding:13px 18px 13px 46px;border:none;border-radius:12px;font-size:14px;font-family:'DM Sans',sans-serif;outline:none;box-shadow:0 4px 20px rgba(0,0,0,.2)}
 .hero-search i{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:17px}
