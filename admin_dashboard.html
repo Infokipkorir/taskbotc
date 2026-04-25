@@ -282,6 +282,89 @@ tr:hover td{background:#fafbff;}
 /* INLINE EDIT INPUT */
 .inline-edit{display:none;padding:6px 10px;border:1px solid var(--border);border-radius:8px;font-size:12.5px;font-family:inherit;width:100%;max-width:200px;outline:none;}
 .inline-edit:focus{border-color:var(--blue-light);}
+
+  /* TASK GRID */
+.tasks-wrap{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  padding:16px;
+}
+
+/* TASK CARD */
+.task-card{
+  background:#fff;
+  border:1px solid #eee;
+  border-radius:14px;
+  padding:14px;
+}
+
+/* HEADER */
+.task-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+/* TITLE */
+.task-title{
+  font-weight:700;
+  font-size:15px;
+}
+
+/* BADGE */
+.task-status{
+  font-size:12px;
+  padding:4px 8px;
+  border-radius:20px;
+  background:#f3f4f6;
+}
+
+/* BUTTON */
+.task-actions{
+  margin-top:10px;
+  display:flex;
+  gap:10px;
+}
+
+.task-btn{
+  padding:6px 10px;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+  font-size:12px;
+}
+
+.edit-btn{
+  background:#1a56db;
+  color:#fff;
+}
+
+/* MODAL */
+.modal{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.5);
+  align-items:center;
+  justify-content:center;
+}
+
+.modal-box{
+  background:#fff;
+  padding:20px;
+  width:90%;
+  max-width:400px;
+  border-radius:12px;
+}
+
+input,select{
+  width:100%;
+  padding:10px;
+  margin:8px 0;
+  border:1px solid #ddd;
+  border-radius:8px;
+}
 </style>
 </head>
 <body>
@@ -319,7 +402,10 @@ tr:hover td{background:#fafbff;}
     </a>
 
     <div class="nav-lbl">Operations</div>
-    <a class="nav-item" onclick="showSection('tasks')" id="nav-tasks">
+    <a class="nav-item" onclick="showSection('tasks')" id="nav-tasks"> 
+  <i class="bi bi-list-task"></i>
+  <span>Tasks</span>
+      </a>
       <i class="bi bi-clipboard-check-fill"></i> Task Reviews
       <span class="badge-count" id="taskBadge" style="display:none">0</span>
     </a>
@@ -502,10 +588,10 @@ tr:hover td{background:#fafbff;}
       </div>
 
       <div class="tabs">
-        <button class="tab-btn active" onclick="switchTaskTab('pending', this)">⏳ Pending</button>
-        <button class="tab-btn" onclick="switchTaskTab('approved', this)">✅ Approved</button>
-        <button class="tab-btn" onclick="switchTaskTab('rejected', this)">❌ Rejected</button>
-        <button class="tab-btn" onclick="switchTaskTab('disputed', this)">🚩 Disputed</button>
+        <button class="tab-btn active" onclick="switchTaskTab('pending', this)">Pending</button>
+        <button class="tab-btn" onclick="switchTaskTab('approved', this)"> Approved</button>
+        <button class="tab-btn" onclick="switchTaskTab('rejected', this)"> Rejected</button>
+        <button class="tab-btn" onclick="switchTaskTab('disputed', this)"> Disputed</button>
         <button class="tab-btn" onclick="switchTaskTab('all', this)">All</button>
       </div>
 
@@ -537,6 +623,28 @@ tr:hover td{background:#fafbff;}
         </div>
       </div>
     </div>
+    <div id="tasks-container" class="tasks-wrap"></div>
+
+<!-- EDIT TASK MODAL -->
+<div id="task-edit-modal" class="modal">
+  <div class="modal-box">
+
+    <h3>Edit Task</h3>
+
+    <input id="task-title" placeholder="Task title">
+    <input id="task-category" placeholder="Category">
+    <input id="task-reward" placeholder="Reward">
+
+    <select id="task-status">
+      <option value="pending">Pending</option>
+      <option value="completed">Completed</option>
+    </select>
+
+    <button class="btn" onclick="saveTask()">Save Changes</button>
+    <button class="btn" style="background:#eee;color:#000" onclick="closeTaskModal()">Cancel</button>
+
+  </div>
+</div>
 
     <!-- ====== PAYMENTS ====== -->
     <div class="section" id="section-payments">
@@ -1579,6 +1687,108 @@ async function reviewTask(newStatus) {
     showToast("❌ Failed to update task: " + e.message);
   }
 }
+
+  let currentTaskId = null;
+
+/* =========================
+   LOAD TASKS FROM DB
+========================= */
+async function loadTasks(){
+
+  const { data, error } = await db
+    .from("user_tasks")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  const container = document.getElementById("tasks-container");
+
+  if(error){
+    console.error(error);
+    container.innerHTML = "Error loading tasks";
+    return;
+  }
+
+  if(!data || data.length === 0){
+    container.innerHTML = "No tasks found";
+    return;
+  }
+
+  container.innerHTML = data.map(task => `
+    <div class="task-card">
+
+      <div class="task-head">
+        <div class="task-title">${task.task_title}</div>
+        <div class="task-status">${task.status}</div>
+      </div>
+
+      <p>${task.category || ""}</p>
+      <p><b>$${task.reward || 0}</b></p>
+
+      <div class="task-actions">
+        <button class="task-btn edit-btn"
+          onclick="openEditTask('${task.id}')">
+          Edit
+        </button>
+      </div>
+
+    </div>
+  `).join("");
+}
+
+/* =========================
+   OPEN EDIT MODAL
+========================= */
+async function openEditTask(id){
+
+  currentTaskId = id;
+
+  const { data } = await db
+    .from("user_tasks")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  document.getElementById("task-title").value = data.task_title || "";
+  document.getElementById("task-category").value = data.category || "";
+  document.getElementById("task-reward").value = data.reward || "";
+  document.getElementById("task-status").value = data.status || "pending";
+
+  document.getElementById("task-edit-modal").style.display = "flex";
+}
+
+/* =========================
+   SAVE TASK
+========================= */
+async function saveTask(){
+
+  const updates = {
+    task_title: document.getElementById("task-title").value,
+    category: document.getElementById("task-category").value,
+    reward: document.getElementById("task-reward").value,
+    status: document.getElementById("task-status").value
+  };
+
+  const { error } = await db
+    .from("user_tasks")
+    .update(updates)
+    .eq("id", currentTaskId);
+
+  if(error){
+    alert(error.message);
+    return;
+  }
+
+  alert("Task updated!");
+  closeTaskModal();
+  loadTasks();
+}
+
+/* =========================
+   CLOSE MODAL
+========================= */
+function closeTaskModal(){
+  document.getElementById("task-edit-modal").style.display = "none";
+               }
 
 /* ============================================================
    PAYMENTS / CASHIER
