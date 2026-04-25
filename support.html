@@ -38,12 +38,59 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .hero-search input{width:100%;padding:13px 18px 13px 46px;border:none;border-radius:12px;font-size:14px;font-family:'DM Sans',sans-serif;outline:none;box-shadow:0 4px 20px rgba(0,0,0,.2)}
 .hero-search i{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:17px}
 
-/* TABS */
-.tabs-wrap{background:var(--white);border-bottom:1px solid var(--border);display:flex;padding:0 16px;overflow-x:auto;gap:4px;position:sticky;top:56px;z-index:90}
-.tabs-wrap::-webkit-scrollbar{height:0}
-.tab-btn{padding:14px 16px;border:none;background:none;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:color .15s,border-color .15s;display:flex;align-items:center;gap:6px}
-.tab-btn.active{color:var(--blue);border-bottom-color:var(--blue)}
-.tab-btn i{font-size:15px}
+/* Tabs container */
+.tabs-wrap{
+  display:flex;
+  gap:10px;
+  padding:10px;
+  overflow-x:auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  background:#fff;
+  border-bottom:1px solid #eee;
+}
+
+/* hide scrollbar (mobile clean UI) */
+.tabs-wrap::-webkit-scrollbar{
+  display:none;
+}
+
+/* Tab buttons */
+.tab-btn{
+  flex:0 0 auto;
+  padding:10px 14px;
+  border:none;
+  border-radius:10px;
+  background:#f3f4f6;
+  color:#333;
+  font-weight:600;
+  font-size:14px;
+  display:flex;
+  align-items:center;
+  gap:6px;
+  white-space:nowrap;
+  cursor:pointer;
+  transition:0.2s;
+}
+
+/* Active tab */
+.tab-btn.active{
+  background:#1a56db;
+  color:#fff;
+}
+
+/* Hover effect */
+.tab-btn:hover{
+  opacity:0.9;
+}
+
+/* MOBILE IMPROVEMENTS */
+@media (max-width: 600px){
+  .tab-btn{
+    font-size:13px;
+    padding:9px 12px;
+  }
+}
 
 /* CONTAINER */
 .container{max-width:720px;margin:0 auto;padding:0 16px}
@@ -189,9 +236,17 @@ textarea.form-control{resize:vertical;min-height:90px}
 
 <!-- TABS -->
 <div class="tabs-wrap">
-  <button class="tab-btn active" onclick="switchTab('faq',this)"><i class="bi bi-question-circle"></i> FAQ</button>
-  <button class="tab-btn" onclick="switchTab('chat',this)"><i class="bi bi-robot"></i> AI Chat</button>
-  <button class="tab-btn" onclick="switchTab('tickets',this)"><i class="bi bi-ticket-perforated"></i> My Tickets</button>
+  <button class="tab-btn active" onclick="switchTab('faq',this)">
+    <i class="bi bi-question-circle"></i> FAQ
+  </button>
+
+  <button class="tab-btn" onclick="switchTab('chat',this)">
+    <i class="bi bi-robot"></i> AI Chat
+  </button>
+
+  <button class="tab-btn" onclick="switchTab('tickets',this)">
+    <i class="bi bi-ticket-perforated"></i> My Tickets
+  </button>
 </div>
 
 <!-- ══════════ FAQ VIEW ══════════ -->
