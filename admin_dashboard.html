@@ -402,16 +402,26 @@ input,select{
     </a>
 
     <div class="nav-lbl">Operations</div>
-    <a class="nav-item" onclick="showSection('tasks')" id="nav-tasks"> 
+
+<!-- TASKS -->
+<a class="nav-item" onclick="showSection('tasks')" id="nav-tasks">
   <i class="bi bi-list-task"></i>
   <span>Tasks</span>
-      </a>
-      <i class="bi bi-clipboard-check-fill"></i> Task Reviews
-      <span class="badge-count" id="taskBadge" style="display:none">0</span>
-    </a>
-    <a class="nav-item" onclick="showSection('payments')" id="nav-payments">
-      <i class="bi bi-cash-stack"></i> Payments / Cashier
-    </a>
+</a>
+
+<!-- TASK REVIEWS -->
+<a class="nav-item" onclick="showSection('taskReviews')" id="nav-task-reviews">
+  <i class="bi bi-clipboard-check-fill"></i>
+  <span>Task Reviews</span>
+
+  <span class="badge-count" id="taskBadge" style="display:none">0</span>
+</a>
+
+<!-- PAYMENTS -->
+<a class="nav-item" onclick="showSection('payments')" id="nav-payments">
+  <i class="bi bi-cash-stack"></i>
+  <span>Payments / Cashier</span>
+</a>
 
     <div class="nav-lbl">Support</div>
     <a class="nav-item" onclick="showSection('support')" id="nav-support">
