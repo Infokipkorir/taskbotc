@@ -78,37 +78,24 @@ img{
 }
 </style>
 </head>
-
 <body>
+<button id="enrollBtn" onclick="enrollProgram()">
+  Join Referral Program
+</button>
 
-<div class="container"
+<div id="box" style="display:none">
+  <span id="code">---</span>
+  <i onclick="copyCode()" class="bi bi-clipboard"></i>
+</div>
 
-  <div class="card">
+<div id="actions" style="display:none">
+  <button onclick="copyCode()">Copy</button>
+  <button onclick="shareLink()">Share</button>
+</div>
 
-    <div class="title">Your Referral Code</div>
-
-    <div class="code">
-      <span id="code">Loading...</span>
-      <i class="bi bi-clipboard" onclick="copyCode()" style="cursor:pointer"></i>
-    </div>
-
-    <div class="btns">
-      <button class="copy" onclick="copyCode()">
-        <i class="bi bi-copy"></i> Copy
-      </button>
-
-      <button class="share" onclick="shareLink()">
-        <i class="bi bi-share"></i> Share
-      </button>
-    </div>
-
-    <div class="stats">
-      <span>Referrals: <b id="count">0</b></span>
-      <span>Earnings: <b id="earnings">$0.0</b></span>
-    </div>
-
-  </div>
-
+<div id="stats" style="display:none">
+  <span>Referrals: <b id="count">0</b></span>
+  <span>Earnings: <b id="earnings">0</b></span>
 </div>
 
 <script>
@@ -132,29 +119,53 @@ async function init(){
 
   userId = user.id;
 
-  let { data: profile } = await supabase
+  const { data: profile } = await supabase
     .from("profiles")
     .select("*")
     .eq("id", userId)
     .single();
 
-  // CREATE REF CODE IF NOT EXISTS
-  if(!profile.referral_code){
+  if(profile?.referral_enrolled){
 
-    referralCode = "OT" + Math.random().toString(36).substring(2,8).toUpperCase();
-
-    await supabase
-      .from("profiles")
-      .update({ referral_code: referralCode })
-      .eq("id", userId);
-
-  }else{
     referralCode = profile.referral_code;
+
+    showUI();
+    loadStats();
   }
+}
+
+// ================= ENROLL USER =================
+async function enrollProgram(){
+
+  referralCode = "OT" + Math.random().toString(36).substring(2,8).toUpperCase();
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({
+      referral_enrolled: true,
+      referral_code: referralCode
+    })
+    .eq("id", userId);
+
+  if(error){
+    alert("Error enrolling");
+    return;
+  }
+
+  showUI();
+  loadStats();
+}
+
+// ================= SHOW UI =================
+function showUI(){
+
+  document.getElementById("enrollBtn")?.remove();
 
   document.getElementById("code").textContent = referralCode;
 
-  loadStats();
+  document.getElementById("box").style.display = "flex";
+  document.getElementById("actions").style.display = "flex";
+  document.getElementById("stats").style.display = "flex";
 }
 
 // ================= COPY =================
@@ -169,7 +180,7 @@ function shareLink(){
 
   const link = `https://www.onetasks.co.ke/${referralCode}`;
 
-  const text = `Join OneTasks and earn money 💰\nUse my link:\n${link}`;
+  const text = `🔥 Join OneTasks & earn money\nUse my link:\n${link}`;
 
   if(navigator.share){
     navigator.share({
@@ -179,7 +190,7 @@ function shareLink(){
     });
   }else{
     navigator.clipboard.writeText(text);
-    alert("Link copied for sharing");
+    alert("Link copied");
   }
 }
 
@@ -192,14 +203,12 @@ async function loadStats(){
     .eq("referrer_id", userId);
 
   let count = data?.length || 0;
-  let earnings = count * 100;
 
   document.getElementById("count").textContent = count;
-  document.getElementById("earnings").textContent = "KSh " + earnings;
+  document.getElementById("earnings").textContent =
+    "KSh " + (count * 100);
 }
 
 init();
-</script>
-
-</body>
+</script></body>
   </html>
