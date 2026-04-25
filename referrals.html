@@ -7,18 +7,18 @@
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-<style>
+ <style>
 body{
   margin:0;
   font-family:system-ui;
   background:linear-gradient(180deg,#eef2ff,#f8fafc);
 }
 
+/* CONTAINER */
 .container{
   max-width:520px;
   margin:0 auto;
-  padding:16px;
+  padding:14px;
 }
 
 /* HERO */
@@ -27,11 +27,7 @@ body{
   color:#fff;
   padding:18px;
   border-radius:18px;
-  box-shadow:0 10px 30px rgba(37,99,235,.25);
 }
-
-.hero h2{margin:0;font-size:18px;font-weight:800;}
-.hero p{font-size:12.5px;opacity:.9;margin-top:6px;}
 
 /* CARD */
 .card{
@@ -42,63 +38,136 @@ body{
   box-shadow:0 10px 30px rgba(0,0,0,.06);
 }
 
-/* CODE BOX (IMPORTANT UX RULE) */
+/* TITLE */
+h2,h3{margin:0}
+
+/* REF CODE BOX */
 .code-box{
   display:flex;
   justify-content:space-between;
   align-items:center;
+  gap:10px;
+
   background:#f1f5f9;
   padding:12px;
   border-radius:12px;
+
   font-weight:800;
-  margin-top:10px;
+
+  word-break:break-all;
+  flex-wrap:wrap;
 }
 
-/* BUTTONS */
+/* CODE TEXT */
+#code{
+  font-size:14px;
+  letter-spacing:1px;
+  flex:1;
+  min-width:120px;
+}
+
+/* BUTTON ROW */
 .btns{
   display:flex;
   gap:10px;
   margin-top:12px;
 }
 
+/* BUTTONS */
 button{
   flex:1;
-  padding:10px;
+  padding:11px;
   border:none;
   border-radius:12px;
   font-weight:800;
   cursor:pointer;
+  font-size:13px;
 }
 
+/* COLORS */
 .copy{background:#2563eb;color:#fff;}
 .share{background:#10b981;color:#fff;}
+.enroll{background:#111827;color:#fff;width:100%;}
 
 /* STATS */
 .stats{
   display:flex;
   justify-content:space-between;
-  margin-top:12px;
+  margin-top:14px;
   font-size:13px;
   color:#475569;
+  flex-wrap:wrap;
+  gap:8px;
 }
 
-/* ENROLL */
-.enroll-btn{
-  width:100%;
-  padding:12px;
-  border:none;
-  border-radius:14px;
-  background:#111827;
-  color:#fff;
-  font-weight:800;
-  cursor:pointer;
+/* ICON CLICK */
+.bi{
+  font-size:18px;
 }
 
-/* TRUST BANNER */
+/* TRUST TEXT */
 .trust{
   font-size:11px;
   margin-top:10px;
   color:#64748b;
+  line-height:1.4;
+}
+
+/* ================= RESPONSIVE BREAKPOINTS ================= */
+
+/* TABLETS */
+@media (max-width:768px){
+
+  .container{
+    padding:12px;
+  }
+
+  .hero{
+    padding:16px;
+  }
+
+  .card{
+    padding:14px;
+  }
+
+  button{
+    font-size:12.5px;
+    padding:10px;
+  }
+
+  #code{
+    font-size:13px;
+  }
+}
+
+/* MOBILE */
+@media (max-width:480px){
+
+  .hero h2{
+    font-size:16px;
+  }
+
+  .hero p{
+    font-size:12px;
+  }
+
+  .btns{
+    flex-direction:column;
+  }
+
+  .code-box{
+    flex-direction:column;
+    align-items:flex-start;
+  }
+
+  .stats{
+    flex-direction:column;
+    align-items:flex-start;
+  }
+
+  button{
+    width:100%;
+  }
 }
 </style>
 </head>
@@ -164,70 +233,33 @@ let userId;
 let code;
 
 // INIT
-async function init(){
-
-  const { data: { user } } = await supabase.auth.getUser();
-  if(!user) location.href="login.html";
-
-  userId = user.id;
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", userId)
-    .single();
-
-  if(profile?.referral_enrolled){
-    code = profile.referral_code;
-    show();
-    loadStats();
-  }
-}
-
 async function enroll(){
+
+  const btn = document.querySelector(".enroll");
+  btn.innerHTML = "Generating...";
+  btn.disabled = true;
 
   code = "OT" + Math.random().toString(36).substring(2,8).toUpperCase();
 
-  await supabase.from("profiles")
+  const { error } = await supabase
+    .from("profiles")
     .update({
       referral_enrolled:true,
       referral_code:code
     })
     .eq("id", userId);
 
+  btn.innerHTML = "Join Referral Program";
+  btn.disabled = false;
+
+  if(error){
+    alert("Error creating code");
+    return;
+  }
+
   show();
   loadStats();
-}
-
-function show(){
-  document.getElementById("enrollCard").style.display="none";
-  document.getElementById("refCard").style.display="block";
-  document.getElementById("code").textContent = code;
-}
-
-function copy(){
-  navigator.clipboard.writeText(`https://www.onetasks.co.ke/${code}`);
-  alert("Copied!");
-}
-
-function share(){
-  const link = `https://www.onetasks.co.ke/${code}`;
-  navigator.share ? navigator.share({title:"OneTasks", url:link}) :
-  navigator.clipboard.writeText(link);
-}
-
-async function loadStats(){
-  const { data } = await supabase
-    .from("referrals")
-    .select("*")
-    .eq("referrer_id", userId);
-
-  document.getElementById("count").textContent = data?.length || 0;
-  document.getElementById("earnings").textContent =
-    "KSh " + ((data?.length || 0) * 100);
-}
-
-init();
+  }
 </script>
 
 </body>
