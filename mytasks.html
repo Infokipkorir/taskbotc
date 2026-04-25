@@ -266,9 +266,11 @@ const supabase = window.supabase.createClient(
   "sb_publishable_Pj9ocGkssu5Gh6qZXFnZQQ_LdghnZt9"
 );
 
-async function loadUserHeader() {
+// GLOBAL USER ID
+let userId = null;
 
-  // 1. Get auth user
+// ================= PROTECT PAGE =================
+async function protectPage() {
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
@@ -276,22 +278,29 @@ async function loadUserHeader() {
     return;
   }
 
-  // 2. Load profile from DB
-  let { data: profile, error } = await supabase
+  userId = user.id;
+
+  await loadUserHeader(user);
+  await loadStats();
+  await loadActivity();
+}
+
+// ================= HEADER =================
+async function loadUserHeader(user) {
+
+  let { data: profile } = await supabase
     .from("profiles")
     .select("*")
     .eq("id", user.id)
     .single();
 
-  // 3. Fallback if profile not found
-  if (error || !profile) {
+  if (!profile) {
     profile = {
       full_name: user.email.split("@")[0],
       email: user.email
     };
   }
 
-  // 4. Update UI safely
   document.getElementById("name").textContent =
     profile.full_name || "User";
 
@@ -304,23 +313,23 @@ async function loadUserHeader() {
       .toUpperCase();
 }
 
-// RUN ON PAGE LOAD
-loadUserHeader();
-
 // ================= STATS =================
-async function loadStats(){
+async function loadStats() {
 
-  const { data: tasks } = await supabase
+  const { data: tasks, error } = await supabase
     .from("tasks")
     .select("*")
     .eq("user_id", userId);
 
-  if(!tasks) return;
+  if (error || !tasks) {
+    console.log("Stats error:", error);
+    return;
+  }
 
   let total = tasks.length;
-  let approved = tasks.filter(t=>t.status==="approved").length;
-  let pending = tasks.filter(t=>t.status==="pending").length;
-  let earnings = approved * 50; // adjust per task reward
+  let approved = tasks.filter(t => t.status === "approved").length;
+  let pending = tasks.filter(t => t.status === "pending").length;
+  let earnings = approved * 50;
 
   document.getElementById("totalTasks").textContent = total;
   document.getElementById("approved").textContent = approved;
@@ -329,18 +338,23 @@ async function loadStats(){
 }
 
 // ================= ACTIVITY =================
-async function loadActivity(){
+async function loadActivity() {
 
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("tasks")
     .select("title,status,created_at")
     .eq("user_id", userId)
-    .order("created_at",{ascending:false})
+    .order("created_at", { ascending: false })
     .limit(5);
+
+  if (error) {
+    console.log("Activity error:", error);
+    return;
+  }
 
   let html = "";
 
-  (data || []).forEach(t=>{
+  (data || []).forEach(t => {
     html += `
       <div class="item">
         <div>
@@ -353,11 +367,12 @@ async function loadActivity(){
     `;
   });
 
-  document.getElementById("activity").innerHTML = html || "<div class='small'>No activity yet</div>";
+  document.getElementById("activity").innerHTML =
+    html || "<div class='small'>No activity yet</div>";
 }
 
-// START
-loadProfile();
+// ================= START APP =================
+protectPage();
 </script>
 
 </body>
