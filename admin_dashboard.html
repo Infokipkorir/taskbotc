@@ -1025,6 +1025,10 @@ const SUPABASE_URL = "https://lwnbfjjsstxkyexeojcl.supabase.co";
 const SUPABASE_KEY = "sb_publishable_Pj9ocGkssu5Gh6qZXFnZQQ_LdghnZt9";
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+  let currentTask = null;
+let selectedUser = null;
+let currentTaskFilter = "pending";
+  
 /* ============================================================
    HELPERS
    ============================================================ */
@@ -1177,32 +1181,33 @@ async function loadOverview() {
   loadActivity();
 }
 
-async function loadActivity() {
-  const el = document.getElementById("activityFeed");
-  try {
-    const { data: logs } = await db.from("admin_logs")
-      .select("*, admins(full_name)")
-      .order("created_at", { ascending: false }).limit(20);
+async function loadTaskReviews() {
+  const tbody = document.getElementById("tasksTable");
 
-    if (!logs?.length) {
-      el.innerHTML = `<div class="empty"><i class="bi bi-activity"></i><p>No activity yet.</p></div>`;
-      return;
-    }
+  tbody.innerHTML = `<tr><td colspan="6">Loading...</td></tr>`;
 
-    const colors = { login: "blue", approve: "green", reject: "red", ban: "red", unban: "green", default: "amber" };
-    el.innerHTML = logs.map(l => {
-      const color = Object.keys(colors).find(k => l.action?.toLowerCase().includes(k)) ? colors[Object.keys(colors).find(k => l.action?.toLowerCase().includes(k))] : "blue";
-      return `<div class="act-item">
-        <div class="act-dot ${color}"></div>
-        <div class="act-text"><strong>${l.admins?.full_name || "Admin"}</strong> — ${l.action}</div>
-        <div class="act-time">${ago(l.created_at)}</div>
-      </div>`;
-    }).join("");
-  } catch(e) {
-    el.innerHTML = `<div class="empty"><i class="bi bi-database-x"></i><p>No activity log table yet. Create <code>admin_logs</code> in Supabase.</p></div>`;
+  let query = db
+    .from("user_tasks")
+    .select(`
+      *,
+      users(full_name,email),
+      tasks(title, reward, type)
+    `)
+    .order("created_at", { ascending: false });
+
+  if (currentTaskFilter !== "all") {
+    query = query.eq("status", currentTaskFilter);
   }
-}
 
+  const { data, error } = await query;
+
+  if (error) {
+    tbody.innerHTML = `<tr><td colspan="6">Error loading tasks</td></tr>`;
+    return;
+  }
+
+  renderTasks(data || []);
+}
 /* ============================================================
    USERS
    ============================================================ */
@@ -1220,42 +1225,29 @@ async function loadUsers() {
   }
 }
 
-function renderUsers(users) {
-  const tbody = document.getElementById("usersTable");
-  if (!users.length) {
-    tbody.innerHTML = `<tr><td colspan="6"><div class="empty"><i class="bi bi-people"></i><p>No users found.</p></div></td></tr>`;
+function renderTasks(tasks) {
+  const tbody = document.getElementById("tasksTable");
+
+  if (!tasks.length) {
+    tbody.innerHTML = `<tr><td colspan="6">No tasks found</td></tr>`;
     return;
   }
-  tbody.innerHTML = users.map(u => {
-    const name   = u.full_name || u.email?.split("@")[0] || "Unknown";
-    const status = u.is_banned ? "banned" : "active";
-    return `<tr>
+
+  tbody.innerHTML = tasks.map(task => `
+    <tr>
+      <td>${task.tasks?.title || "Untitled"}</td>
+      <td>${task.users?.full_name || "User"}</td>
+      <td>${task.tasks?.type || "-"}</td>
+      <td>$${task.tasks?.reward || 0}</td>
+      <td><span class="chip ${task.status}">${task.status}</span></td>
       <td>
-        <div style="display:flex;align-items:center;gap:8px;">
-          <div class="td-avatar">${ini(name)}</div>
-          <div>
-            <div class="td-name">${name}</div>
-            <div class="td-sub">${fmtDate(u.created_at)}</div>
-          </div>
-        </div>
+        <button class="btn btn-sm btn-primary"
+          onclick='openReview(${JSON.stringify(task)})'>
+          Review
+        </button>
       </td>
-      <td><div class="td-sub" style="font-size:12px;">${u.email || "—"}</div></td>
-      <td class="hide-sm"><strong style="color:var(--green)">${fmt(u.balance)}</strong></td>
-      <td class="hide-sm">${u.total_tasks || 0}</td>
-      <td><span class="chip ${status}">${status}</span></td>
-      <td>
-        <div style="display:flex;gap:5px;">
-          <button class="btn btn-ghost btn-sm btn-icon" title="Edit" onclick="openUserModal('${u.id}')"><i class="bi bi-pencil"></i></button>
-          <button class="btn ${u.is_banned ? 'btn-success' : 'btn-danger'} btn-sm btn-icon" title="${u.is_banned ? 'Unban' : 'Ban'}" onclick="quickBanUser('${u.id}', ${!u.is_banned})">
-            <i class="bi bi-${u.is_banned ? 'unlock' : 'slash-circle'}"></i>
-          </button>
-          <button class="btn btn-amber btn-sm btn-icon" title="Reset Password" onclick="resetUserPassword('${u.email}')">
-            <i class="bi bi-key"></i>
-          </button>
-        </div>
-      </td>
-    </tr>`;
-  }).join("");
+    </tr>
+  `).join("");
 }
 
 function filterUsers() {
@@ -1391,11 +1383,21 @@ async function loadUserActivity(uid) {
 }
 
 /* Switch tabs in user modal */
-function switchUserTab(tab, btn) {
-  document.querySelectorAll("#userModal .tab-btn").forEach(b => b.classList.remove("active"));
-  document.querySelectorAll("#userModal .tab-pane").forEach(p => p.classList.remove("active"));
-  if(btn) btn.classList.add("active");
-  document.getElementById("userTab-" + tab).classList.add("active");
+function openReview(task) {
+  currentTask = task;
+
+  document.getElementById("reviewTaskTitle").innerText =
+    task.tasks?.title || "Task";
+
+  document.getElementById("reviewTaskUser").innerText =
+    task.users?.full_name || "User";
+
+  document.getElementById("reviewProofLink").href =
+    task.proof || "#";
+
+  document.getElementById("reviewNotes").value = "";
+
+  openModal("taskReviewModal");
 }
 
 /* ============================================================
