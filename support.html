@@ -1319,141 +1319,135 @@ async function submitTicket() {
    MY TICKETS
 ══════════════════════════════════════════ */
 async function loadMyTickets() {
-  if (!currentUser) {
-    document.getElementById('myTicketsList').innerHTML =
-      '<div style="text-align:center;padding:28px;color:var(--muted);font-size:13px;">Sign in to view your tickets.</div>';
-    return;
-  }
-  const { data } = await db.from('support_tickets').select('*')
-    .eq('user_id', currentUser.id).order('created_at', { ascending: false }).limit(30)
-    .catch(() => ({ data: null }));
   const el = document.getElementById('myTicketsList');
-  if (!data?.length) {
-    el.innerHTML = `<div style="text-align:center;padding:36px 20px;color:var(--muted);">
-      <i class="bi bi-ticket" style="font-size:32px;display:block;margin-bottom:10px;opacity:.25;"></i>
-      <p style="font-size:13px;">No tickets yet.</p></div>`;
+
+  if (!currentUser) {
+    el.innerHTML = '<div style="text-align:center;padding:28px;color:var(--muted);font-size:13px;">Sign in to view your tickets.</div>';
     return;
   }
-  el.innerHTML = data.map(t => {
-    const sc = t.status === 'resolved' ? 'resolved' : t.status === 'closed' ? 'closed' : 'open';
-    const isUnread = unreadTicketIds.has(t.id);
-    return `
+
+  try {
+    const { data, error } = await db
+      .from('support_tickets')
+      .select('*')
+      .eq('user_id', currentUser.id)
+      .order('created_at', { ascending: false })
+      .limit(30);
+
+    if (error) throw error;
+
+    if (!data || data.length === 0) {
+      el.innerHTML = `<div style="text-align:center;padding:36px 20px;color:var(--muted);">
+        <i class="bi bi-ticket" style="font-size:32px;display:block;margin-bottom:10px;opacity:.25;"></i>
+        <p style="font-size:13px;">No tickets yet.</p></div>`;
+      return;
+    }
+
+    el.innerHTML = data.map(t => {
+      const sc = t.status === 'resolved' ? 'resolved' : t.status === 'closed' ? 'closed' : 'open';
+      const isUnread = unreadTicketIds.has(t.id);
+
+      return `
       <div class="my-ticket ${isUnread ? 'has-unread' : ''}" id="mt-${t.id}">
         <div class="my-ticket-head">
-          <div style="flex:1;min-width:0">
+          <div style="flex:1">
             <div class="my-ticket-subject">${t.subject || 'Support Ticket'}</div>
             <div class="my-ticket-meta">
-              <i class="bi bi-tag" style="font-size:10px"></i>
               <span>${t.category || 'general'}</span> · <span>${timeAgo(t.created_at)}</span>
-              ${isUnread ? '<span style="color:var(--blue);font-weight:700">· New reply ↓</span>' : ''}
             </div>
           </div>
           <span class="chip ${sc}">${t.status || 'open'}</span>
         </div>
+
         <div class="ticket-chat-wrap" id="tc-${t.id}">
-          <div class="tc-msgs" id="tcm-${t.id}">
-            <div class="loading-row" style="padding:12px 0"><i class="bi bi-arrow-repeat spin-icon"></i></div>
-          </div>
+          <div class="tc-msgs" id="tcm-${t.id}"></div>
+
           ${t.status !== 'closed' ? `
           <div class="tc-reply-row">
-            <input type="text" id="tr-${t.id}" placeholder="Reply to this ticket…"
-              onkeydown="if(event.key==='Enter')replyTicket('${t.id}')">
-            <button class="tc-send-btn" onclick="replyTicket('${t.id}')">
-              <i class="bi bi-send-fill"></i> Send
-            </button>
-          </div>` : `<div style="font-size:12px;color:var(--muted);margin-top:8px;text-align:center;padding:8px">This ticket is closed.</div>`}
+            <input type="text" id="tr-${t.id}" placeholder="Reply..."
+              onkeydown="if(event.key==='Enter') replyTicket('${t.id}')">
+            <button onclick="replyTicket('${t.id}')">Send</button>
+          </div>` : `<div style="text-align:center;">Ticket closed</div>`}
         </div>
       </div>`;
-  }).join('');
-  data.forEach(t => {
-    const card = document.getElementById('mt-' + t.id);
-    if (card) {
-      card.addEventListener('click', e => {
-        if (e.target.closest('input') || e.target.closest('button')) return;
-        toggleTicketChat(t.id);
-      });
-    }
-  });
-}
+    }).join('');
 
-async function toggleTicketChat(id) {
-  const wrap   = document.getElementById('tc-' + id);
-  const isOpen = wrap.classList.contains('open');
-  document.querySelectorAll('.ticket-chat-wrap.open').forEach(x => x.classList.remove('open'));
-  if (!isOpen) {
-    wrap.classList.add('open');
-    await loadTicketMessages(id);
-    unreadTicketIds.delete(id);
-    document.getElementById('mt-' + id)?.classList.remove('has-unread');
-    updateUnreadBadge();
+  } catch (err) {
+    console.error("Load tickets error:", err);
+    el.innerHTML = "❌ Failed to load tickets";
   }
-}
+  }
 
 async function loadTicketMessages(id) {
   const el = document.getElementById('tcm-' + id);
-  let data = null;
+
   try {
-    const res = await db.from('support_messages').select('*').eq('ticket_id', id)
+    const { data, error } = await db
+      .from('support_messages')
+      .select('*')
+      .eq('ticket_id', id)
       .order('created_at', { ascending: true });
-    data = res.data;
-  } catch(e) { data = null; }
-  if (!data?.length) {
-    el.innerHTML = '<div style="font-size:12px;color:var(--muted);text-align:center;padding:10px">No messages yet.</div>';
-    return;
+
+    if (error) throw error;
+
+    if (!data || data.length === 0) {
+      el.innerHTML = '<div style="text-align:center;">No messages yet</div>';
+      return;
+    }
+
+    el.innerHTML = data.map(m => {
+      const role = m.sender_type === 'user' ? 'user' : 'admin';
+
+      return `
+        <div class="tc-msg ${role}">
+          <div class="tc-msg-bubble">${m.message}</div>
+          <div class="tc-msg-time">${timeAgo(m.created_at)}</div>
+        </div>`;
+    }).join('');
+
+    el.scrollTop = el.scrollHeight;
+
+  } catch (err) {
+    console.error("Load messages error:", err);
+    el.innerHTML = "❌ Failed to load messages";
   }
-  el.innerHTML = data.map(m => {
-    const role  = m.sender_type === 'user' ? 'user' : m.sender_type === 'admin' ? 'admin' : 'ai';
-    const label = role === 'admin'
-      ? `<div class="tc-msg-label"><i class="bi bi-shield-fill" style="color:var(--green)"></i> ${m.sender_name || 'Support Agent'}</div>`
-      : role === 'ai'
-      ? `<div class="tc-msg-label"><i class="bi bi-headset" style="color:var(--blue)"></i> ${m.sender_name || 'Support'}</div>` : '';
-    return `<div class="tc-msg ${role}">${label}
-      <div class="tc-msg-bubble">${m.message}</div>
-      <div class="tc-msg-time">${timeAgo(m.created_at)}</div>
-    </div>`;
-  }).join('');
-  el.scrollTop = el.scrollHeight;
 }
 
 async function replyTicket(ticketId) {
-  if (!currentUser) { toast('Please sign in', 'err'); return; }
+  if (!currentUser) {
+    toast('Please sign in', 'err');
+    return;
+  }
+
   const input = document.getElementById('tr-' + ticketId);
-  const btn   = document.querySelector(`#tc-${ticketId} .tc-send-btn`);
-  const text  = input?.value.trim();
+  const text = input?.value.trim();
+
   if (!text) return;
+
   input.value = '';
-  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="bi bi-hourglass-split"></i>'; }
-  const msgsEl = document.getElementById('tcm-' + ticketId);
-  if (msgsEl) {
-    const bubble = document.createElement('div');
-    bubble.className = 'tc-msg user';
-    bubble.innerHTML = `<div class="tc-msg-bubble">${text}</div><div class="tc-msg-time">Sending…</div>`;
-    msgsEl.appendChild(bubble);
-    msgsEl.scrollTop = msgsEl.scrollHeight;
-  }
-  const { error } = await db.from('support_messages').insert([{
-    ticket_id: ticketId, message: text, sender_type: 'user',
-    sender_id: currentUser.id,
-    sender_name: currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0] || 'User',
-    created_at: new Date().toISOString()
-  }]).catch(e => ({ error: e }));
-  if (error) {
-    toast('❌ Failed to send.', 'err');
-    if (input) input.value = text;
-  } else {
+
+  try {
+    const { error } = await db
+      .from('support_messages')
+      .insert([{
+        ticket_id: ticketId,
+        message: text,
+        sender_type: 'user',
+        sender_id: currentUser.id,
+        sender_name: currentUser.email,
+        created_at: new Date().toISOString()
+      }]);
+
+    if (error) throw error;
+
+    // reload messages
     await loadTicketMessages(ticketId);
-    // Auto-reply
-    const autoReply = getAutoResponse(text);
-    setTimeout(async () => {
-      await db.from('support_messages').insert([{
-        ticket_id: ticketId, message: autoReply,
-        sender_type: 'ai', sender_name: 'Support',
-        created_at: new Date(Date.now() + 1500).toISOString()
-      }]).catch(() => {});
-      await loadTicketMessages(ticketId);
-    }, 2000);
+
+  } catch (err) {
+    console.error("Send message error:", err);
+    toast('❌ Failed to send', 'err');
+    input.value = text;
   }
-  if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-send-fill"></i> Send'; }
 }
 
 /* ══════════════════════════════════════════
