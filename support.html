@@ -1152,24 +1152,54 @@ async function loadAITrainingData() {
    FAQs — import from DB
 ══════════════════════════════════════════ */
 async function loadFAQs() {
-  // 1. Try faq_items table
-  const { data: faqRows } = await db.from('faq_items').select('*').eq('is_active', true)
-    .order('order_index', { ascending: true }).catch(() => ({ data: null }));
-  if (faqRows?.length) {
-    allFAQs = faqRows;
-    document.getElementById('faqCount').textContent = faqRows.length + ' answers';
-    renderFAQCategories(); renderFAQs(allFAQs); return;
+  try {
+    // 1. Try faq_items table
+    const { data: faqRows, error: faqError } = await db
+      .from('faq_items')
+      .select('id, question, answer, category, order_index, is_active')
+      .eq('is_active', true)
+      .order('order_index', { ascending: true });
+
+    if (!faqError && faqRows && faqRows.length > 0) {
+      allFAQs = faqRows.map(f => ({
+        id: f.id,
+        question: f.question,
+        answer: f.answer,
+        category: f.category || 'General'
+      }));
+
+      document.getElementById('faqCount').textContent = `${allFAQs.length} answers`;
+      renderFAQCategories();
+      renderFAQs(allFAQs);
+      return;
+    }
+
+    // 2. Fallback to ai_training_pairs
+    const { data: pairs, error: pairError } = await db
+      .from('ai_training_pairs')
+      .select('id, question, answer, keywords, category, created_at')
+      .order('created_at', { ascending: false });
+
+    if (!pairError && pairs && pairs.length > 0) {
+      allFAQs = pairs.map(p => ({
+        id: p.id,
+        question: p.question,
+        answer: p.answer,
+        category: p.category || 'General',
+        _fromAI: true
+      }));
+
+      document.getElementById('faqCount').textContent = `${allFAQs.length} answers`;
+      renderFAQCategories();
+      renderFAQs(allFAQs);
+      return;
+    }
+
+  } catch (err) {
+    console.error('FAQ Load Error:', err);
   }
-  // 2. Fallback to ai_training_pairs
-  const { data: pairs } = await db.from('ai_training_pairs')
-    .select('id,question,answer,keywords,category,created_at')
-    .order('created_at', { ascending: false }).catch(() => ({ data: null }));
-  if (pairs?.length) {
-    allFAQs = pairs.map(p => ({ id:p.id, question:p.question, answer:p.answer, category:p.category||'General', _fromAI:true }));
-    document.getElementById('faqCount').textContent = allFAQs.length + ' answers';
-    renderFAQCategories(); renderFAQs(allFAQs); return;
-  }
-  // 3. Static fallback
+
+  // 3. Static fallback (unchanged)
   allFAQs = [
     { id:1, question:"How do I withdraw my earnings?", answer:"Go to Profile → Payment Settings, add your payment method, then submit a withdrawal. Minimum is $5.00. Processing takes 1–3 business days.", category:"Payments" },
     { id:2, question:"Why was my task submission rejected?", answer:"Submissions are rejected if proof is unclear, blurry, or task requirements weren't fully met. Review the instructions and resubmit with clear evidence.", category:"Tasks" },
@@ -1180,53 +1210,10 @@ async function loadFAQs() {
     { id:7, question:"How does the referral program work?", answer:"Share your referral link. When someone signs up and completes their first task, you earn a referral bonus automatically.", category:"Earnings" },
     { id:8, question:"My account was banned — what can I do?", answer:"Bans occur due to policy violations or suspicious activity. Open a support ticket with your account email for a review.", category:"Account" },
   ];
-  document.getElementById('faqCount').textContent = allFAQs.length + ' answers';
-  renderFAQCategories(); renderFAQs(allFAQs);
-}
 
-function renderFAQCategories() {
-  const cats = ['All', ...new Set(allFAQs.map(f => f.category || 'General'))];
-  document.getElementById('faqCats').innerHTML = cats.map((c, i) =>
-    `<button class="faq-cat-btn ${i===0?'active':''}" onclick="filterFAQCat('${c}',this)">${c}</button>`
-  ).join('');
-}
-function filterFAQCat(cat, btn) {
-  document.querySelectorAll('.faq-cat-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  document.getElementById('faqSearch').value = '';
-  renderFAQs(cat === 'All' ? allFAQs : allFAQs.filter(f => (f.category||'General') === cat));
-}
-function searchFAQ(q) {
-  const filtered = q
-    ? allFAQs.filter(f => f.question.toLowerCase().includes(q.toLowerCase()) || f.answer.toLowerCase().includes(q.toLowerCase()))
-    : allFAQs;
-  document.querySelectorAll('.faq-cat-btn').forEach(b => b.classList.remove('active'));
-  document.querySelector('.faq-cat-btn')?.classList.add('active');
-  renderFAQs(filtered);
-}
-function renderFAQs(list) {
-  const el = document.getElementById('faqList');
-  if (!list.length) {
-    el.innerHTML = `<div class="faq-empty"><i class="bi bi-search"></i><p>No results found.</p><button onclick="switchTab('chat',document.getElementById('tabChat'))">Ask Support instead →</button></div>`;
-    return;
-  }
-  el.innerHTML = list.map(f => `
-    <div class="faq-item" id="faq-${f.id}">
-      <div class="faq-q" onclick="toggleFAQ('${f.id}')">
-        <span>${f.question}</span>
-        <div class="faq-q-icon"><i class="bi bi-chevron-down"></i></div>
-      </div>
-      <div class="faq-a">
-        ${f.answer}
-        ${f._fromAI ? `<div style="margin-top:10px"><span class="faq-source"><i class="bi bi-headset"></i> Support knowledge base</span></div>` : ''}
-      </div>
-    </div>`).join('');
-}
-function toggleFAQ(id) {
-  const item = document.getElementById('faq-' + id);
-  const isOpen = item.classList.contains('open');
-  document.querySelectorAll('.faq-item.open').forEach(x => x.classList.remove('open'));
-  if (!isOpen) item.classList.add('open');
+  document.getElementById('faqCount').textContent = `${allFAQs.length} answers`;
+  renderFAQCategories();
+  renderFAQs(allFAQs);
 }
 
 /* ══════════════════════════════════════════
