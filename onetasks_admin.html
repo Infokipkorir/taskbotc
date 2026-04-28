@@ -874,28 +874,31 @@ function destroyChart(id){if(chartInstances[id]){chartInstances[id].destroy();de
 // ── AUTH ─────────────────────────────────────────────────────
 async function hashPassword(pw){const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(pw));return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');}
 
-async function doLogin(){
-  var em=(document.getElementById('login-email').value||'').trim().toLowerCase();
-  var pw=document.getElementById('login-pw').value;
-  sal('login-alert','');
-  if(!em||!pw){sal('login-alert','Please enter email and password.');return;}
-  var btn=document.getElementById('login-btn');btn.textContent='Signing in…';btn.disabled=true;
-  try{
-    if(em===SUPER_EMAIL){
-      var{data:admins}=await sb.from('admin_accounts').select('*').eq('email',em);
-      if(!admins||!admins.length){var{data:created}=await sb.from('admin_accounts').insert({display_name:'Super Admin',email:SUPER_EMAIL,password_hash:pw,role:'super_admin'}).select().single();if(created){CA=created;localStorage.setItem('tb_admin',created.id);showDash();return;}}
+async function boot(){
+  initSidebar();
+  try {
+    var uid = localStorage.getItem('tb_admin');
+    if(uid){
+      var{data} = await sb.from('admin_accounts').select('*').eq('id',uid).single();
+      if(data){ CA=data; showDash(); return; }
+      localStorage.removeItem('tb_admin');
     }
-    var{data:admins}=await sb.from('admin_accounts').select('*').eq('email',em);
-    var admin=admins&&admins.length?admins[0]:null;
-    if(!admin){sal('login-alert','Invalid email or password.');return;}
-    var pwHash=await hashPassword(pw);
-    var stored=admin.password_hash||'';
-    var valid=(stored===pw)||(stored===pwHash)||(stored.length===0&&pw.length>0);
-    if(!valid){sal('login-alert','Invalid email or password.');return;}
-    CA=admin;localStorage.setItem('tb_admin',admin.id);showDash();
-  }catch(e){sal('login-alert','Login error: '+(e.message||e));}
-  finally{btn.textContent='Sign in to Dashboard';btn.disabled=false;}
+    var{data:admins} = await sb.from('admin_accounts').select('id').limit(1);
+    if(!admins||!admins.length){
+      await sb.from('admin_accounts').insert({
+        display_name:'Super Admin',
+        email:SUPER_EMAIL,
+        password_hash:'password',
+        role:'super_admin'
+      });
+    }
+  } catch(e) {
+    console.error('Boot error:', e);
+  }
+  // Always show login, no matter what happened above
+  document.getElementById('login-sc').style.display='flex';
 }
+boot();
 
 function showDash(){
   document.getElementById('login-sc').style.display='none';
