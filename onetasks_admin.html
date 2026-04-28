@@ -1456,7 +1456,7 @@ async function createTicketForUser(){
   const { data: u } = await sb.from('users').select('id,email').eq('email', em).single();
   if(!u){ sal('ct-alert','User not found.'); return; }
 
-  // use sb not db
+  // use sb 
   // : correct field names (u.id, em, cat, msg, priority)
   //  is_ai_handled explicit, status set
   const { data: ticket, error } = await sb.from('support_tickets').insert([{
@@ -1588,16 +1588,6 @@ async function createTicketForUser(){
   setTimeout(()=>openTicket(ticket.id),300);
 }
 
-  // adminReply() — add loadOverview() to keep stats in sync
-openTicket(cTk.id); loadTickets(); loadOverview();
-
-// openTicket() — gate AI suggestion on 'closed' status too
-if(lastUser && cTk.status !== 'resolved' && cTk.status !== 'closed'){
-  generateAISuggestion(lastUser.message, msgs);
-}
-
-// renderTickets() — stable fallback instead of genTicketNum()
-t.ticket_number || ('#' + t.id.slice(0, 8).toUpperCase())
 
 // ── FAQ ──────────────────────────────────────────────────────
 async function loadFAQs(){
