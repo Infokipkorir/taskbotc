@@ -1127,20 +1127,34 @@ function fSubs(f,btn){subsFilter=f;document.querySelectorAll('#pg-submissions .f
 var allUsersCache = [];
 var allSubCounts = {};
 var allWdCounts = {};
-var usersLoadPromise = null;
+var usersLoading = false;
 
-async function loadUsers(){
-  // if already loading, reuse the promise
-  if (usersLoadPromise) return usersLoadPromise;
+async function fetchAllRows(table, columns) {
+  const PAGE = 1000;
+  let allRows = [], from = 0, done = false;
+  while (!done) {
+    var { data, error } = await sb.from(table).select(columns).range(from, from + PAGE - 1);
+    if (error) { console.error('fetchAllRows error on', table, error); break; }
+    allRows = allRows.concat(data || []);
+    done = !data || data.length < PAGE;
+    from += PAGE;
+  }
+  return allRows;
+}
 
-  usersLoadPromise = (async () => {
-    var { data: u } = await sb.from('users').select('*').order('created_at', { ascending: false });
-    allUsersCache = u || [];
+async function loadUsers() {
+  if (usersLoading) return;
+  usersLoading = true;
 
-    var [{ data: subs }, { data: wds }] = await Promise.all([
-      sb.from('task_submissions').select('user_id,status'),
-      sb.from('withdrawals').select('user_id,status')
+  try {
+    // Paginate all three tables to bypass Supabase's 1000-row cap
+    var [u, subs, wds] = await Promise.all([
+      fetchAllRows('users', '*'),
+      fetchAllRows('task_submissions', 'user_id,status'),
+      fetchAllRows('withdrawals', 'user_id,status')
     ]);
+
+    allUsersCache = u || [];
 
     var subC = {}, wdC = {};
     (subs || []).forEach(s => {
@@ -1148,7 +1162,6 @@ async function loadUsers(){
       subC[s.user_id].total++;
       if (s.status === 'approved') subC[s.user_id].approved++;
     });
-
     (wds || []).forEach(w => {
       if (!wdC[w.user_id]) wdC[w.user_id] = { total: 0, completed: 0 };
       wdC[w.user_id].total++;
@@ -1160,34 +1173,31 @@ async function loadUsers(){
 
     renderUsers(allUsersCache, allSubCounts, allWdCounts);
     populateUserSuggestions();
-  })();
 
-  try { await usersLoadPromise; }
-  finally { usersLoadPromise = null; }
+  } catch (err) {
+    console.error('loadUsers failed:', err);
+  } finally {
+    usersLoading = false;
+  }
 }
 
-async function filterUsers(q){
+function filterUsers(q) {
   q = (q || '').toLowerCase().trim();
 
-  // If counts/users not loaded yet, load first then filter
-  if (!allUsersCache?.length || usersLoadPromise) {
-    await loadUsers();
-  }
-
-  if (!q) { 
+  if (!q) {
     renderUsers(allUsersCache, allSubCounts, allWdCounts);
     return;
   }
 
   var filtered = allUsersCache.filter(u =>
-    (u.email || '').toLowerCase().includes(q) ||
+    (u.email    || '').toLowerCase().includes(q) ||
     (u.username || '').toLowerCase().includes(q) ||
-    (u.country || '').toLowerCase().includes(q) ||
+    (u.country  || '').toLowerCase().includes(q) ||
     (u.location || '').toLowerCase().includes(q)
   );
 
   renderUsers(filtered, allSubCounts, allWdCounts);
-  }
+}
 
 // ── USER PROFILE ─────────────────────────────────────────────
 async function openUserProfile(uid){
