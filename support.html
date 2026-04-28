@@ -764,75 +764,43 @@ function confirmEndChat() {
 ══════════════════════════════════════════ */
 
 // Response database — keyed by keyword patterns
-const AUTO_RESPONSES = [
-  {
-    keys: ['withdraw','withdrawal','cash out','cashout','payout','pay out'],
-    reply: "To withdraw your earnings:\n1. Go to <strong>Profile → Payment Settings</strong>\n2. Add your payment method (bank, mobile money, etc.)\n3. Submit a withdrawal request from the Payments section\n\nMinimum withdrawal is <strong>$5.00</strong>. Processing takes 1–3 business days. 💰"
-  },
-  {
-    keys: ['reject','rejected','declined','task fail','submission fail','proof reject'],
-    reply: "Task submissions are rejected when:\n• The proof doesn't clearly show completion\n• Screenshot is blurry or cut off\n• Task requirements weren't fully met\n\n✅ <strong>Tip:</strong> Take a clear, full-screen screenshot and double-check the task instructions before resubmitting."
-  },
-  {
-    keys: ['verify','verification','account verif','kyc'],
-    reply: "Account verification is automatic after completing your profile with:\n• Full name\n• Country\n• Date of birth\n\nAlso check your inbox for an <strong>email verification link</strong> if you haven't confirmed your email yet. 📧"
-  },
-  {
-    keys: ['minimum','min payout','min withdraw','$5','threshold'],
-    reply: "The minimum payout is <strong>$5.00</strong>. Your earnings will accumulate in your balance until you reach this threshold, then you can submit a withdrawal request. ✅"
-  },
-  {
-    keys: ['approval','approve','how long','pending task','review time','48 hour','24 hour'],
-    reply: "Task reviews typically take <strong>24–48 hours</strong>. Tasks with automatic verification are approved instantly. You'll get a notification 🔔 as soon as your status changes — keep an eye on the bell icon!"
-  },
-  {
-    keys: ['country','region','available','location','where'],
-    reply: "OneTasks is available in <strong>many countries worldwide</strong>! Some tasks may be region-restricted. The tasks shown on your dashboard are already filtered to your location, so everything you see is available to you. 🌍"
-  },
-  {
-    keys: ['referral','refer','invite','bonus','earn more'],
-    reply: "The referral program is simple:\n1. Share your unique referral code/link from the <strong>Referrals</strong> section\n2. When someone signs up using your link <em>and</em> completes their first task — you earn a <strong>referral bonus</strong> automatically!\n\nNo limit to how many people you can refer. 🎉"
-  },
-  {
-    keys: ['ban','banned','suspended','restricted','account block'],
-    reply: "Account bans occur due to:\n• Policy violations\n• Fraudulent submissions\n• Suspicious activity\n\nIf you believe this is a mistake, please <strong>open a support ticket</strong> with your account email and our team will review it within 2 business days. 🛡️"
-  },
-  {
-    keys: ['payment','pay','money','earning','balance','wallet'],
-    reply: "Your earnings are reflected in your dashboard <strong>balance</strong> after task approval. You can withdraw once you reach $5.00 minimum.\n\nIf there's a discrepancy in your balance, please open a <strong>support ticket</strong> with the task ID and expected amount. 💳"
-  },
-  {
-    keys: ['task','browse task','find task','new task','available task'],
-    reply: "You can browse available tasks at <strong>Tasks → Browse Tasks</strong>. New tasks are added regularly!\n\nTips for success:\n• Read instructions carefully before starting\n• Complete tasks in one session\n• Submit clear proof screenshots 📸"
-  },
-  {
-    keys: ['password','reset','forgot','login','sign in','sign up','register'],
-    reply: "For password issues:\n• Use the <strong>Forgot Password</strong> link on the login page\n• A reset email will be sent to your registered address\n\nIf you're still having trouble accessing your account, open a support ticket and our team will help you. 🔑"
-  },
-  {
-    keys: ['profile','account','settings','edit'],
-    reply: "You can update your profile at <strong>Profile → Edit Details</strong>. Make sure your name and country are accurate — this affects task availability and payment processing. ✍️"
-  },
-  {
-    keys: ['ticket','contact','human','agent','support team','speak to'],
-    reply: "Need to speak with a human? Head over to the <strong>My Tickets</strong> tab to open a support ticket. Our support team typically responds within <strong>24 hours</strong> on business days. 👋"
-  },
-  {
-    keys: ['hi','hello','hey','good morning','good afternoon','good evening','hiya'],
-    reply: "Hey there! 👋 I'm the OneTasks Support assistant. I can help with questions about <strong>tasks, payments, your account</strong>, and more. What can I help you with today?"
-  },
-  {
-    keys: ['thank','thanks','thx','appreciate','helpful'],
-    reply: "You're very welcome! 😊 Happy to help. Is there anything else you'd like to know? If you need further assistance, don't hesitate to open a support ticket."
-  },
-];
 
-const FALLBACK_RESPONSES = [
-  "I'm not sure I have a specific answer for that. Could you give me a bit more detail? Alternatively, you can open a **support ticket** in the My Tickets tab and our human team will help you within 24 hours. 🙏",
-  "Hmm, that one's a bit outside my knowledge! For specific account issues, please open a **support ticket** and our team will look into it for you. 💬",
-  "I want to make sure you get the right help! Try rephrasing your question, or head to **My Tickets** to connect with our support team directly. 🤝",
-  "That's a great question — let me point you in the right direction. For account-specific issues, the best path is a **support ticket** so our team can access your details. 📋"
-];
+    function getAutoResponse(userMsg) {
+  const msg = (userMsg ?? '').toString().toLowerCase();
+
+  const ai = Array.isArray(window.aiTrainingData) ? window.aiTrainingData : [];
+  const faqs = Array.isArray(window.allFAQs) ? window.allFAQs : [];
+
+  // 1. Check FAQ/training data first (live from DB)
+  const allKnowledge = [...ai, ...faqs.filter(f => !f || !f._fromAI)];
+
+  for (const item of allKnowledge) {
+    const q = (item?.question || '').toLowerCase();
+    const keys = (item?.keywords || '').toLowerCase().split(/[\s,]+/).filter(Boolean);
+
+    const words = msg.split(/\s+/);
+
+    const kwMatch = keys.some(k => k.length > 2 && msg.includes(k));
+    const qMatch  = words.some(w => w.length > 3 && q.includes(w));
+
+    if (kwMatch || qMatch) return item?.answer;
+  }
+
+  // 2. Static pattern matching
+  for (const rule of AUTO_RESPONSES) {
+    if (rule.keys.some(k => msg.includes(k))) return rule.reply;
+  }
+
+  // 3. FAQ question match
+  for (const faq of faqs) {
+    const q = (faq?.question || '').toLowerCase();
+    const msgWords = msg.split(/\s+/).filter(w => w.length > 4);
+    if (msgWords.some(w => q.includes(w))) return faq?.answer;
+  }
+
+  // 4 Fallback
+  return FALLBACK_RESPONSES[Math.floor(Math.random() * FALLBACK_RESPONSES.length)];
+}
 
 // Simulate variable typing delay based on response length
 function typingDelay(text) {
