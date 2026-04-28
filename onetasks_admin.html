@@ -1104,19 +1104,53 @@ async function loadTasks(){
 }
 
 // ── SUBMISSIONS ──────────────────────────────────────────────
-async function loadSubs(){
-  var { data: s, error } = await sb
-    .from('task_submissions')
-    .select('*,tasks(id,title,reward),users(id,email,display_name,phone)')
-    .order('submitted_at', { ascending: false, nullsFirst: false });
+async function loadSubs() {
+  // Try submitted_at first, fall back to started_at, then created_at
+  const ORDER_COLS = ['submitted_at', 'started_at', 'created_at'];
+  let s = null;
 
-  if (error) {
-    var r2 = await sb
+  for (const col of ORDER_COLS) {
+    const { data, error } = await sb
       .from('task_submissions')
-      .select('*,tasks(id,title,reward),users(id,email,display_name,phone)')
-      .order('started_at', { ascending: false });
+      .select(`
+        *,
+        tasks:task_id (
+          id,
+          title,
+          reward
+        ),
+        users:user_id (
+          id,
+          email,
+          display_name,
+          phone
+        )
+      `)
+      .order(col, { ascending: false, nullsFirst: false });
 
-    s = r2.data;
+    if (!error) { s = data; break; }
+    console.warn(`loadSubs: order by "${col}" failed:`, error.message);
+  }
+
+  // If joins returned null tasks, fetch tasks separately and merge
+  if (s && s.some(sub => !sub.tasks)) {
+    console.warn('loadSubs: tasks join returned null for some rows — fetching tasks separately');
+    const taskIds = [...new Set(s.map(sub => sub.task_id).filter(Boolean))];
+
+    if (taskIds.length) {
+      const { data: taskRows } = await sb
+        .from('tasks')
+        .select('id, title, reward')
+        .in('id', taskIds);
+
+      const taskMap = {};
+      (taskRows || []).forEach(t => { taskMap[t.id] = t; });
+
+      s = s.map(sub => ({
+        ...sub,
+        tasks: sub.tasks || taskMap[sub.task_id] || null
+      }));
+    }
   }
 
   allSubs = s || [];
@@ -1125,47 +1159,127 @@ async function loadSubs(){
   renderSubs();
 }
 // ── USERS ────────────────────────────────────────────────────
-var allSubCounts={},allWdCounts={};
-async function loadUsers(){
-  var{data:u}=await sb.from('users').select('*').order('created_at',{ascending:false});
-  allUsersCache=u||[];
-  var{data:subs}=await sb.from('task_submissions').select('user_id,status');
-  var{data:wds}=await sb.from('withdrawals').select('user_id,status');
-  var subC={},wdC={};
-  (subs||[]).forEach(s=>{if(!subC[s.user_id])subC[s.user_id]={total:0,approved:0};subC[s.user_id].total++;if(s.status==='approved')subC[s.user_id].approved++;});
-  (wds||[]).forEach(w=>{if(!wdC[w.user_id])wdC[w.user_id]={total:0,completed:0};wdC[w.user_id].total++;if(w.status==='completed')wdC[w.user_id].completed++;});
-  allSubCounts=subC;allWdCounts=wdC;
-  renderUsers(allUsersCache,allSubCounts,allWdCounts);
-  populateUserSuggestions();
+var allUsersCache = [];
+var allSubCounts = {};
+var allWdCounts = {};
+var usersLoading = false;
+
+async function fetchAllRows(table, columns, orderCol) {
+  const PAGE = 1000;
+  let allRows = [], from = 0;
+  while (true) {
+    let q = sb.from(table).select(columns).range(from, from + PAGE - 1);
+    if (orderCol) q = q.order(orderCol, { ascending: false, nullsFirst: false });
+    var { data, error } = await q;
+    if (error) { console.error('fetchAllRows [' + table + ']:', error.message); break; }
+    allRows = allRows.concat(data || []);
+    if (!data || data.length < PAGE) break;
+    from += PAGE;
+  }
+  return allRows;
 }
-function renderUsers(users,subC,wdC){
-  var tb=document.getElementById('u-tbody');
-  if(!(users||[]).length){tb.innerHTML='<tr><td colspan="9"><div class="empty">No users.</div></td></tr>';return;}
-  if(!subC){subC={};wdC={};}
-  tb.innerHTML=(users||[]).map(r=>{
-    var sc=subC[r.id]||{total:0,approved:0};var wc=wdC[r.id]||{total:0,completed:0};
-    var banned=r.is_banned||r.banned||false;
-    var country=r.country||r.location||'—';
-    return`<tr>
-      <td><strong style="font-size:12px">${r.email||'—'}</strong><div style="font-size:10px;color:var(--mu)">@${r.username||'—'}</div></td>
+
+async function loadUsers() {
+  if (usersLoading) return;
+  usersLoading = true;
+
+  var tb = document.getElementById('u-tbody');
+  if (tb) tb.innerHTML = '<tr><td colspan="9"><div class="ldr">Loading users…</div></td></tr>';
+
+  try {
+    // Fetch all rows from all three tables with pagination
+    var [u, subs, wds] = await Promise.all([
+      fetchAllRows('users',            '*',              'created_at'),
+      fetchAllRows('task_submissions', 'user_id,status', 'created_at'),
+      fetchAllRows('withdrawals',      'user_id,status', 'created_at')
+    ]);
+
+    allUsersCache = u || [];
+
+    var subC = {}, wdC = {};
+    (subs || []).forEach(s => {
+      if (!subC[s.user_id]) subC[s.user_id] = { total: 0, approved: 0 };
+      subC[s.user_id].total++;
+      if (s.status === 'approved') subC[s.user_id].approved++;
+    });
+    (wds || []).forEach(w => {
+      if (!wdC[w.user_id]) wdC[w.user_id] = { total: 0, completed: 0 };
+      wdC[w.user_id].total++;
+      if (w.status === 'completed') wdC[w.user_id].completed++;
+    });
+
+    allSubCounts = subC;
+    allWdCounts  = wdC;
+
+    renderUsers(allUsersCache, allSubCounts, allWdCounts);
+    populateUserSuggestions();
+
+  } catch (err) {
+    console.error('loadUsers failed:', err);
+    if (tb) tb.innerHTML = '<tr><td colspan="9"><div class="empty">Failed to load users — check console.</div></td></tr>';
+  } finally {
+    usersLoading = false;
+  }
+}
+
+function renderUsers(users, subC, wdC) {
+  var tb = document.getElementById('u-tbody');
+  if (!tb) return;
+  if (!(users || []).length) {
+    tb.innerHTML = '<tr><td colspan="9"><div class="empty">No users found.</div></td></tr>';
+    return;
+  }
+  if (!subC) { subC = {}; wdC = {}; }
+
+  tb.innerHTML = (users || []).map(r => {
+    var sc      = subC[r.id] || { total: 0, approved: 0 };
+    var wc      = wdC[r.id]  || { total: 0, completed: 0 };
+    var banned  = r.is_banned || r.banned || false;
+    var country = r.country   || r.location || '—';
+    return `<tr>
+      <td>
+        <strong style="font-size:12px">${r.email || '—'}</strong>
+        <div style="font-size:10px;color:var(--mu)">@${r.username || '—'}</div>
+      </td>
       <td><div class="country-badge">${countryFlag(country)} ${country}</div></td>
-      <td>${r.email_verified?'<span class="badge bgn">✓ Verified</span>':'<span class="badge brd">Unverified</span>'}</td>
-      <td><strong style="color:var(--green)">$${parseFloat(r.balance||0).toFixed(4)}</strong></td>
-      <td>$${parseFloat(r.total_earned||0).toFixed(4)}</td>
-      <td><span class="badge bgn">${sc.approved}✓</span> <span style="font-size:10px;color:var(--mu)">${sc.total} total</span></td>
-      <td><span class="badge ${wc.completed>0?'bgn':'bgr'}">${wc.completed}✓</span></td>
+      <td>${r.email_verified
+        ? '<span class="badge bgn">✓ Verified</span>'
+        : '<span class="badge brd">Unverified</span>'}</td>
+      <td><strong style="color:var(--green)">$${parseFloat(r.balance     || 0).toFixed(4)}</strong></td>
+      <td>$${parseFloat(r.total_earned || 0).toFixed(4)}</td>
+      <td>
+        <span class="badge bgn">${sc.approved}✓</span>
+        <span style="font-size:10px;color:var(--mu)">${sc.total} total</span>
+      </td>
+      <td><span class="badge ${wc.completed > 0 ? 'bgn' : 'bgr'}">${wc.completed}✓</span></td>
       <td style="font-size:11px">${fd(r.created_at)}</td>
       <td><div class="acts">
-        <button class="ibtn" style="color:var(--blue)" onclick="openUserProfile('${r.id}')" title="View Profile"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg></button>
-        ${banned?`<span class="badge brd" style="font-size:9px">Banned</span>`:''}
-      </div></td></tr>`;
+        <button class="ibtn" style="color:var(--blue)"
+          onclick="openUserProfile('${r.id}')" title="View Profile">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10
+                     10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/>
+          </svg>
+        </button>
+        ${banned ? '<span class="badge brd" style="font-size:9px">Banned</span>' : ''}
+      </div></td>
+    </tr>`;
   }).join('');
 }
-function filterUsers(q){
-  q=(q||'').toLowerCase().trim();
-  if(!q){loadUsers();return;}
-  var filtered=allUsersCache.filter(u=>(u.email||'').toLowerCase().includes(q)||(u.username||'').toLowerCase().includes(q)||(u.country||'').toLowerCase().includes(q)||(u.location||'').toLowerCase().includes(q));
-  renderUsers(filtered,allSubCounts,allWdCounts);
+
+function filterUsers(q) {
+  q = (q || '').toLowerCase().trim();
+  if (!q) {
+    renderUsers(allUsersCache, allSubCounts, allWdCounts);
+    return;
+  }
+  var filtered = allUsersCache.filter(u =>
+    (u.email    || '').toLowerCase().includes(q) ||
+    (u.username || '').toLowerCase().includes(q) ||
+    (u.country  || '').toLowerCase().includes(q) ||
+    (u.location || '').toLowerCase().includes(q)
+  );
+  renderUsers(filtered, allSubCounts, allWdCounts);
 }
 
 // ── USER PROFILE ─────────────────────────────────────────────
