@@ -1123,17 +1123,21 @@ function renderSubs(){
 }
 function fSubs(f,btn){subsFilter=f;document.querySelectorAll('#pg-submissions .ftab').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderSubs();}
 
-// ── USERS ────────────────────────────────────────────────────
+    // ── USERS ────────────────────────────────────────────────────
 var allUsersCache = [];
 var allSubCounts = {};
 var allWdCounts = {};
 var usersLoading = false;
 
-async function fetchAllRows(table, columns) {
+async function fetchAllRows(table, columns, orderBy = 'created_at') {
   const PAGE = 1000;
   let allRows = [], from = 0, done = false;
   while (!done) {
-    var { data, error } = await sb.from(table).select(columns).range(from, from + PAGE - 1);
+    var { data, error } = await sb
+      .from(table)
+      .select(columns)
+      .order(orderBy, { ascending: false })
+      .range(from, from + PAGE - 1);
     if (error) { console.error('fetchAllRows error on', table, error); break; }
     allRows = allRows.concat(data || []);
     done = !data || data.length < PAGE;
@@ -1146,12 +1150,15 @@ async function loadUsers() {
   if (usersLoading) return;
   usersLoading = true;
 
+  // Show loading state in table while fetching
+  var tb = document.getElementById('u-tbody');
+  if (tb) tb.innerHTML = '<tr><td colspan="9"><div class="ldr">Loading users…</div></td></tr>';
+
   try {
-    // Paginate all three tables to bypass Supabase's 1000-row cap
     var [u, subs, wds] = await Promise.all([
-      fetchAllRows('users', '*'),
-      fetchAllRows('task_submissions', 'user_id,status'),
-      fetchAllRows('withdrawals', 'user_id,status')
+      fetchAllRows('users', '*', 'created_at'),
+      fetchAllRows('task_submissions', 'user_id,status', 'created_at'),
+      fetchAllRows('withdrawals', 'user_id,status', 'created_at')
     ]);
 
     allUsersCache = u || [];
@@ -1176,6 +1183,7 @@ async function loadUsers() {
 
   } catch (err) {
     console.error('loadUsers failed:', err);
+    if (tb) tb.innerHTML = '<tr><td colspan="9"><div class="empty">Failed to load users. Check console.</div></td></tr>';
   } finally {
     usersLoading = false;
   }
@@ -1197,7 +1205,7 @@ function filterUsers(q) {
   );
 
   renderUsers(filtered, allSubCounts, allWdCounts);
-}
+      }
 
 // ── USER PROFILE ─────────────────────────────────────────────
 async function openUserProfile(uid){
