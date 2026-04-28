@@ -1586,7 +1586,12 @@ async function createTicketForUser(){
   if(!u){sal('ct-alert','User not found.');return;}
   var{data:ticket,error}=await sb.from('support_tickets').insert({user_id:u.id,subject,category:cat,status:'open',is_ai_handled:false,ticket_number:genTicketNum(),priority,created_by:CA?CA.id:null}).select().single();
   if(error){sal('ct-alert','Error: '+error.message);return;}
-  if(ticket)await sb.from('support_messages').insert({ticket_id:ticket.id,sender_type:'admin',sender_id:CA?CA.id:null,sender_name:CA?CA.display_name:'Admin',message:msg});
+  if(ticket)await sb.from('support_messages').insert({
+  ticket_id:id,
+  sender_type:'admin',
+  sender_id: CA ? CA.id : null,
+  message:'Your ticket has been assigned to a human support agent. We will respond shortly. 🙋'
+});
   closeMod('create-ticket-bg');loadTickets();loadOverview();
   setTimeout(()=>openTicket(ticket.id),300);
 }
