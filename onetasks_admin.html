@@ -1584,7 +1584,13 @@ async function createTicketForUser(){
   sal('ct-alert','');if(!em||!subject||!msg){sal('ct-alert','Fill in all required fields.');return;}
   var{data:u}=await sb.from('users').select('id,email').eq('email',em).single();
   if(!u){sal('ct-alert','User not found.');return;}
-  var{data:ticket,error}=await sb.from('support_tickets').insert({user_id:u.id,subject,category:cat,status:'open',is_ai_handled:false,ticket_number:genTicketNum(),priority,created_by:CA?CA.id:null}).select().single();
+  var{data:ticket,error}=await db.from('support_tickets').insert([{
+  user_id: currentUser.id,
+  user_email: currentUser.email,
+  subject: subject,
+  message: message,
+  priority: 'medium'
+}]);  
   if(error){sal('ct-alert','Error: '+error.message);return;}
   if(ticket)await sb.from('support_messages').insert({
   ticket_id:id,
