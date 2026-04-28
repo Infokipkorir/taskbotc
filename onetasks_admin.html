@@ -1105,24 +1105,25 @@ async function loadTasks(){
 
 // ── SUBMISSIONS ──────────────────────────────────────────────
 async function loadSubs(){
-  var{data:s,error}=await sb.from('task_submissions').select('*,tasks(id,title,reward),users(id,email,display_name)').order('submitted_at',{ascending:false,nullsFirst:false});
-  if(error){var r2=await sb.from('task_submissions').select('*,tasks(id,title,reward),users(id,email,display_name)').order('started_at',{ascending:false});s=r2.data;}
-  allSubs=s||[];_subCache={};allSubs.forEach(sub=>{_subCache[sub.id]=sub;});renderSubs();
-}
-function renderSubs(){
-  var filtered=subsFilter==='all'?allSubs:allSubs.filter(s=>s.status===subsFilter);
-  var tb=document.getElementById('s-tbody');
-  if(!filtered.length){tb.innerHTML=`<tr><td colspan="7"><div class="empty">No submissions</div></td></tr>`;return;}
-  tb.innerHTML=filtered.map(s=>{
-    var userEmail=s.users?(s.users.email||s.users.display_name||'—'):(s.user_id?s.user_id.slice(0,12)+'…':'—');
-    var taskTitle=s.tasks?(s.tasks.title||'—'):(s.task_id?'Task #'+s.task_id.slice(0,8)+'…':'—');
-    var ss=s.screenshot_url?`<img src="${s.screenshot_url}" style="width:48px;height:32px;object-fit:cover;border-radius:5px;border:1px solid var(--b);cursor:pointer" onclick="window.open('${s.screenshot_url}','_blank')"/>`:'<span style="color:var(--mu);font-size:11px">None</span>';
-    return`<tr><td style="font-size:11px">${userEmail}</td><td style="font-size:11px">${taskTitle}</td><td>${stbadge(s.status)}</td><td>${ss}</td><td class="mono">${ft(s.time_spent_seconds)}</td><td style="font-size:11px">${fd(s.submitted_at||s.started_at)}</td>
-    <td>${s.status==='pending'?`<button class="ibtn" style="color:var(--blue)" onclick="openRV(_subCache['${s.id}'])"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg></button>`:'—'}</td></tr>`;
-  }).join('');
-}
-function fSubs(f,btn){subsFilter=f;document.querySelectorAll('#pg-submissions .ftab').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderSubs();}
+  var { data: s, error } = await sb
+    .from('task_submissions')
+    .select('*,tasks(id,title,reward),users(id,email,display_name,phone)')
+    .order('submitted_at', { ascending: false, nullsFirst: false });
 
+  if (error) {
+    var r2 = await sb
+      .from('task_submissions')
+      .select('*,tasks(id,title,reward),users(id,email,display_name,phone)')
+      .order('started_at', { ascending: false });
+
+    s = r2.data;
+  }
+
+  allSubs = s || [];
+  _subCache = {};
+  allSubs.forEach(sub => { _subCache[sub.id] = sub; });
+  renderSubs();
+}
 // ── USERS ────────────────────────────────────────────────────
 var allSubCounts={},allWdCounts={};
 async function loadUsers(){
