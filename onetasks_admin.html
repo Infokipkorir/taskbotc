@@ -1105,13 +1105,14 @@ async function loadTasks(){
 
 // ── SUBMISSIONS ──────────────────────────────────────────────
 async function loadSubs() {
-  // Try submitted_at first, fall back to started_at, then created_at
-  const ORDER_COLS = ['submitted_at', 'started_at', 'created_at'];
+  const ORDER_COLS = ['created_at']; // user_tasks uses created_at (no submitted_at)
+
   let s = null;
 
+  // Only need one attempt since user_tasks doesn't have submitted_at
   for (const col of ORDER_COLS) {
     const { data, error } = await sb
-      .from('task_submissions')
+      .from('user_tasks')
       .select(`
         *,
         tasks:task_id (
@@ -1132,32 +1133,11 @@ async function loadSubs() {
     console.warn(`loadSubs: order by "${col}" failed:`, error.message);
   }
 
-  // If joins returned null tasks, fetch tasks separately and merge
-  if (s && s.some(sub => !sub.tasks)) {
-    console.warn('loadSubs: tasks join returned null for some rows — fetching tasks separately');
-    const taskIds = [...new Set(s.map(sub => sub.task_id).filter(Boolean))];
-
-    if (taskIds.length) {
-      const { data: taskRows } = await sb
-        .from('tasks')
-        .select('id, title, reward')
-        .in('id', taskIds);
-
-      const taskMap = {};
-      (taskRows || []).forEach(t => { taskMap[t.id] = t; });
-
-      s = s.map(sub => ({
-        ...sub,
-        tasks: sub.tasks || taskMap[sub.task_id] || null
-      }));
-    }
-  }
-
   allSubs = s || [];
   _subCache = {};
   allSubs.forEach(sub => { _subCache[sub.id] = sub; });
   renderSubs();
-}
+  }
 // ── USERS ────────────────────────────────────────────────────
 var allUsersCache = [];
 var allSubCounts = {};
