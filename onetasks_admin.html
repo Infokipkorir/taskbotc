@@ -1112,7 +1112,7 @@ async function loadSubs() {
   // Only need one attempt since user_tasks doesn't have submitted_at
   for (const col of ORDER_COLS) {
     const { data, error } = await sb
-      .from('user_tasks')
+      .from('public.user_tasks')
       .select(`
         *,
         tasks:task_id (
