@@ -1108,45 +1108,52 @@ function renderSubs(){
 function fSubs(f,btn){subsFilter=f;document.querySelectorAll('#pg-submissions .ftab').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderSubs();}
 
 // ── USERS ────────────────────────────────────────────────────
-async function loadUsers(){
-  var{data:u}=await sb.from('users').select('*').order('created_at',{ascending:false});
-  allUsersCache=u||[];
-  var{data:subs}=await sb.from('task_submissions').select('user_id,status');
-  var{data:wds}=await sb.from('withdrawals').select('user_id,status');
-  var subC={},wdC={};
-  (subs||[]).forEach(s=>{if(!subC[s.user_id])subC[s.user_id]={total:0,approved:0};subC[s.user_id].total++;if(s.status==='approved')subC[s.user_id].approved++;});
-  (wds||[]).forEach(w=>{if(!wdC[w.user_id])wdC[w.user_id]={total:0,completed:0};wdC[w.user_id].total++;if(w.status==='completed')wdC[w.user_id].completed++;});
-  renderUsers(allUsersCache,subC,wdC);
+
+let allUsersCache = [];
+let allSubCounts = {};
+let allWdCounts = {};
+
+async function loadUsers() {
+  var { data: u } = await sb.from('users').select('*').order('created_at', { ascending: false });
+  allUsersCache = u || [];
+
+  var { data: subs } = await sb.from('task_submissions').select('user_id,status');
+  var { data: wds } = await sb.from('withdrawals').select('user_id,status');
+
+  var subC = {}, wdC = {};
+
+  (subs || []).forEach(s => {
+    if (!subC[s.user_id]) subC[s.user_id] = { total: 0, approved: 0 };
+    subC[s.user_id].total++;
+    if (s.status === 'approved') subC[s.user_id].approved++;
+  });
+
+  (wds || []).forEach(w => {
+    if (!wdC[w.user_id]) wdC[w.user_id] = { total: 0, completed: 0 };
+    wdC[w.user_id].total++;
+    if (w.status === 'completed') wdC[w.user_id].completed++;
+  });
+
+  allSubCounts = subC;
+  allWdCounts = wdC;
+
+  renderUsers(allUsersCache, allSubCounts, allWdCounts);
   populateUserSuggestions();
 }
-function renderUsers(users,subC,wdC){
-  var tb=document.getElementById('u-tbody');
-  if(!(users||[]).length){tb.innerHTML='<tr><td colspan="9"><div class="empty">No users.</div></td></tr>';return;}
-  if(!subC){subC={};wdC={};}
-  tb.innerHTML=(users||[]).map(r=>{
-    var sc=subC[r.id]||{total:0,approved:0};var wc=wdC[r.id]||{total:0,completed:0};
-    var banned=r.is_banned||r.banned||false;
-    var country=r.country||r.location||'—';
-    return`<tr>
-      <td><strong style="font-size:12px">${r.email||'—'}</strong><div style="font-size:10px;color:var(--mu)">@${r.username||'—'}</div></td>
-      <td><div class="country-badge">${countryFlag(country)} ${country}</div></td>
-      <td>${r.email_verified?'<span class="badge bgn">✓ Verified</span>':'<span class="badge brd">Unverified</span>'}</td>
-      <td><strong style="color:var(--green)">$${parseFloat(r.balance||0).toFixed(4)}</strong></td>
-      <td>$${parseFloat(r.total_earned||0).toFixed(4)}</td>
-      <td><span class="badge bgn">${sc.approved}✓</span> <span style="font-size:10px;color:var(--mu)">${sc.total} total</span></td>
-      <td><span class="badge ${wc.completed>0?'bgn':'bgr'}">${wc.completed}✓</span></td>
-      <td style="font-size:11px">${fd(r.created_at)}</td>
-      <td><div class="acts">
-        <button class="ibtn" style="color:var(--blue)" onclick="openUserProfile('${r.id}')" title="View Profile"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg></button>
-        ${banned?`<span class="badge brd" style="font-size:9px">Banned</span>`:''}
-      </div></td></tr>`;
-  }).join('');
-}
-function filterUsers(q){
-  q=(q||'').toLowerCase().trim();
-  if(!q){loadUsers();return;}
-  var filtered=allUsersCache.filter(u=>(u.email||'').toLowerCase().includes(q)||(u.username||'').toLowerCase().includes(q)||(u.country||'').toLowerCase().includes(q)||(u.location||'').toLowerCase().includes(q));
-  renderUsers(filtered);
+
+function filterUsers(q) {
+  q = (q || '').toLowerCase().trim();
+  if (!q) { loadUsers(); return; }
+
+  var filtered = allUsersCache.filter(u =>
+    (u.email || '').toLowerCase().includes(q) ||
+    (u.username || '').toLowerCase().includes(q) ||
+    (u.country || '').toLowerCase().includes(q) ||
+    (u.location || '').toLowerCase().includes(q)
+  );
+
+  // Pass cached counts so filtered view still shows correct data
+  renderUsers(filtered, allSubCounts, allWdCounts);
 }
 
 // ── USER PROFILE ─────────────────────────────────────────────
