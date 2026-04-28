@@ -1443,69 +1443,55 @@ async function sendNotif(){
 async function delNotif(id){if(!confirm('Delete?'))return;await sb.from('notifications').delete().eq('id',id);loadNotifications();}
 
 // ── TICKETS / SUPPORT ────────────────────────────────────────
-async function loadTickets(){
-  var{data:tks}=await sb.from('support_tickets').select('*,users(email,display_name,username,country)').order('created_at',{ascending:false});
-  allTickets=tks||[];renderTickets();
-}
-function renderTickets(){
-  var filtered=ticketsFilter==='all'?allTickets:allTickets.filter(t=>t.status===ticketsFilter);
-  var tb=document.getElementById('tk-tbody');
-  if(!filtered.length){tb.innerHTML='<tr><td colspan="8"><div class="empty">No tickets</div></td></tr>';return;}
-  tb.innerHTML=filtered.map(t=>`<tr style="cursor:pointer" onclick="openTicket('${t.id}')">
-    <td class="ticket-num">${t.ticket_number||genTicketNum()}</td>
-    <td style="font-size:11px">${t.users?t.users.email||'—':'—'}</td>
-    <td><strong>${t.subject||'—'}</strong></td>
-    <td><span class="badge bgr">${t.category||'—'}</span></td>
-    <td>${stbadge(t.status)}</td>
-    <td>${t.is_ai_handled?'<span class="ai-badge">🤖 AI</span>':'<span class="badge bgn">👤 Human</span>'}</td>
-    <td style="font-size:11px">${fd(t.created_at)}</td>
-    <td><div class="acts">
-      <button class="ibtn" style="color:var(--blue)" onclick="event.stopPropagation();openTicket('${t.id}')"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg></button>
-      ${t.status!=='resolved'&&t.status!=='closed'?`<button class="ibtn" style="color:var(--green)" onclick="event.stopPropagation();resolveTicket('${t.id}')" title="Resolve"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg></button>`:''}
-    </div></td></tr>`).join('');
-}
-function fTickets(f,btn){ticketsFilter=f;document.querySelectorAll('#pg-support .ftab').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderTickets();}
+async function createTicketForUser(){
+  const em       = document.getElementById('ct-user-em').value.trim();
+  const subject  = document.getElementById('ct-subject').value.trim();
+  const cat      = document.getElementById('ct-cat').value;
+  const msg      = document.getElementById('ct-msg').value.trim();
+  const priority = document.getElementById('ct-priority').value;
 
-async function openTicket(tid){
-  cTk=allTickets.find(t=>t.id===tid);
-  if(!cTk){var{data}=await sb.from('support_tickets').select('*,users(email,display_name,username,country)').eq('id',tid).single();cTk=data;}
-  if(!cTk)return;
-  document.getElementById('tk-modal-title').textContent=`${cTk.ticket_number||'—'} — ${cTk.subject}`;
-  var country=cTk.users?cTk.users.country||'—':'—';
-  document.getElementById('tk-info').innerHTML=`
-    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px">
-      ${stbadge(cTk.status)}<span class="badge bgr">${cTk.category}</span>
-      ${cTk.is_ai_handled?'<span class="ai-badge">🤖 AI handled</span>':'<span class="badge bgn">👤 Human</span>'}
-      <span class="ticket-num">${cTk.ticket_number||'—'}</span>
-    </div>
-    <div style="background:var(--bg3);border-radius:8px;padding:10px 12px;font-size:12px;border:1px solid var(--b);display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
-      <div><div style="color:var(--mu);font-size:10px;text-transform:uppercase;letter-spacing:.4px">User</div><div style="font-weight:700;margin-top:2px">${cTk.users?cTk.users.email||'—':'—'}</div></div>
-      <div><div style="color:var(--mu);font-size:10px;text-transform:uppercase;letter-spacing:.4px">Username</div><div style="font-weight:700;margin-top:2px">@${cTk.users?cTk.users.username||'—':'—'}</div></div>
-      <div><div style="color:var(--mu);font-size:10px;text-transform:uppercase;letter-spacing:.4px">Country</div><div style="font-weight:700;margin-top:2px">${countryFlag(country)} ${country}</div></div>
-    </div>`;
-  var{data:msgs}=await sb.from('support_messages').select('*').eq('ticket_id',tid).order('created_at',{ascending:true});
-  var chat=document.getElementById('tk-chat');
-  chat.innerHTML=(msgs||[]).map(m=>{
-    var cls=m.sender_type==='user'?'user':m.sender_type==='ai'?'ai':'admin-msg';
-    var sender=m.sender_type==='ai'?'<div class="cs"><span class="ai-badge">🤖 AI</span></div>':m.sender_type==='admin'?`<div class="cs">🛡️ ${m.sender_name||'Admin'}</div>`:'<div class="cs">👤 User</div>';
-    return`<div class="cm ${cls}">${sender}<div class="cb">${m.message}</div><div class="ct2">${fd(m.created_at)}</div></div>`;
-  }).join('');
-  chat.scrollTop=chat.scrollHeight;
-  document.getElementById('tk-ai-typing').style.display='none';
-  // AI suggestion
-  if(msgs&&msgs.length){
-    var lastUser=([...msgs]).reverse().find(m=>m.sender_type==='user');
-    if(lastUser&&cTk.status!=='resolved'){generateAISuggestion(lastUser.message,msgs);}
-  }
-  var acts=document.getElementById('tk-actions');acts.innerHTML='';
-  if(cTk.status!=='resolved'&&cTk.status!=='closed'){
-    var rb=document.createElement('button');rb.className='btn bs';rb.innerHTML='✓ Resolve ticket';rb.onclick=()=>resolveTicket(tid);acts.appendChild(rb);
-    if(cTk.is_ai_handled){var hb=document.createElement('button');hb.className='btn bg';hb.innerHTML='👤 Take over from AI';hb.onclick=()=>assignHuman(tid);acts.appendChild(hb);}
-    var ab=document.createElement('button');ab.className='btn bg';ab.innerHTML='🤖 Get AI reply';ab.onclick=()=>getAIReply(tid);acts.appendChild(ab);
-  }
-  document.getElementById('ticket-bg').classList.add('open');
-}
+  sal('ct-alert','');
+  if(!em || !subject || !msg){ sal('ct-alert','Fill in all required fields.'); return; }
 
+  const { data: u } = await sb.from('users').select('id,email').eq('email', em).single();
+  if(!u){ sal('ct-alert','User not found.'); return; }
+
+  // use sb not db
+  // : correct field names (u.id, em, cat, msg, priority)
+  //  is_ai_handled explicit, status set
+  const { data: ticket, error } = await sb.from('support_tickets').insert([{
+    user_id:       u.id,
+    user_email:    em,
+    subject:       subject,
+    category:      cat,          // Fix 4: was missing entirely
+    message:       msg,
+    priority:      priority,     // Fix: was hardcoded 'medium'
+    status:        'open',
+    is_ai_handled: false,
+    created_at:    new Date().toISOString()
+  }]);
+
+  if(error){ sal('ct-alert','Error: ' + error.message); return; }
+
+  // Ticket is an array — use ticket[0].id, not ticket.id / bare `id`
+  const newTicket = ticket && ticket[0];
+  if(newTicket){
+    await sb.from('support_messages').insert({
+      ticket_id:   newTicket.id,   // Fix: `id` was undefined
+      sender_type: 'admin',
+      sender_id:   CA ? CA.id : null,
+      sender_name: CA ? CA.display_name : 'Admin',  // Fix: consistent name
+      message:     msg,            // Fix: send actual message, not canned text
+      created_at:  new Date().toISOString()
+    });
+  }
+
+  closeMod('create-ticket-bg');
+  loadTickets();
+  loadOverview();  // Fix: keep overview stats in sync
+  if(newTicket) setTimeout(() => openTicket(newTicket.id), 300);
+  }
+  
 // Built-in AI engine (no external API needed)
 const AI_KNOWLEDGE=[
   {keys:['withdraw','withdrawal','cash out','payout'],reply:"To withdraw your earnings: go to **Profile → Payment Settings**, add your method, then submit a request. Minimum $5.00, processing 1–3 business days."},
@@ -1601,6 +1587,17 @@ async function createTicketForUser(){
   closeMod('create-ticket-bg');loadTickets();loadOverview();
   setTimeout(()=>openTicket(ticket.id),300);
 }
+
+  // adminReply() — add loadOverview() to keep stats in sync
+openTicket(cTk.id); loadTickets(); loadOverview();
+
+// openTicket() — gate AI suggestion on 'closed' status too
+if(lastUser && cTk.status !== 'resolved' && cTk.status !== 'closed'){
+  generateAISuggestion(lastUser.message, msgs);
+}
+
+// renderTickets() — stable fallback instead of genTicketNum()
+t.ticket_number || ('#' + t.id.slice(0, 8).toUpperCase())
 
 // ── FAQ ──────────────────────────────────────────────────────
 async function loadFAQs(){
