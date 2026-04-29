@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>OneTask Community Hub</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Syne:wght@700;800;900&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+/* ═══════════════ TOKENS ═══════════════ */
+:root{
+  --blue:#1d4ed8;--blue-mid:#2563eb;--blue-pale:#eff6ff;--blue-dim:#1e3a8a;
+  --sidebar-bg:#1d4ed8;--bg:#f0f4ff;--white:#ffffff;--border:#e0e7ff;
+  --text:#0f172a;--muted:#64748b;--green:#16a34a;--amber:#f59e0b;
+  --red:#ef4444;--violet:#8b5cf6;--radius:14px;
+  --shadow:0 2px 16px rgba(29,78,216,.09);
+  --nav-h:62px;--top-h:58px;
+  --gold:#f59e0b;--gold-pale:#fffbeb;
+  --earn:#10b981;--earn-pale:#ecfdf5;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+
+/* ══ AUTH GATE ══ */
+#authGate{
+  position:fixed;inset:0;z-index:9999;
+  background:linear-gradient(135deg,#0f172a 0%,#1d4ed8 60%,#1e3a8a 100%);
+  display:flex;align-items:center;justify-content:center;padding:20px;
+}
+.auth-card{
+  background:rgba(255,255,255,.07);backdrop-filter:blur(20px);
+  border:1px solid rgba(255,255,255,.15);border-radius:24px;
+  padding:40px 36px;width:100%;max-width:420px;text-align:center;
+  box-shadow:0 32px 64px rgba(0,0,0,.4);
+}
+.auth-logo{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:8px;}
+.auth-logo .dot{width:44px;height:44px;background:rgba(255,255,255,.2);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;color:#fff;}
+.auth-logo span{font-family:'Syne',sans-serif;font-size:24px;font-weight:900;color:#fff;}
+.auth-sub{font-size:13px;color:rgba(255,255,255,.5);margin-bottom:32px;font-weight:500;letter-spacing:.3px;}
+.auth-label{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:rgba(255,255,255,.5);text-align:left;margin-bottom:6px;}
+.auth-input{
+  width:100%;background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.15);
+  border-radius:12px;padding:12px 14px;font-size:14px;font-family:'DM Sans',sans-serif;
+  color:#fff;outline:none;transition:border .2s;margin-bottom:16px;
+}
+.auth-input::placeholder{color:rgba(255,255,255,.35);}
+.auth-input:focus{border-color:rgba(255,255,255,.4);background:rgba(255,255,255,.14);}
+.auth-btn{
+  width:100%;background:#fff;color:#1d4ed8;border:none;border-radius:12px;
+  padding:13px;font-size:14px;font-weight:800;font-family:'DM Sans',sans-serif;
+  cursor:pointer;transition:all .2s;margin-top:4px;letter-spacing:.2px;
+}
+.auth-btn:hover{background:#eff6ff;transform:translateY(-1px);box-shadow:0 8px 20px rgba(0,0,0,.2);}
+.auth-toggle{margin-top:18px;font-size:12.5px;color:rgba(255,255,255,.5);}
+.auth-toggle a{color:#93c5fd;cursor:pointer;font-weight:600;text-decoration:none;}
+.auth-toggle a:hover{color:#fff;}
+.auth-err{background:rgba(239,68,68,.2);border:1px solid rgba(239,68,68,.3);border-radius:10px;padding:10px 14px;font-size:12.5px;color:#fca5a5;margin-bottom:14px;display:none;text-align:left;}
+.auth-err.show{display:block;}
+
+/* ══ OVERLAY ══ */
+.overlay{display:none;position:fixed;inset:0;background:rgba(15,23,42,.5);backdrop-filter:blur(3px);z-index:200;}
+.overlay.show{display:block;}
+
+/* ══ SIDEBAR ══ */
+.sidebar{position:fixed;top:0;left:0;width:260px;height:100vh;
+  background:linear-gradient(180deg,#1d4ed8 0%,#1e3a8a 100%);
+  display:flex;flex-direction:column;z-index:300;
+  transform:translateX(-260px);transition:transform .28s cubic-bezier(.4,0,.2,1);}
+.sidebar.open{transform:translateX(0);}
+.sb-head{display:flex;align-items:center;justify-content:space-between;padding:20px 18px 16px;border-bottom:1px solid rgba(255,255,255,.12);}
+.sb-brand{display:flex;align-items:center;gap:10px;}
+.sb-brand .dot{width:32px;height:32px;background:rgba(255,255,255,.2);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;color:#fff;}
+.sb-brand span{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;color:#fff;}
+.sb-close-btn{width:30px;height:30px;background:rgba(255,255,255,.12);border:none;border-radius:8px;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.sb-user{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid rgba(255,255,255,.10);}
+.sb-ava{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.22);color:#fff;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.sb-uname{font-size:13px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px;}
+.sb-uid{font-size:10px;color:rgba(255,255,255,.45);font-family:'JetBrains Mono',monospace;}
+
+/* earnings mini in sidebar */
+.sb-earn{margin:10px 14px;background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.25);border-radius:12px;padding:10px 14px;}
+.sb-earn-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;}
+.sb-earn-lbl{font-size:10.5px;color:rgba(255,255,255,.5);font-weight:600;}
+.sb-earn-val{font-size:14px;font-weight:800;color:#34d399;font-family:'JetBrains Mono',monospace;}
+.sb-earn-small{font-size:10px;color:rgba(255,255,255,.35);margin-top:4px;}
+
+.sb-nav{flex:1;overflow-y:auto;padding:12px 10px;display:flex;flex-direction:column;gap:2px;}
+.nav-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:rgba(255,255,255,.35);padding:8px 8px 3px;}
+.nav-item{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:10px;color:rgba(255,255,255,.75);font-size:13.5px;font-weight:500;cursor:pointer;text-decoration:none;transition:background .15s;}
+.nav-item i{font-size:16px;width:20px;text-align:center;}
+.nav-item:hover,.nav-item.active{background:rgba(255,255,255,.18);color:#fff;}
+.sb-foot{padding:12px 18px;border-top:1px solid rgba(255,255,255,.10);font-size:10.5px;color:rgba(255,255,255,.3);text-align:center;}
+
+/* ══ TOPBAR ══ */
+.topbar{position:sticky;top:0;z-index:100;background:var(--white);border-bottom:1px solid var(--border);height:var(--top-h);padding:0 14px;display:flex;align-items:center;justify-content:space-between;gap:8px;box-shadow:0 1px 8px rgba(29,78,216,.06);}
+.tb-left{display:flex;align-items:center;gap:9px;flex-shrink:0;}
+.hamburger{width:34px;height:34px;background:var(--blue-pale);border:1px solid var(--border);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--blue);cursor:pointer;}
+.tb-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:var(--text);}
+.tb-right{display:flex;align-items:center;gap:5px;}
+.earn-pill{display:flex;align-items:center;gap:4px;padding:5px 10px;border-radius:20px;font-size:11px;font-weight:800;background:var(--earn-pale);color:var(--earn);border:1px solid #a7f3d0;white-space:nowrap;font-family:'JetBrains Mono',monospace;}
+.earn-pill i{font-size:12px;}
+.bal-pill{display:flex;align-items:center;gap:4px;padding:5px 9px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap;}
+.bal-pill.main-b{background:var(--blue);color:#fff;}
+.bell-btn{position:relative;width:34px;height:34px;background:var(--blue-pale);border:1px solid var(--border);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;color:var(--blue);cursor:pointer;}
+.notif-badge{position:absolute;top:-5px;right:-5px;background:var(--red);color:#fff;font-size:9px;font-weight:700;min-width:16px;height:16px;border-radius:8px;display:flex;align-items:center;justify-content:center;padding:0 3px;border:2px solid #fff;}
+.notif-badge.gone{display:none;}
+
+/* ══ FEED TABS ══ */
+.feed-tabs{background:var(--white);border-bottom:1px solid var(--border);padding:0 14px;display:flex;gap:0;overflow-x:auto;scrollbar-width:none;position:sticky;top:var(--top-h);z-index:90;}
+.feed-tabs::-webkit-scrollbar{display:none;}
+.ftab{padding:14px 16px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2.5px solid transparent;white-space:nowrap;transition:all .18s;display:flex;align-items:center;gap:5px;}
+.ftab.active{color:var(--blue);border-bottom-color:var(--blue);}
+.ftab:hover{color:var(--text);}
+
+/* ══ MAIN LAYOUT ══ */
+.community-layout{display:flex;gap:16px;max-width:1100px;margin:0 auto;padding:18px 14px calc(var(--nav-h)+20px);}
+.feed-col{flex:1;min-width:0;}
+.side-col{width:280px;flex-shrink:0;}
+@media(max-width:860px){.side-col{display:none;}}
+
+/* ══ CREATE POST ══ */
+.create-post{background:var(--white);border:1.5px solid var(--border);border-radius:16px;padding:14px 16px;margin-bottom:16px;box-shadow:var(--shadow);}
+.cp-row{display:flex;align-items:center;gap:10px;}
+.cp-ava{width:36px;height:36px;border-radius:50%;background:var(--blue);color:#fff;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.cp-input{flex:1;background:var(--bg);border:1.5px solid var(--border);border-radius:24px;padding:9px 16px;font-size:13.5px;font-family:'DM Sans',sans-serif;color:var(--text);outline:none;cursor:pointer;transition:all .18s;}
+.cp-input:focus{border-color:var(--blue);background:var(--white);}
+.cp-actions{display:flex;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);}
+.cp-act{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:var(--muted);padding:6px 10px;border-radius:8px;cursor:pointer;transition:background .15s;background:none;border:none;font-family:'DM Sans',sans-serif;}
+.cp-act:hover{background:var(--bg);color:var(--blue);}
+.cp-act i{font-size:15px;}
+
+/* ══ POST CARD ══ */
+.post-card{background:var(--white);border:1.5px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:14px;box-shadow:var(--shadow);animation:fadeUp .3s ease both;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.post-card:hover{border-color:#c7d7fc;}
+.pc-head{display:flex;align-items:flex-start;gap:10px;padding:14px 16px 10px;}
+.pc-ava{width:40px;height:40px;border-radius:50%;background:var(--blue);color:#fff;font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;}
+.pc-meta{flex:1;}
+.pc-name{font-size:13.5px;font-weight:700;color:var(--text);cursor:pointer;}
+.pc-name:hover{color:var(--blue);}
+.pc-uid{font-size:10.5px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
+.pc-time{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:3px;margin-top:2px;}
+.pc-badge{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;margin-left:6px;}
+.pc-badge.admin{background:#fee2e2;color:#dc2626;}
+.pc-badge.verified{background:#dbeafe;color:#1d4ed8;}
+.pc-body{padding:0 16px 12px;}
+.pc-text{font-size:14px;line-height:1.6;color:var(--text);}
+.pc-media{margin:10px 0 0;border-radius:10px;overflow:hidden;background:#000;max-height:320px;display:flex;align-items:center;justify-content:center;}
+.pc-media iframe{width:100%;height:280px;border:none;}
+.pc-media img{width:100%;max-height:320px;object-fit:cover;}
+.pc-article{background:var(--bg);border:1.5px solid var(--border);border-radius:10px;padding:12px;margin-top:10px;cursor:pointer;transition:all .15s;}
+.pc-article:hover{border-color:var(--blue);background:var(--blue-pale);}
+.pc-art-tag{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--blue);margin-bottom:4px;}
+.pc-art-title{font-size:14px;font-weight:700;color:var(--text);line-height:1.4;}
+.pc-art-desc{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.5;}
+
+/* ══ AD BANNER ══ */
+.ad-post{background:var(--white);border:1.5px dashed #c7d7fc;border-radius:16px;overflow:hidden;margin-bottom:14px;position:relative;}
+.ad-label{position:absolute;top:8px;right:10px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);background:var(--bg);padding:2px 7px;border-radius:20px;border:1px solid var(--border);}
+.ad-content{padding:16px 16px 14px;display:flex;gap:12px;align-items:center;}
+.ad-icon{width:56px;height:56px;border-radius:14px;background:linear-gradient(135deg,#1d4ed8,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:24px;color:#fff;flex-shrink:0;}
+.ad-text h4{font-size:14px;font-weight:700;color:var(--text);margin-bottom:3px;}
+.ad-text p{font-size:12px;color:var(--muted);line-height:1.4;}
+.ad-cta{display:flex;gap:8px;padding:0 16px 14px;align-items:center;}
+.btn-ad{background:var(--blue);color:#fff;border:none;border-radius:8px;padding:8px 18px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;}
+.btn-ad:hover{background:var(--blue-mid);}
+.ad-earn-note{font-size:11px;color:var(--earn);font-weight:600;display:flex;align-items:center;gap:4px;}
+
+/* ══ POST ACTIONS ══ */
+.pc-foot{display:flex;align-items:center;gap:4px;padding:8px 16px 12px;border-top:1px solid var(--border);}
+.pf-btn{display:flex;align-items:center;gap:4px;background:none;border:none;padding:7px 10px;border-radius:8px;font-size:12.5px;font-weight:600;color:var(--muted);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;}
+.pf-btn:hover{background:var(--bg);color:var(--blue);}
+.pf-btn.liked{color:var(--red);}
+.pf-btn.liked i{color:var(--red);}
+.pf-btn i{font-size:15px;}
+.pf-sep{flex:1;}
+
+/* ══ RIGHT SIDEBAR WIDGETS ══ */
+.widget{background:var(--white);border:1.5px solid var(--border);border-radius:16px;padding:16px;margin-bottom:14px;box-shadow:var(--shadow);}
+.widget-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:800;color:var(--text);margin-bottom:14px;display:flex;align-items:center;gap:7px;}
+.widget-title i{color:var(--blue);}
+
+/* earnings widget */
+.earn-big{text-align:center;padding:6px 0 14px;}
+.earn-big .amount{font-family:'JetBrains Mono',monospace;font-size:32px;font-weight:700;color:var(--earn);line-height:1;}
+.earn-big .currency{font-size:14px;font-weight:700;color:var(--earn);}
+.earn-big .lbl{font-size:11px;color:var(--muted);margin-top:4px;}
+.earn-rate-row{display:flex;justify-content:space-between;font-size:12px;margin-top:10px;padding:8px;background:var(--earn-pale);border-radius:10px;}
+.earn-rate-item{text-align:center;}
+.earn-rate-item .val{font-weight:700;color:var(--earn);font-family:'JetBrains Mono',monospace;font-size:13px;}
+.earn-rate-item .lbl{font-size:10px;color:var(--muted);margin-top:2px;}
+.earn-timer{text-align:center;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin-top:8px;display:flex;align-items:center;justify-content:center;gap:4px;}
+.earn-timer i{color:var(--earn);}
+.earn-pulse{display:inline-block;width:7px;height:7px;background:var(--earn);border-radius:50%;animation:pulse 1.2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.6)}}
+
+/* leaderboard */
+.lb-row{display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1px solid var(--border);}
+.lb-row:last-child{border-bottom:none;}
+.lb-rank{width:20px;font-size:11px;font-weight:800;color:var(--muted);text-align:center;}
+.lb-rank.gold{color:#f59e0b;}
+.lb-rank.silver{color:#94a3b8;}
+.lb-rank.bronze{color:#d97706;}
+.lb-ava{width:30px;height:30px;border-radius:50%;background:var(--blue);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.lb-info{flex:1;}
+.lb-name{font-size:12.5px;font-weight:700;color:var(--text);}
+.lb-followers{font-size:11px;color:var(--muted);}
+.lb-earn{font-size:11.5px;font-weight:700;color:var(--earn);font-family:'JetBrains Mono',monospace;}
+
+/* who to follow */
+.follow-item{display:flex;align-items:center;gap:9px;margin-bottom:12px;}
+.follow-item:last-child{margin-bottom:0;}
+.fi-ava{width:36px;height:36px;border-radius:50%;background:var(--blue);color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.fi-info{flex:1;}
+.fi-name{font-size:12.5px;font-weight:700;color:var(--text);cursor:pointer;}
+.fi-name:hover{color:var(--blue);}
+.fi-followers{font-size:11px;color:var(--muted);}
+.btn-follow{background:var(--blue-pale);color:var(--blue);border:1.5px solid var(--border);border-radius:8px;padding:5px 12px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;}
+.btn-follow:hover{background:var(--blue);color:#fff;}
+.btn-follow.following{background:var(--bg);color:var(--muted);border-color:var(--border);}
+
+/* ══ PROFILE MODAL ══ */
+.modal-wrap{display:none;position:fixed;inset:0;z-index:400;align-items:center;justify-content:center;padding:20px;}
+.modal-wrap.open{display:flex;}
+.modal{background:var(--white);border-radius:20px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;box-shadow:0 32px 64px rgba(0,0,0,.25);}
+.modal-close{position:absolute;top:14px;right:14px;width:32px;height:32px;background:var(--bg);border:1px solid var(--border);border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--muted);}
+.modal-close:hover{background:var(--border);}
+
+/* profile modal content */
+.prof-banner{height:100px;background:linear-gradient(135deg,#1d4ed8,#8b5cf6);position:relative;border-radius:20px 20px 0 0;}
+.prof-ava-wrap{position:absolute;bottom:-22px;left:20px;}
+.prof-ava{width:60px;height:60px;border-radius:50%;background:#fff;border:3px solid #fff;color:var(--blue);font-weight:800;font-size:20px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(0,0,0,.15);}
+.prof-body{padding:32px 20px 20px;}
+.prof-name{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--text);}
+.prof-uid{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-top:2px;}
+.prof-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:16px 0;}
+.prof-stat{text-align:center;background:var(--bg);border-radius:12px;padding:10px;}
+.prof-stat .val{font-size:18px;font-weight:800;color:var(--text);font-family:'JetBrains Mono',monospace;}
+.prof-stat .lbl{font-size:10.5px;color:var(--muted);margin-top:2px;}
+.prof-earn-card{background:linear-gradient(135deg,#ecfdf5,#d1fae5);border:1.5px solid #a7f3d0;border-radius:12px;padding:14px;display:flex;align-items:center;justify-content:space-between;}
+.prof-earn-left .lbl{font-size:11px;color:var(--muted);font-weight:600;}
+.prof-earn-left .val{font-size:24px;font-weight:800;color:var(--earn);font-family:'JetBrains Mono',monospace;line-height:1.2;}
+.prof-earn-left .sub{font-size:11px;color:var(--muted);}
+.btn-withdraw{background:var(--earn);color:#fff;border:none;border-radius:10px;padding:9px 18px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;}
+.prof-follow-btn{width:100%;margin-top:14px;background:var(--blue);color:#fff;border:none;border-radius:12px;padding:11px;font-size:14px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;}
+.prof-follow-btn:hover{background:var(--blue-mid);}
+
+/* ══ CREATE POST MODAL ══ */
+.cp-modal-body{padding:20px;}
+.cp-modal-title{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;}
+.cp-type-tabs{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+.cpt{padding:7px 14px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;border:1.5px solid var(--border);background:var(--bg);color:var(--muted);transition:all .15s;}
+.cpt.active{background:var(--blue);color:#fff;border-color:var(--blue);}
+.cp-textarea{width:100%;background:var(--bg);border:1.5px solid var(--border);border-radius:12px;padding:12px;font-size:14px;font-family:'DM Sans',sans-serif;color:var(--text);outline:none;resize:none;transition:border .2s;min-height:100px;}
+.cp-textarea:focus{border-color:var(--blue);}
+.cp-url-input{width:100%;background:var(--bg);border:1.5px solid var(--border);border-radius:12px;padding:10px 14px;font-size:13.5px;font-family:'DM Sans',sans-serif;color:var(--text);outline:none;margin-top:8px;transition:border .2s;}
+.cp-url-input:focus{border-color:var(--blue);}
+.cp-url-input::placeholder{color:var(--muted);}
+.btn-post{background:var(--blue);color:#fff;border:none;border-radius:12px;padding:11px 28px;font-size:14px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;width:100%;margin-top:14px;transition:all .15s;}
+.btn-post:hover{background:var(--blue-mid);}
+
+/* ══ ADMIN BADGE ══ */
+.admin-toolbar{background:var(--white);border-bottom:2px solid #fee2e2;padding:8px 14px;display:flex;align-items:center;gap:10px;display:none;}
+.admin-toolbar.show{display:flex;}
+.admin-lbl{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:#dc2626;display:flex;align-items:center;gap:5px;}
+.btn-admin-post{background:#dc2626;color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:5px;transition:all .15s;}
+.btn-admin-post:hover{background:#b91c1c;}
+.btn-admin-announce{background:#f59e0b;color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:5px;transition:all .15s;}
+
+/* ══ ANNOUNCEMENT CARD ══ */
+.announce-card{background:linear-gradient(135deg,#fff7ed,#fffbeb);border:1.5px solid #fed7aa;border-radius:16px;padding:16px;margin-bottom:14px;animation:fadeUp .3s ease both;}
+.announce-card .ac-head{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.announce-card .ac-icon{width:32px;height:32px;background:#f59e0b;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;color:#fff;}
+.announce-card .ac-label{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:#c2410c;}
+.announce-card .ac-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px;}
+.announce-card .ac-body{font-size:13px;color:var(--muted);line-height:1.5;}
+
+/* ══ NOTIF PANEL ══ */
+.notif-panel{position:fixed;top:var(--top-h);right:0;width:320px;max-height:calc(100vh - var(--top-h));overflow-y:auto;background:var(--white);border-left:1px solid var(--border);box-shadow:-4px 0 24px rgba(0,0,0,.1);z-index:150;transform:translateX(100%);transition:transform .25s;}
+.notif-panel.open{transform:translateX(0);}
+.np-head{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border);}
+.np-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:800;}
+.np-close{width:28px;height:28px;background:var(--bg);border:1px solid var(--border);border-radius:7px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--muted);}
+.np-item{padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s;}
+.np-item:hover{background:var(--bg);}
+.np-item.unread{background:#f0f4ff;}
+.np-item-title{font-size:13px;font-weight:700;color:var(--text);}
+.np-item-body{font-size:12px;color:var(--muted);margin-top:2px;line-height:1.4;}
+.np-item-time{font-size:10.5px;color:var(--muted);margin-top:4px;display:flex;align-items:center;gap:3px;}
+
+/* ══ TOAST ══ */
+.toast-wrap{position:fixed;bottom:calc(var(--nav-h)+12px);left:50%;transform:translateX(-50%);z-index:500;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none;}
+.toast{background:#0f172a;color:#fff;padding:10px 18px;border-radius:20px;font-size:13px;font-weight:600;white-space:nowrap;animation:toastIn .25s ease;box-shadow:0 8px 24px rgba(0,0,0,.25);}
+@keyframes toastIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+
+/* ══ EMPTY / LOADER ══ */
+.empty{text-align:center;padding:48px 20px;color:var(--muted);}
+.empty i{font-size:36px;display:block;margin-bottom:10px;opacity:.4;}
+.loader{text-align:center;padding:32px;color:var(--muted);font-size:13px;}
+.spinner{width:24px;height:24px;border:2.5px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 10px;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ══ RESPONSIVE ══ */
+@media(max-width:600px){
+  .community-layout{padding:12px 10px calc(var(--nav-h)+16px);}
+  .earn-pill span{display:none;}
+}
+</style>
+</head>
+<body>
+
+<!-- ══ AUTH GATE ══ -->
+<div id="authGate">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="dot">🏘️</div>
+      <span>Community</span>
+    </div>
+    <p class="auth-sub">OneTask Community Hub · Members Only</p>
+    <div id="authErr" class="auth-err"></div>
+    <div id="loginForm">
+      <label class="auth-label">Email</label>
+      <input id="loginEmail" class="auth-input" type="email" placeholder="you@example.com">
+      <label class="auth-label">Password</label>
+      <input id="loginPwd" class="auth-input" type="password" placeholder="••••••••">
+      <button class="auth-btn" onclick="doLogin()"><i class="bi bi-box-arrow-in-right"></i> Sign In</button>
+      <p class="auth-toggle">No account? <a onclick="toggleAuth()">Create one</a></p>
+    </div>
+    <div id="registerForm" style="display:none;">
+      <label class="auth-label">Display Name</label>
+      <input id="regName" class="auth-input" type="text" placeholder="Your name">
+      <label class="auth-label">Email</label>
+      <input id="regEmail" class="auth-input" type="email" placeholder="you@example.com">
+      <label class="auth-label">Password</label>
+      <input id="regPwd" class="auth-input" type="password" placeholder="Min 6 characters">
+      <button class="auth-btn" onclick="doRegister()"><i class="bi bi-person-plus-fill"></i> Join Community</button>
+      <p class="auth-toggle">Already a member? <a onclick="toggleAuth()">Sign in</a></p>
+    </div>
+  </div>
+</div>
+
+<!-- ══ OVERLAY ══ -->
+<div class="overlay" id="overlay" onclick="closeAll()"></div>
+
+<!-- ══ SIDEBAR ══ -->
+<div class="sidebar" id="sidebar">
+  <div class="sb-head">
+    <div class="sb-brand"><div class="dot">🏘️</div><span>Community</span></div>
+    <button class="sb-close-btn" onclick="closeSidebar()"><i class="bi bi-x-lg"></i></button>
+  </div>
+  <div class="sb-user">
+    <div class="sb-ava" id="sbAva">U</div>
+    <div>
+      <div class="sb-uname" id="sbName">Loading…</div>
+      <div class="sb-uid" id="sbUid">ID: …</div>
+    </div>
+  </div>
+  <div class="sb-earn" id="sbEarnBox">
+    <div class="sb-earn-row">
+      <span class="sb-earn-lbl">💰 Community Earnings</span>
+      <span class="sb-earn-val" id="sbEarnVal">$0.00</span>
+    </div>
+    <div class="sb-earn-small">+$0.01/min · +$0.02/ad click</div>
+  </div>
+  <nav class="sb-nav">
+    <span class="nav-lbl">Community</span>
+    <a class="nav-item active" onclick="switchTab('feed');closeSidebar()"><i class="bi bi-house-door-fill"></i>Feed</a>
+    <a class="nav-item" onclick="switchTab('trending');closeSidebar()"><i class="bi bi-fire"></i>Trending</a>
+    <a class="nav-item" onclick="switchTab('articles');closeSidebar()"><i class="bi bi-newspaper"></i>Articles</a>
+    <a class="nav-item" onclick="switchTab('videos');closeSidebar()"><i class="bi bi-play-circle-fill"></i>Videos</a>
+    <span class="nav-lbl">You</span>
+    <a class="nav-item" onclick="openMyProfile();closeSidebar()"><i class="bi bi-person-circle"></i>My Profile</a>
+    <a class="nav-item" onclick="switchTab('earnings');closeSidebar()"><i class="bi bi-cash-stack"></i>Earnings</a>
+    <a class="nav-item" onclick="switchTab('following');closeSidebar()"><i class="bi bi-people-fill"></i>Following</a>
+    <span class="nav-lbl" id="adminNavSection" style="display:none">Admin</span>
+    <a class="nav-item" id="adminNavPost" style="display:none" onclick="openAdminCreate('post');closeSidebar()"><i class="bi bi-plus-square-fill"></i>Post Article</a>
+    <a class="nav-item" id="adminNavAnn" style="display:none" onclick="openAdminCreate('announce');closeSidebar()"><i class="bi bi-megaphone-fill"></i>Announcement</a>
+    <a class="nav-item" id="adminNavVideo" style="display:none" onclick="openAdminCreate('video');closeSidebar()"><i class="bi bi-camera-video-fill"></i>Embed Video</a>
+    <span class="nav-lbl">Account</span>
+    <a class="nav-item" onclick="doLogout()"><i class="bi bi-box-arrow-right"></i>Sign Out</a>
+  </nav>
+  <div class="sb-foot">© 2025 OneTask Community</div>
+</div>
+
+<!-- ══ TOPBAR ══ -->
+<div class="topbar" id="topbar" style="display:none;">
+  <div class="tb-left">
+    <div class="hamburger" onclick="openSidebar()"><i class="bi bi-list"></i></div>
+    <span class="tb-title">Community</span>
+  </div>
+  <div class="tb-right">
+    <div class="earn-pill" id="topEarn"><i class="bi bi-lightning-fill"></i><span>$</span><span id="topEarnVal">0.00</span></div>
+    <div class="bell-btn" onclick="toggleNotif()">
+      <i class="bi bi-bell-fill"></i>
+      <div class="notif-badge gone" id="notifBadge">0</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ADMIN TOOLBAR ══ -->
+<div class="admin-toolbar" id="adminToolbar">
+  <span class="admin-lbl"><i class="bi bi-shield-fill"></i>Admin</span>
+  <button class="btn-admin-post" onclick="openAdminCreate('post')"><i class="bi bi-file-text-fill"></i>Article</button>
+  <button class="btn-admin-announce" onclick="openAdminCreate('announce')"><i class="bi bi-megaphone-fill"></i>Announce</button>
+  <button class="btn-admin-post" style="background:#8b5cf6;" onclick="openAdminCreate('video')"><i class="bi bi-play-circle-fill"></i>Video</button>
+</div>
+
+<!-- ══ FEED TABS ══ -->
+<div class="feed-tabs" id="feedTabs" style="display:none;">
+  <div class="ftab active" data-tab="feed" onclick="switchTab('feed')"><i class="bi bi-house-door"></i>Feed</div>
+  <div class="ftab" data-tab="trending" onclick="switchTab('trending')"><i class="bi bi-fire"></i>Trending</div>
+  <div class="ftab" data-tab="articles" onclick="switchTab('articles')"><i class="bi bi-newspaper"></i>Articles</div>
+  <div class="ftab" data-tab="videos" onclick="switchTab('videos')"><i class="bi bi-play-circle"></i>Videos</div>
+  <div class="ftab" data-tab="earnings" onclick="switchTab('earnings')"><i class="bi bi-cash-stack"></i>Earnings</div>
+</div>
+
+<!-- ══ MAIN LAYOUT ══ -->
+<div class="community-layout" id="communityLayout" style="display:none;">
+
+  <!-- FEED COLUMN -->
+  <div class="feed-col">
+    <!-- Create Post Box -->
+    <div class="create-post" id="createPostBox">
+      <div class="cp-row">
+        <div class="cp-ava" id="cpAva">U</div>
+        <input class="cp-input" placeholder="Share something with the community…" onclick="openCreatePost('text')" readonly>
+      </div>
+      <div class="cp-actions">
+        <button class="cp-act" onclick="openCreatePost('article')"><i class="bi bi-file-text"></i>Article</button>
+        <button class="cp-act" onclick="openCreatePost('video')"><i class="bi bi-play-circle"></i>Video</button>
+        <button class="cp-act" onclick="openCreatePost('image')"><i class="bi bi-image"></i>Photo</button>
+      </div>
+    </div>
+
+    <!-- Feed Items -->
+    <div id="feedContent">
+      <div class="loader"><div class="spinner"></div>Loading community…</div>
+    </div>
+  </div>
+
+  <!-- RIGHT SIDEBAR -->
+  <div class="side-col">
+    <!-- Earnings Widget -->
+    <div class="widget">
+      <div class="widget-title"><i class="bi bi-cash-stack"></i>Your Earnings</div>
+      <div class="earn-big">
+        <div><span class="currency">$</span><span class="amount" id="earnBig">0.00</span></div>
+        <div class="lbl">Total Community Earnings</div>
+      </div>
+      <div class="earn-rate-row">
+        <div class="earn-rate-item">
+          <div class="val">$0.01</div>
+          <div class="lbl">Per Minute</div>
+        </div>
+        <div class="earn-rate-item">
+          <div class="val">$0.02</div>
+          <div class="lbl">Ad Click</div>
+        </div>
+        <div class="earn-rate-item">
+          <div class="val" id="sessionMins">0m</div>
+          <div class="lbl">This Session</div>
+        </div>
+      </div>
+      <div class="earn-timer"><span class="earn-pulse"></span><i class="bi bi-clock"></i>Earning while you browse</div>
+    </div>
+
+    <!-- Leaderboard -->
+    <div class="widget">
+      <div class="widget-title"><i class="bi bi-trophy-fill"></i>Top Earners</div>
+      <div id="leaderboard">
+        <div class="loader" style="padding:16px;"><div class="spinner"></div></div>
+      </div>
+    </div>
+
+    <!-- Who to Follow -->
+    <div class="widget">
+      <div class="widget-title"><i class="bi bi-person-plus-fill"></i>Who to Follow</div>
+      <div id="whoToFollow">
+        <div class="loader" style="padding:16px;"><div class="spinner"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ NOTIFICATION PANEL ══ -->
+<div class="notif-panel" id="notifPanel">
+  <div class="np-head">
+    <span class="np-title">Notifications</span>
+    <div class="np-close" onclick="toggleNotif()"><i class="bi bi-x-lg"></i></div>
+  </div>
+  <div id="notifList"><div class="loader"><div class="spinner"></div></div></div>
+</div>
+
+<!-- ══ PROFILE MODAL ══ -->
+<div class="modal-wrap" id="profileModal">
+  <div class="overlay" onclick="closeProfileModal()" style="position:fixed;display:block;"></div>
+  <div class="modal" style="position:relative;z-index:1;">
+    <div class="prof-banner">
+      <div class="prof-ava-wrap"><div class="prof-ava" id="pmAva">U</div></div>
+    </div>
+    <button class="modal-close" onclick="closeProfileModal()"><i class="bi bi-x-lg"></i></button>
+    <div class="prof-body">
+      <div class="prof-name" id="pmName">User</div>
+      <div class="prof-uid" id="pmUid">ID: …</div>
+      <div class="prof-stats">
+        <div class="prof-stat"><div class="val" id="pmPosts">0</div><div class="lbl">Posts</div></div>
+        <div class="prof-stat"><div class="val" id="pmFollowers">0</div><div class="lbl">Followers</div></div>
+        <div class="prof-stat"><div class="val" id="pmFollowing">0</div><div class="lbl">Following</div></div>
+      </div>
+      <div class="prof-earn-card">
+        <div class="prof-earn-left">
+          <div class="lbl">Community Earnings</div>
+          <div class="val">$<span id="pmEarnings">0.00</span></div>
+          <div class="sub">Lifetime earnings</div>
+        </div>
+        <button class="btn-withdraw" id="pmWithdrawBtn" onclick="withdrawEarnings()" style="display:none;">Withdraw</button>
+      </div>
+      <button class="prof-follow-btn" id="pmFollowBtn" style="display:none;" onclick="toggleFollowFromModal()">Follow</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ CREATE POST MODAL ══ -->
+<div class="modal-wrap" id="createModal">
+  <div class="overlay" onclick="closeCreateModal()" style="position:fixed;display:block;"></div>
+  <div class="modal" style="position:relative;z-index:1;">
+    <div class="cp-modal-body">
+      <div class="cp-modal-title">
+        <span id="createModalTitle">Create Post</span>
+        <div class="modal-close" style="position:relative;top:0;right:0;" onclick="closeCreateModal()"><i class="bi bi-x-lg"></i></div>
+      </div>
+      <div class="cp-type-tabs">
+        <div class="cpt active" onclick="setPostType('text')">Text</div>
+        <div class="cpt" onclick="setPostType('article')">Article</div>
+        <div class="cpt" onclick="setPostType('video')">Video</div>
+        <div class="cpt" onclick="setPostType('image')">Image</div>
+        <div class="cpt" id="announceCpt" style="display:none;" onclick="setPostType('announce')">📢 Announce</div>
+      </div>
+      <textarea class="cp-textarea" id="cpContent" placeholder="What's on your mind?"></textarea>
+      <div id="cpMediaSection" style="display:none;">
+        <input class="cp-url-input" id="cpMediaUrl" placeholder="Paste YouTube URL or image URL…">
+      </div>
+      <div id="cpArticleSection" style="display:none;">
+        <input class="cp-url-input" id="cpArticleTitle" placeholder="Article title…">
+        <input class="cp-url-input" id="cpArticleUrl" placeholder="Article URL (optional)…" style="margin-top:8px;">
+      </div>
+      <button class="btn-post" onclick="submitPost()"><i class="bi bi-send-fill"></i> Post to Community</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TOAST ══ -->
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script>
+/* ═══════════ SUPABASE CONFIG ═══════════ */
+const SUPABASE_URL = 'https://YOUR_SUPABASE_URL.supabase.co';
+const SUPABASE_ANON = 'YOUR_SUPABASE_ANON_KEY';
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+/* ═══════════ DEMO MODE (works without Supabase) ═══════════ */
+const DEMO = true; // Set false when Supabase is configured
+
+/* ═══════════ STATE ═══════════ */
+let currentUser = null;
+let userProfile = null;
+let isAdmin = false;
+let communityEarnings = 0;
+let sessionSeconds = 0;
+let earningTimer = null;
+let currentTab = 'feed';
+let viewingProfile = null;
+let demoFollowing = new Set();
+let demoLiked = new Set();
+let postType = 'text';
+
+/* Demo data */
+const DEMO_USER = { id: 'usr_demo123', email: 'demo@onetask.com', display_name: 'Demo User', followers: 12, following: 8, posts: 5, earnings: 0.42, is_admin: false };
+const DEMO_ADMIN = { id: 'usr_admin001', email: 'admin@onetask.com', display_name: 'Admin', followers: 450, following: 10, posts: 34, earnings: 12.80, is_admin: true };
+
+const DEMO_POSTS = [
+  { id:'p1', type:'announce', author:'Admin', author_id:'usr_admin001', is_admin:true, content:'🚀 Welcome to the OneTask Community Hub! Earn $0.01 per minute just by being here. Click ads to earn an extra $0.02 each!', time:'2m ago', likes:24, comments:5 },
+  { id:'p2', type:'article', author:'Sarah K.', author_id:'usr_002', content:'Just hit my first $5 in community earnings! The passive time rewards really add up.', article_title:'How I Earned $5 in Community', article_url:'#', time:'15m ago', likes:18, comments:3 },
+  { id:'p3', type:'text', author:'Mike R.', author_id:'usr_003', content:'The community vibe here is amazing. Already following 5 awesome creators. Who else should I follow?', time:'32m ago', likes:9, comments:7 },
+  { id:'p4', type:'video', author:'Priya T.', author_id:'usr_004', content:'Check out this great tutorial on maximizing your OneTask earnings!', video_url:'https://www.youtube.com/embed/dQw4w9WgXcQ', time:'1h ago', likes:31, comments:11 },
+  { id:'p5', type:'text', author:'James O.', author_id:'usr_005', content:'PSA: The ad click bonus ($0.02 per click) is legit! Just made an extra $0.40 today from ad interactions alone. 💸', time:'2h ago', likes:47, comments:19 },
+];
+
+const DEMO_USERS = [
+  { id:'usr_002', display_name:'Sarah K.', followers:234, earnings:8.50 },
+  { id:'usr_003', display_name:'Mike R.', followers:156, earnings:5.20 },
+  { id:'usr_004', display_name:'Priya T.', followers:389, earnings:14.10 },
+  { id:'usr_005', display_name:'James O.', followers:512, earnings:22.30 },
+  { id:'usr_006', display_name:'Amina B.', followers:78, earnings:3.80 },
+];
+
+const DEMO_NOTIFS = [
+  { id:'n1', title:'New Follower', body:'Sarah K. started following you!', time:'5m ago', read:false },
+  { id:'n2', title:'Post Liked', body:'Mike R. liked your post', time:'20m ago', read:false },
+  { id:'n3', title:'Earnings Update', body:'You earned $0.06 in the last 6 minutes', time:'30m ago', read:true },
+  { id:'n4', title:'Announcement', body:'New community features are live!', time:'1h ago', read:true },
+];
+
+/* ═══════════ UTILS ═══════════ */
+function ini(name){ return name ? name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2) : 'U'; }
+function fmt(n){ return parseFloat(n||0).toFixed(2); }
+function showToast(msg, dur=3000){
+  const w = document.getElementById('toastWrap');
+  const t = document.createElement('div');
+  t.className='toast';t.textContent=msg;w.appendChild(t);
+  setTimeout(()=>{ t.style.opacity='0';t.style.transition='opacity .3s'; setTimeout(()=>t.remove(),300); },dur);
+}
+function setAvaColor(el, seed){
+  const colors=['#1d4ed8','#7c3aed','#0891b2','#0d9488','#dc2626','#c2410c','#15803d'];
+  const i = seed ? seed.charCodeAt(0)%colors.length : 0;
+  el.style.background = colors[i];
+}
+
+/* ═══════════ AUTH ═══════════ */
+let authMode = 'login';
+function toggleAuth(){
+  authMode = authMode==='login'?'register':'login';
+  document.getElementById('loginForm').style.display = authMode==='login'?'':'none';
+  document.getElementById('registerForm').style.display = authMode==='register'?'':'none';
+  document.getElementById('authErr').classList.remove('show');
+}
+
+async function doLogin(){
+  const email = document.getElementById('loginEmail').value.trim();
+  const pwd   = document.getElementById('loginPwd').value;
+  if(!email||!pwd){ showAuthErr('Please enter email and password.'); return; }
+
+  if(DEMO){
+    // Demo login
+    const isAdminLogin = email.includes('admin');
+    currentUser = isAdminLogin ? DEMO_ADMIN : DEMO_USER;
+    isAdmin = currentUser.is_admin;
+    communityEarnings = currentUser.earnings;
+    initCommunity();
+    return;
+  }
+  const { data, error } = await db.auth.signInWithPassword({ email, password:pwd });
+  if(error){ showAuthErr(error.message); return; }
+  currentUser = data.user;
+  await loadUserProfile();
+  initCommunity();
+}
+
+async function doRegister(){
+  const name  = document.getElementById('regName').value.trim();
+  const email = document.getElementById('regEmail').value.trim();
+  const pwd   = document.getElementById('regPwd').value;
+  if(!name||!email||!pwd){ showAuthErr('All fields required.'); return; }
+  if(pwd.length<6){ showAuthErr('Password must be at least 6 characters.'); return; }
+
+  if(DEMO){
+    currentUser = { ...DEMO_USER, display_name: name, email };
+    isAdmin = false;
+    communityEarnings = 0;
+    initCommunity();
+    return;
+  }
+  const { data, error } = await db.auth.signUp({ email, password:pwd, options:{ data:{ display_name:name } } });
+  if(error){ showAuthErr(error.message); return; }
+  showToast('✅ Account created! Please check your email.');
+}
+
+function showAuthErr(msg){
+  const el = document.getElementById('authErr');
+  el.textContent = msg;
+  el.classList.add('show');
+}
+
+async function doLogout(){
+  if(!DEMO) await db.auth.signOut();
+  location.reload();
+}
+
+/* ═══════════ INIT COMMUNITY ═══════════ */
+function initCommunity(){
+  document.getElementById('authGate').style.display='none';
+  document.getElementById('topbar').style.display='';
+  document.getElementById('feedTabs').style.display='';
+  document.getElementById('communityLayout').style.display='';
+
+  // Admin toolbar
+  if(isAdmin){
+    document.getElementById('adminToolbar').classList.add('show');
+    document.getElementById('adminNavSection').style.display='';
+    document.getElementById('adminNavPost').style.display='';
+    document.getElementById('adminNavAnn').style.display='';
+    document.getElementById('adminNavVideo').style.display='';
+    document.getElementById('announceCpt').style.display='';
+  }
+
+  // Set profile info
+  const name = currentUser.display_name || currentUser.email?.split('@')[0] || 'User';
+  document.getElementById('sbName').textContent = name;
+  document.getElementById('sbUid').textContent  = 'ID: '+(currentUser.id||'').slice(0,12)+'…';
+  document.getElementById('sbAva').textContent  = ini(name);
+  document.getElementById('cpAva').textContent  = ini(name);
+  setAvaColor(document.getElementById('sbAva'), name);
+  setAvaColor(document.getElementById('cpAva'), name);
+
+  updateEarningsDisplay();
+  loadFeed();
+  loadLeaderboard();
+  loadWhoToFollow();
+  loadNotifications();
+  startEarningTimer();
+}
+
+/* ═══════════ EARNING TIMER ═══════════ */
+function startEarningTimer(){
+  earningTimer = setInterval(()=>{
+    sessionSeconds++;
+    if(sessionSeconds % 60 === 0){
+      communityEarnings += 0.01;
+      updateEarningsDisplay();
+      showToast('💰 +$0.01 earned for staying active!');
+    }
+    document.getElementById('sessionMins').textContent = Math.floor(sessionSeconds/60)+'m';
+  }, 1000);
+}
+
+function updateEarningsDisplay(){
+  const v = fmt(communityEarnings);
+  document.getElementById('topEarnVal').textContent = v;
+  document.getElementById('earnBig').textContent = v;
+  document.getElementById('sbEarnVal').textContent = '$'+v;
+  if(DEMO_USER) DEMO_USER.earnings = communityEarnings;
+}
+
+function adClicked(btn){
+  communityEarnings += 0.02;
+  updateEarningsDisplay();
+  showToast('🎯 +$0.02 earned from ad click!');
+  btn.innerHTML = '<i class="bi bi-check-circle-fill"></i> Opened';
+  btn.style.background='var(--earn)';
+  btn.disabled = true;
+}
+
+/* ═══════════ FEED ═══════════ */
+function loadFeed(){
+  const container = document.getElementById('feedContent');
+  let html='';
+
+  // Announcement first if any
+  const announcements = DEMO_POSTS.filter(p=>p.type==='announce');
+  announcements.forEach(p=>{
+    html += `<div class="announce-card">
+      <div class="ac-head"><div class="ac-icon">📢</div><span class="ac-label">Announcement</span></div>
+      <div class="ac-title">Community Update</div>
+      <div class="ac-body">${p.content}</div>
+    </div>`;
+  });
+
+  // Ad banner after every 3 posts
+  const regularPosts = DEMO_POSTS.filter(p=>p.type!=='announce');
+  regularPosts.forEach((p,i)=>{
+    html += buildPostCard(p);
+    if((i+1)%3===0) html += buildAdBanner(i);
+  });
+
+  container.innerHTML = html;
+}
+
+function buildPostCard(p){
+  const initials = ini(p.author);
+  const isMe = currentUser && p.author_id === currentUser.id;
+  const liked = demoLiked.has(p.id);
+  let mediaHtml='';
+  if(p.type==='video'&&p.video_url){
+    mediaHtml=`<div class="pc-media"><iframe src="${p.video_url}" allowfullscreen></iframe></div>`;
+  }
+  if(p.type==='article'&&p.article_title){
+    mediaHtml=`<div class="pc-article" onclick="window.open('${p.article_url||'#'}','_blank')">
+      <div class="pc-art-tag">📰 Article</div>
+      <div class="pc-art-title">${p.article_title}</div>
+      <div class="pc-art-desc">${p.content.slice(0,100)}…</div>
+    </div>`;
+  }
+  return `<div class="post-card" id="card-${p.id}">
+    <div class="pc-head">
+      <div class="pc-ava" onclick="openUserProfile('${p.author_id}','${p.author}')">${initials}</div>
+      <div class="pc-meta">
+        <div>
+          <span class="pc-name" onclick="openUserProfile('${p.author_id}','${p.author}')">${p.author}</span>
+          ${p.is_admin?'<span class="pc-badge admin">Admin</span>':''}
+        </div>
+        <div class="pc-uid">ID: ${p.author_id.slice(0,10)}…</div>
+        <div class="pc-time"><i class="bi bi-clock"></i>${p.time}</div>
+      </div>
+    </div>
+    <div class="pc-body">
+      ${p.type!=='article'?`<div class="pc-text">${p.content}</div>`:''}
+      ${mediaHtml}
+    </div>
+    <div class="pc-foot">
+      <button class="pf-btn ${liked?'liked':''}" onclick="toggleLike('${p.id}',this)" data-likes="${p.likes}">
+        <i class="bi bi-heart${liked?'-fill':''}"></i>${p.likes+(liked?1:0)}
+      </button>
+      <button class="pf-btn"><i class="bi bi-chat"></i>${p.comments}</button>
+      <button class="pf-btn"><i class="bi bi-share"></i>Share</button>
+      <div class="pf-sep"></div>
+      ${!isMe?`<button class="pf-btn" onclick="quickFollow('${p.author_id}','${p.author}',this)">
+        <i class="bi bi-person-plus"></i>${demoFollowing.has(p.author_id)?'Unfollow':'Follow'}
+      </button>`:''}
+    </div>
+  </div>`;
+}
+
+function buildAdBanner(i){
+  const ads=[
+    {icon:'💎',title:'Premium Task Rewards',desc:'Complete premium tasks and earn up to $5 per task on OneTasks.',cta:'View Tasks'},
+    {icon:'🎮',title:'Play & Earn Games',desc:'Play casual mobile games and get paid real cash rewards instantly.',cta:'Play Now'},
+    {icon:'📊',title:'Paid Surveys Available',desc:'Share your opinion on trending topics and earn $0.50 per survey.',cta:'Start Survey'},
+  ];
+  const ad = ads[i%ads.length];
+  return `<div class="ad-post">
+    <div class="ad-label">Sponsored</div>
+    <div class="ad-content">
+      <div class="ad-icon">${ad.icon}</div>
+      <div class="ad-text"><h4>${ad.title}</h4><p>${ad.desc}</p></div>
+    </div>
+    <div class="ad-cta">
+      <button class="btn-ad" onclick="adClicked(this)">${ad.cta} →</button>
+      <span class="ad-earn-note"><i class="bi bi-plus-circle-fill"></i>+$0.02 for clicking</span>
+    </div>
+  </div>`;
+}
+
+/* ═══════════ LIKE / FOLLOW ═══════════ */
+function toggleLike(postId, btn){
+  const wasLiked = demoLiked.has(postId);
+  let count = parseInt(btn.dataset.likes)||0;
+  if(wasLiked){
+    demoLiked.delete(postId);
+    btn.classList.remove('liked');
+    btn.innerHTML = `<i class="bi bi-heart"></i>${count}`;
+    btn.dataset.likes = count;
+  } else {
+    demoLiked.add(postId);
+    btn.classList.add('liked');
+    btn.innerHTML = `<i class="bi bi-heart-fill"></i>${count+1}`;
+    btn.dataset.likes = count;
+    showToast('❤️ Liked!');
+  }
+}
+
+function quickFollow(uid, name, btn){
+  if(demoFollowing.has(uid)){
+    demoFollowing.delete(uid);
+    btn.innerHTML = `<i class="bi bi-person-plus"></i>Follow`;
+    showToast(`Unfollowed ${name}`);
+  } else {
+    demoFollowing.add(uid);
+    btn.innerHTML = `<i class="bi bi-person-check"></i>Unfollow`;
+    showToast(`✅ Following ${name}!`);
+  }
+}
+
+/* ═══════════ LEADERBOARD ═══════════ */
+function loadLeaderboard(){
+  const sorted = [...DEMO_USERS].sort((a,b)=>b.earnings-a.earnings);
+  const medals=['gold','silver','bronze'];
+  const html = sorted.slice(0,5).map((u,i)=>`
+    <div class="lb-row">
+      <div class="lb-rank ${medals[i]||''}">${i===0?'🥇':i===1?'🥈':i===2?'🥉':i+1}</div>
+      <div class="lb-ava">${ini(u.display_name)}</div>
+      <div class="lb-info">
+        <div class="lb-name">${u.display_name}</div>
+        <div class="lb-followers">${u.followers} followers</div>
+      </div>
+      <div class="lb-earn">$${fmt(u.earnings)}</div>
+    </div>`).join('');
+  document.getElementById('leaderboard').innerHTML = html;
+}
+
+/* ═══════════ WHO TO FOLLOW ═══════════ */
+function loadWhoToFollow(){
+  const users = DEMO_USERS.filter(u=>!demoFollowing.has(u.id)).slice(0,4);
+  const html = users.map(u=>`
+    <div class="follow-item">
+      <div class="fi-ava">${ini(u.display_name)}</div>
+      <div class="fi-info">
+        <div class="fi-name" onclick="openUserProfile('${u.id}','${u.display_name}')">${u.display_name}</div>
+        <div class="fi-followers">${u.followers} followers</div>
+      </div>
+      <button class="btn-follow ${demoFollowing.has(u.id)?'following':''}" onclick="toggleFollowWidget('${u.id}','${u.display_name}',this)">
+        ${demoFollowing.has(u.id)?'Following':'Follow'}
+      </button>
+    </div>`).join('');
+  document.getElementById('whoToFollow').innerHTML = html || '<div class="empty" style="padding:16px;font-size:12px;">You follow everyone! 🎉</div>';
+}
+
+function toggleFollowWidget(uid, name, btn){
+  if(demoFollowing.has(uid)){
+    demoFollowing.delete(uid);
+    btn.textContent='Follow';btn.classList.remove('following');
+    showToast(`Unfollowed ${name}`);
+  } else {
+    demoFollowing.add(uid);
+    btn.textContent='Following';btn.classList.add('following');
+    showToast(`✅ Following ${name}!`);
+  }
+  loadWhoToFollow();
+}
+
+/* ═══════════ NOTIFICATIONS ═══════════ */
+function loadNotifications(){
+  const unread = DEMO_NOTIFS.filter(n=>!n.read).length;
+  const badge = document.getElementById('notifBadge');
+  if(unread>0){ badge.textContent=unread;badge.classList.remove('gone'); }
+  const html = DEMO_NOTIFS.map(n=>`
+    <div class="np-item ${n.read?'':'unread'}">
+      <div class="np-item-title">${n.title}</div>
+      <div class="np-item-body">${n.body}</div>
+      <div class="np-item-time"><i class="bi bi-clock"></i>${n.time}</div>
+    </div>`).join('');
+  document.getElementById('notifList').innerHTML = html;
+}
+
+/* ═══════════ PROFILE MODAL ═══════════ */
+function openMyProfile(){
+  const u = currentUser;
+  const name = u.display_name||u.email?.split('@')[0]||'User';
+  document.getElementById('pmAva').textContent = ini(name);
+  document.getElementById('pmName').textContent = name;
+  document.getElementById('pmUid').textContent = 'ID: '+(u.id||'');
+  document.getElementById('pmPosts').textContent = u.posts||0;
+  document.getElementById('pmFollowers').textContent = u.followers||0;
+  document.getElementById('pmFollowing').textContent = u.following||0;
+  document.getElementById('pmEarnings').textContent = fmt(communityEarnings);
+  document.getElementById('pmWithdrawBtn').style.display='';
+  document.getElementById('pmFollowBtn').style.display='none';
+  document.getElementById('profileModal').classList.add('open');
+}
+
+function openUserProfile(uid, name){
+  viewingProfile = uid;
+  const u = DEMO_USERS.find(x=>x.id===uid)||{ display_name:name, followers:0, following:0, posts:0, earnings:0 };
+  document.getElementById('pmAva').textContent = ini(name||u.display_name);
+  document.getElementById('pmName').textContent = name||u.display_name;
+  document.getElementById('pmUid').textContent = 'ID: '+uid;
+  document.getElementById('pmPosts').textContent = u.posts||Math.floor(Math.random()*10+1);
+  document.getElementById('pmFollowers').textContent = u.followers||0;
+  document.getElementById('pmFollowing').textContent = Math.floor(Math.random()*20+5);
+  document.getElementById('pmEarnings').textContent = fmt(u.earnings||0);
+  document.getElementById('pmWithdrawBtn').style.display='none';
+  const followBtn = document.getElementById('pmFollowBtn');
+  followBtn.style.display='';
+  followBtn.textContent = demoFollowing.has(uid)?'Unfollow':'Follow';
+  followBtn.style.background = demoFollowing.has(uid)?'var(--muted)':'var(--blue)';
+  document.getElementById('profileModal').classList.add('open');
+}
+
+function toggleFollowFromModal(){
+  if(!viewingProfile) return;
+  if(demoFollowing.has(viewingProfile)){
+    demoFollowing.delete(viewingProfile);
+    document.getElementById('pmFollowBtn').textContent='Follow';
+    document.getElementById('pmFollowBtn').style.background='var(--blue)';
+    showToast('Unfollowed');
+  } else {
+    demoFollowing.add(viewingProfile);
+    document.getElementById('pmFollowBtn').textContent='Unfollow';
+    document.getElementById('pmFollowBtn').style.background='var(--muted)';
+    showToast('✅ Following!');
+  }
+}
+
+function closeProfileModal(){
+  document.getElementById('profileModal').classList.remove('open');
+  viewingProfile=null;
+}
+
+function withdrawEarnings(){
+  if(communityEarnings<1){ showToast('⚠️ Minimum withdrawal is $1.00'); return; }
+  showToast(`💸 Withdrawal of $${fmt(communityEarnings)} requested!`);
+}
+
+/* ═══════════ CREATE POST ═══════════ */
+function openCreatePost(type){
+  postType = type;
+  document.getElementById('createModal').classList.add('open');
+  setPostType(type);
+  document.getElementById('createModalTitle').textContent = isAdmin ? 'Admin Post' : 'Create Post';
+}
+
+function openAdminCreate(type){
+  openCreatePost(type==='announce'?'announce':type==='video'?'video':'article');
+}
+
+function setPostType(type){
+  postType = type;
+  document.querySelectorAll('.cpt').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.cpt').forEach(el=>{ if(el.textContent.toLowerCase().includes(type)||el.onclick?.toString().includes(type)) el.classList.add('active'); });
+  document.getElementById('cpMediaSection').style.display=(type==='video'||type==='image')?'':'none';
+  document.getElementById('cpArticleSection').style.display=(type==='article')?'':'none';
+  if(type==='video') document.getElementById('cpMediaUrl').placeholder='Paste YouTube URL…';
+  if(type==='image') document.getElementById('cpMediaUrl').placeholder='Paste image URL…';
+  document.getElementById('cpContent').placeholder = type==='announce'?'Write announcement…':type==='article'?'Article description…':'What\'s on your mind?';
+}
+
+function submitPost(){
+  const content = document.getElementById('cpContent').value.trim();
+  if(!content){ showToast('⚠️ Please write something first.'); return; }
+
+  const name = currentUser.display_name || currentUser.email?.split('@')[0] || 'User';
+  const newPost = {
+    id:'p_'+Date.now(), type:postType, author:name, author_id:currentUser.id,
+    is_admin:isAdmin, content, likes:0, comments:0, time:'just now'
+  };
+
+  if(postType==='video'){
+    let url = document.getElementById('cpMediaUrl').value.trim();
+    if(url.includes('youtube.com/watch?v=')){
+      url = 'https://www.youtube.com/embed/'+url.split('v=')[1].split('&')[0];
+    }
+    newPost.video_url = url;
+  }
+  if(postType==='article'){
+    newPost.article_title = document.getElementById('cpArticleTitle').value.trim()||'Untitled Article';
+    newPost.article_url   = document.getElementById('cpArticleUrl').value.trim()||'#';
+  }
+
+  // Prepend to feed
+  const container = document.getElementById('feedContent');
+  container.insertAdjacentHTML('afterbegin', buildPostCard(newPost));
+
+  closeCreateModal();
+  showToast('✅ Post published to community!');
+  document.getElementById('cpContent').value='';
+  document.getElementById('cpMediaUrl').value='';
+  document.getElementById('cpArticleTitle').value='';
+  document.getElementById('cpArticleUrl').value='';
+}
+
+function closeCreateModal(){
+  document.getElementById('createModal').classList.remove('open');
+}
+
+/* ═══════════ TABS ═══════════ */
+function switchTab(tab){
+  currentTab = tab;
+  document.querySelectorAll('.ftab').forEach(el=>el.classList.toggle('active',el.dataset.tab===tab));
+
+  const container = document.getElementById('feedContent');
+  if(tab==='feed')      loadFeed();
+  if(tab==='trending'){
+    const sorted = [...DEMO_POSTS].sort((a,b)=>b.likes-a.likes);
+    container.innerHTML = sorted.map(buildPostCard).join('');
+  }
+  if(tab==='articles'){
+    const articles = DEMO_POSTS.filter(p=>p.type==='article');
+    container.innerHTML = articles.length ? articles.map(buildPostCard).join('') : '<div class="empty"><i class="bi bi-newspaper"></i><p>No articles yet.</p></div>';
+  }
+  if(tab==='videos'){
+    const videos = DEMO_POSTS.filter(p=>p.type==='video');
+    container.innerHTML = videos.length ? videos.map(buildPostCard).join('') : '<div class="empty"><i class="bi bi-play-circle"></i><p>No videos yet.</p></div>';
+  }
+  if(tab==='earnings'){
+    container.innerHTML = `
+      <div class="widget" style="margin-bottom:0;">
+        <div class="widget-title"><i class="bi bi-cash-stack"></i>Earnings Dashboard</div>
+        <div class="earn-big" style="padding:20px 0;">
+          <div><span class="currency">$</span><span class="amount">${fmt(communityEarnings)}</span></div>
+          <div class="lbl">Total Community Earnings</div>
+        </div>
+        <div class="earn-rate-row" style="margin:0 0 14px;">
+          <div class="earn-rate-item"><div class="val">$0.01</div><div class="lbl">Per Minute</div></div>
+          <div class="earn-rate-item"><div class="val">$0.02</div><div class="lbl">Per Ad Click</div></div>
+          <div class="earn-rate-item"><div class="val">${Math.floor(sessionSeconds/60)}m</div><div class="lbl">Active Today</div></div>
+        </div>
+        <div style="background:var(--bg);border-radius:12px;padding:14px;margin-bottom:14px;">
+          <div style="font-size:12px;color:var(--muted);font-weight:600;margin-bottom:8px;">EARNINGS HISTORY</div>
+          ${[
+            ['Community Time','$'+fmt(Math.floor(sessionSeconds/60)*0.01),'bi-clock'],
+            ['Ad Clicks','$0.00','bi-cursor-fill'],
+            ['Post Likes Bonus','$0.00','bi-heart-fill'],
+            ['Referral Bonus','$0.00','bi-person-plus-fill'],
+          ].map(([l,v,i])=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);">
+            <span style="font-size:13px;display:flex;align-items:center;gap:6px;"><i class="bi ${i}" style="color:var(--blue);"></i>${l}</span>
+            <span style="font-size:13px;font-weight:700;color:var(--earn);font-family:'JetBrains Mono',monospace;">${v}</span>
+          </div>`).join('')}
+        </div>
+        <button class="btn-post" onclick="withdrawEarnings()" style="background:var(--earn);">
+          <i class="bi bi-cash-coin"></i> Withdraw Earnings
+        </button>
+      </div>`;
+  }
+  if(tab==='following'){
+    if(!demoFollowing.size){
+      container.innerHTML='<div class="empty"><i class="bi bi-people"></i><p>You aren\'t following anyone yet.</p></div>';
+    } else {
+      const users = DEMO_USERS.filter(u=>demoFollowing.has(u.id));
+      container.innerHTML = users.map(u=>`
+        <div class="post-card" style="padding:14px 16px;">
+          <div class="pc-head" style="padding:0;">
+            <div class="pc-ava" onclick="openUserProfile('${u.id}','${u.display_name}')">${ini(u.display_name)}</div>
+            <div class="pc-meta">
+              <div class="pc-name" onclick="openUserProfile('${u.id}','${u.display_name}')">${u.display_name}</div>
+              <div class="pc-uid">ID: ${u.id}</div>
+              <div class="lb-followers">${u.followers} followers · $${fmt(u.earnings)} earned</div>
+            </div>
+            <button class="btn-follow following" onclick="toggleFollowWidget('${u.id}','${u.display_name}',this)">Following</button>
+          </div>
+        </div>`).join('');
+    }
+  }
+}
+
+/* ═══════════ SIDEBAR / NOTIF PANEL ═══════════ */
+function openSidebar(){
+  document.getElementById('sidebar').classList.add('open');
+  document.getElementById('overlay').classList.add('show');
+}
+function closeSidebar(){
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('overlay').classList.remove('show');
+}
+function toggleNotif(){
+  const p = document.getElementById('notifPanel');
+  p.classList.toggle('open');
+  if(p.classList.contains('open')){
+    document.getElementById('notifBadge').classList.add('gone');
+    DEMO_NOTIFS.forEach(n=>n.read=true);
+  }
+}
+function closeAll(){
+  closeSidebar();
+  document.getElementById('notifPanel').classList.remove('open');
+}
+
+/* ═══════════ AUTO CHECK SESSION ═══════════ */
+async function checkSession(){
+  if(DEMO) return; // skip in demo mode
+  const { data:{ session } } = await db.auth.getSession();
+  if(session){ currentUser=session.user; await loadUserProfile(); initCommunity(); }
+}
+checkSession();
+</script>
+</body>
+</html>
