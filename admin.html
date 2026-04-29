@@ -1104,34 +1104,56 @@ async function loadTasks(){
 }
 
 // ── SUBMISSIONS ──────────────────────────────────────────────
+// Reads from `task_submissions` (matches your Supabase schema exactly)
+// Columns used: id, task_id, user_id, status, proof_data, screenshot_url,
+//               time_spent_seconds, submitted_at, started_at, admin_note,
+//               reviewed_at, cancelled_at, created_at
+// Joined:       tasks(id, title, reward)
+
 async function loadSubs() {
-  // user_tasks.user_id → auth.users (no public FK), so fetch user emails separately
   const { data: rawSubs, error } = await sb
-    .from('user_tasks')
+    .from('task_submissions')                          // ← correct table
     .select('*, tasks:task_id(id,title,reward)')
-    .order('created_at', { ascending: false, nullsFirst: false });
+    .order('submitted_at', { ascending: false, nullsFirst: false });
 
-  if (error) { console.warn('loadSubs error:', error.message); allSubs=[]; renderSubs(); return; }
-
-  // Build email map from allUsersCache (already loaded) keyed by auth uid
-  var emailMap = {};
-  (allUsersCache||[]).forEach(u => { if(u.id) emailMap[u.id] = u.email||u.username||u.id.slice(0,8); });
-
-  // If cache empty, fetch emails from auth via admin_users_view
-  if(!Object.keys(emailMap).length) {
-    var {data:uv} = await sb.from('admin_users_view').select('id,email,username');
-    (uv||[]).forEach(u => { emailMap[u.id] = u.email||u.username||u.id.slice(0,8); });
+  if (error) {
+    console.warn('loadSubs error:', error.message);
+    allSubs = [];
+    renderSubs();
+    return;
   }
 
-  // Attach user info to each sub
-  allSubs = (rawSubs||[]).map(sub => ({
+  // Build email map from allUsersCache keyed by auth uid
+  var emailMap = {};
+  (allUsersCache || []).forEach(u => {
+    if (u.id) emailMap[u.id] = u.email || u.username || u.id.slice(0, 8);
+  });
+
+  // If cache empty, fetch from admin_users_view
+  if (!Object.keys(emailMap).length) {
+    var { data: uv } = await sb.from('admin_users_view').select('id,email,username');
+    (uv || []).forEach(u => {
+      emailMap[u.id] = u.email || u.username || u.id.slice(0, 8);
+    });
+  }
+
+  // Map task_submissions columns → what openRV / renderSubs expects
+  allSubs = (rawSubs || []).map(sub => ({
     ...sub,
-    _userEmail: emailMap[sub.user_id] || sub.user_id?.slice(0,8) || '—',
-    // Map user_tasks fields to the names openRV expects
-    proof_data: sub.proof || sub.proof_data || null,
-    screenshot_url: sub.proof_image || sub.proof_url || sub.screenshot_url || null,
+    _userEmail: emailMap[sub.user_id] || sub.user_id?.slice(0, 8) || '—',
+
+    // Normalise proof fields so renderSubs & openRV always find them
+    proof_data:     sub.proof_data     || null,   // base64 or URL stored here
+    screenshot_url: sub.screenshot_url || null,   // public storage URL (may be null if base64 used)
+
+    // Helper: one field that always has *something* to show as proof
+    _proofDisplay:  sub.screenshot_url
+                      || (sub.proof_data && sub.proof_data !== 'base64_image' ? sub.proof_data : null)
+                      || null,
+    _isBase64:      sub.proof_data?.startsWith('data:image') || false,
+
     time_spent_seconds: sub.time_spent_seconds || 0,
-    submitted_at: sub.submitted_at || sub.created_at,
+    submitted_at:       sub.submitted_at || sub.created_at,
   }));
 
   _subCache = {};
@@ -1139,33 +1161,83 @@ async function loadSubs() {
   renderSubs();
 }
 
+// ── renderSubs — unchanged except screenshot detection uses new field names ──
 function renderSubs() {
-  var tb = document.getElementById('s-tbody'); if(!tb) return;
-  var list = subsFilter==='all' ? allSubs : allSubs.filter(s=>s.status===subsFilter);
-  if(!list.length){ tb.innerHTML='<tr><td colspan="7"><div class="empty">No submissions found.</div></td></tr>'; return; }
+  var tb = document.getElementById('s-tbody');
+  if (!tb) return;
+
+  var list = subsFilter === 'all' ? allSubs : allSubs.filter(s => s.status === subsFilter);
+
+  if (!list.length) {
+    tb.innerHTML = '<tr><td colspan="7"><div class="empty">No submissions found.</div></td></tr>';
+    return;
+  }
+
   tb.innerHTML = list.map(s => {
-    var taskTitle = s.tasks ? s.tasks.title : (s.task_title||'—');
-    var hasScreenshot = s.proof_image||s.proof_url||s.screenshot_url;
+    var taskTitle    = s.tasks ? s.tasks.title : (s.task_title || '—');
+    var reward       = s.tasks ? ('$' + parseFloat(s.tasks.reward || 0).toFixed(3)) : '—';
+    // Has proof if screenshot_url exists OR proof_data is base64 / a URL
+    var hasProof     = !!(s.screenshot_url || s._isBase64 ||
+                          (s.proof_data && s.proof_data !== 'base64_image'));
+
     return `<tr>
-      <td style="font-size:11px">${s._userEmail||'—'}</td>
+      <td style="font-size:11px">${s._userEmail || '—'}</td>
       <td style="font-size:12px">${taskTitle}</td>
+      <td style="font-size:12px">${reward}</td>
       <td>${stbadge(s.status)}</td>
-      <td>${hasScreenshot?'<span class="badge bgn">Yes</span>':'<span class="badge bgr">No</span>'}</td>
+      <td>${hasProof
+            ? '<span class="badge bgn">Yes</span>'
+            : '<span class="badge bgr">No</span>'}</td>
       <td style="font-size:11px">${ft(s.time_spent_seconds)}</td>
-      <td style="font-size:11px">${fd(s.submitted_at||s.created_at)}</td>
-      <td><button class="ibtn" style="color:var(--blue)" onclick="openRV(_subCache['${s.id}'])">
-        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
-      </button></td>
+      <td style="font-size:11px">${fd(s.submitted_at || s.created_at)}</td>
+      <td>
+        <button class="ibtn" style="color:var(--blue)" onclick="openRV(_subCache['${s.id}'])">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11
+                     11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5
+                     5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3
+                     3 3-1.34 3-3-1.34-3-3-3z"/>
+          </svg>
+        </button>
+      </td>
     </tr>`;
   }).join('');
 }
 
-function fSubs(f, btn) {
-  subsFilter = f;
-  document.querySelectorAll('#pg-submissions .ftab').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  renderSubs();
+// ── openRV — how to display proof inside the review modal ──
+// Your existing openRV likely reads sub.screenshot_url or sub.proof_data.
+// Make sure it handles the base64 case:
+//
+//   if (sub._isBase64) {
+//     proofImg.src = sub.proof_data;          // data:image/… string
+//   } else if (sub._proofDisplay) {
+//     proofImg.src = sub._proofDisplay;       // public URL
+//   } else {
+//     proofImg.style.display = 'none';        // no proof
+//   }
+
+// ── Approve / Reject helpers (update task_submissions, not user_tasks) ──
+async function approveSub(id) {
+  const { error } = await sb.from('task_submissions').update({
+    status:      'approved',
+    reviewed_at: new Date().toISOString()
+  }).eq('id', id);
+  if (error) { showToast('❌ ' + error.message); return; }
+  showToast('✅ Submission approved');
+  loadSubs();
 }
+
+async function rejectSub(id, note) {
+  const { error } = await sb.from('task_submissions').update({
+    status:      'rejected',
+    admin_note:  note || null,
+    reviewed_at: new Date().toISOString()
+  }).eq('id', id);
+  if (error) { showToast('❌ ' + error.message); return; }
+  showToast('🚫 Submission rejected');
+  loadSubs();
+    }
+  
 // ── USERS ────────────────────────────────────────────────────
 var allUsersCache = [];
 var allSubCounts = {};
