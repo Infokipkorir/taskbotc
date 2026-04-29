@@ -449,7 +449,19 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
         <div class="tb-attention">
           <strong>⚠️ ATTENTION:</strong> DO NOT submit a screenshot of this instruction page. Make sure you submit a full screenshot of the exact proof the advertiser asks for. Submitting incorrect proof may result in rejection.
         </div>
+         <!-- paste proof text -->
+<div class="tb-or-divider"> write your proof</div>
 
+<textarea class="proof-input" id="proofInput"
+  placeholder="Describe your proof here (e.g. username used, actions completed, steps followed...)"
+  oninput="onProofInput(this)"
+  rows="3"
+  style="resize:vertical;"></textarea>
+
+<div style="font-size:11px;color:var(--muted);display:flex;align-items:flex-start;gap:4px;">
+  <i class="bi bi-info-circle" style="margin-top:1px;flex-shrink:0;"></i>
+  Enter a clear description of the task you completed if you are not uploading a screenshot.
+</div>
         <!-- Screenshot upload zone -->
         <div class="tb-browse-wrap">
           <div class="tb-screenshot-label">Screenshot: <span style="color:var(--red);font-size:11px;">*required</span></div>
@@ -474,16 +486,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
           <div class="upload-progress" id="uploadProgress">
             <div class="up-bar-wrap"><div class="up-bar" id="upBar"></div></div>
             <div class="up-label" id="upLabel">Uploading…</div>
-          </div>
-
-          <!-- OR paste URL -->
-          <div class="tb-or-divider">or paste a screenshot URL</div>
-          <input class="proof-input" id="proofInput" type="url"
-                 placeholder="https://drive.google.com/… or any public screenshot link"
-                 oninput="onProofInput(this)">
-          <div style="font-size:11px;color:var(--muted);display:flex;align-items:flex-start;gap:4px;">
-            <i class="bi bi-info-circle" style="margin-top:1px;flex-shrink:0;"></i>
-            Paste a Google Drive, Imgur, or any public screenshot URL if you prefer not to upload.
           </div>
 
           <div style="margin-top:6px;">
