@@ -1112,7 +1112,7 @@ async function loadSubs() {
   // Only need one attempt since user_tasks doesn't have submitted_at
   for (const col of ORDER_COLS) {
     const { data, error } = await sb
-      .from('public.user_tasks')
+      .from('user_tasks')
       .select(`
         *,
         tasks:task_id (
@@ -1169,7 +1169,7 @@ async function loadUsers() {
   try {
     // Fetch all rows from all three tables with pagination
     var [u, subs, wds] = await Promise.all([
-      fetchAllRows('users',            '*',              'created_at'),
+      fetchAllRows('public.users',            '*',              'created_at'),
       fetchAllRows('task_submissions', 'user_id,status', 'created_at'),
       fetchAllRows('withdrawals',      'user_id,status', 'created_at')
     ]);
@@ -1265,7 +1265,7 @@ function filterUsers(q) {
 // ── USER PROFILE ─────────────────────────────────────────────
 async function openUserProfile(uid){
   var user=allUsersCache.find(u=>u.id===uid);
-  if(!user){var{data}=await sb.from('users').select('*').eq('id',uid).single();user=data;}
+  if(!user){var{data}=await sb.from('public.users').select('*').eq('id',uid).single();user=data;}
   if(!user)return;
   cUserProfile=user;
   // Reset tabs
