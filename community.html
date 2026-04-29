@@ -316,26 +316,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 </style>
 </head>
 <body>
-
-<!-- ══ USER PICKER GATE ══ -->
-<div id="authGate">
-  <div class="auth-card">
-    <div class="auth-logo">
-      <div class="dot">🏘️</div>
-      <span>Community</span>
-    </div>
-    <p class="auth-sub">OneTask Community Hub · Select your account</p>
-    <input class="up-search" id="upSearch" type="text" placeholder="🔍  Search users…" oninput="filterUsers(this.value)">
-    <div class="up-count" id="upCount"></div>
-    <div class="up-list" id="upList">
-      <div class="up-loading">
-        <div class="up-spinner"></div>
-        Loading users from database…
-      </div>
-    </div>
-  </div>
-</div>
-
 <!-- ══ OVERLAY ══ -->
 <div class="overlay" id="overlay" onclick="closeAll()"></div>
 
