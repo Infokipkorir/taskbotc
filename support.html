@@ -1105,10 +1105,10 @@ function startNewChat() {
 /* ══════════════════════════════════════════
    AUTH GUARD — redirect if not logged in
 ══════════════════════════════════════════ */
-    document.addEventListener('DOMContentLoaded', async () => {
+   document.addEventListener('DOMContentLoaded', async () => {
   const guard = document.getElementById('authGuard');
 
-  // 1. Try Supabase auth session → fetch full user row from DB
+  // 1. Try Supabase active session first
   try {
     const { data: { session } } = await db.auth.getSession();
     if (session?.user) {
@@ -1127,8 +1127,7 @@ function startNewChat() {
     }
   } catch(e) {}
 
-  // 2. Fallback: localStorage — but ALSO re-fetch full row from DB
-  //    so we always have the real id, display_name, etc.
+  // 2. Fallback: localStorage — re-fetch full row from DB
   if (!currentUser) {
     try {
       const stored = localStorage.getItem('ot_user')
@@ -1137,7 +1136,6 @@ function startNewChat() {
       if (stored) {
         const parsed = JSON.parse(stored);
         if (parsed?.email) {
-          // Re-fetch from DB to get fresh, complete user row
           const { data: userRow } = await db.from('users')
             .select('id,email,display_name,username')
             .eq('email', parsed.email)
@@ -1145,7 +1143,6 @@ function startNewChat() {
             .catch(() => ({ data: null }));
           currentUser = userRow || (parsed?.id ? parsed : null);
         } else if (parsed?.id) {
-          // Have id but no email — fetch by id
           const { data: userRow } = await db.from('users')
             .select('id,email,display_name,username')
             .eq('id', parsed.id)
@@ -1157,46 +1154,31 @@ function startNewChat() {
     } catch(e) {}
   }
 
-  // 3. Not logged in — redirect to index.html
-  if (!currentUser) {
-    if (guard) {
-      guard.innerHTML = `
-        <div style="text-align:center">
-          <div style="width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,#1d4ed8,#3b82f6);display:flex;align-items:center;justify-content:center;font-size:26px;color:#fff;margin:0 auto 18px;box-shadow:0 6px 20px rgba(29,78,216,.3)">
-            <i class="bi bi-shield-lock-fill"></i>
-          </div>
-          <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:#0f172a;margin-bottom:8px">Sign in required</div>
-          <div style="font-size:13px;color:#64748b;margin-bottom:22px">You need to be logged in to access Help & Support.</div>
-          <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#94a3b8;justify-content:center">
-            <div style="width:8px;height:8px;border-radius:50%;background:#3b82f6;animation:spin 1s linear infinite"></div>
-            Redirecting to login…
-          </div>
-        </div>`;
-    }
-    setTimeout(() => { window.location.href = 'index.html'; }, 1800);
-    return;
-  }
-
-  // 4. Logged in — hide guard and boot the page
+  // 3. Hide guard — no redirect, just boot the page with whatever session we have
   if (guard) guard.style.display = 'none';
 
-  const name        = currentUser.display_name || currentUser.username || currentUser.full_name || currentUser.email || 'User';
-  const displayName = currentUser.display_name || currentUser.username || currentUser.email?.split('@')[0] || 'User';
+  if (currentUser) {
+    const name        = currentUser.display_name || currentUser.username || currentUser.full_name || currentUser.email || 'User';
+    const displayName = currentUser.display_name || currentUser.username || currentUser.email?.split('@')[0] || 'User';
 
-  const chip        = document.getElementById('userChip');
-  const ava         = document.getElementById('userAva');
-  const fallbackAva = document.getElementById('userAvaFallback');
-  const nameLabel   = document.getElementById('userNameLabel');
+    const chip        = document.getElementById('userChip');
+    const ava         = document.getElementById('userAva');
+    const fallbackAva = document.getElementById('userAvaFallback');
+    const nameLabel   = document.getElementById('userNameLabel');
 
-  ava.textContent = iniAvatar(name);
-  ava.title = currentUser.email || name;
-  nameLabel.textContent = displayName;
-  chip.style.display = 'flex';
-  if (fallbackAva) fallbackAva.style.display = 'none';
+    ava.textContent = iniAvatar(name);
+    ava.title = currentUser.email || name;
+    nameLabel.textContent = displayName;
+    chip.style.display = 'flex';
+    if (fallbackAva) fallbackAva.style.display = 'none';
+  }
 
-  // Auto-switch to tab if coming from dashboard.html with ?tab=tickets
+  // Auto-switch tab if coming from dashboard.html e.g. ?tab=tickets
   const urlTab = new URLSearchParams(window.location.search).get('tab');
-  if (urlTab) switchTab(urlTab, document.getElementById('tab' + urlTab.charAt(0).toUpperCase() + urlTab.slice(1)));
+  if (urlTab) {
+    const tabEl = document.getElementById('tab' + urlTab.charAt(0).toUpperCase() + urlTab.slice(1));
+    switchTab(urlTab, tabEl);
+  }
 
   loadMyTickets();
   initRealtime();
