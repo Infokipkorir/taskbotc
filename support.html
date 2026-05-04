@@ -674,6 +674,30 @@ function now() {
   return new Date().toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
 }
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+  
+  /* ══════════════════════════════════════════
+   ENSURE USER — retry session if currentUser is null
+══════════════════════════════════════════ */
+async function ensureUser() {
+  if (currentUser) return currentUser;
+  try {
+    const { data: { session } } = await db.auth.getSession();
+    if (session?.user) {
+      const { data: userRow } = await db.from('users')
+        .select('id,email,display_name,username')
+        .eq('email', session.user.email)
+        .single()
+        .catch(() => ({ data: null }));
+      currentUser = userRow || {
+        id: session.user.id,
+        email: session.user.email,
+        display_name: session.user.user_metadata?.full_name
+                   || session.user.email?.split('@')[0] || 'User'
+      };
+    }
+  } catch(e) {}
+  return currentUser;
+}
 
 /* ══════════════════════════════════════════
    EMOJI PICKER
@@ -1346,54 +1370,8 @@ async function createAutoTicket(firstMessage) {
 
 /* ══════════════════════════════════════════
    TICKET SUBMISSION (from My Tickets form)
-═════════════════════════════════════════ 
-async function submitTicket() {
-  // If currentUser is null, try one more time to get the active session
-  if (!currentUser) {
-    try {
-      const { data: { session } } = await db.auth.getSession();
-      if (session?.user) {
-        const { data: userRow } = await db.from('users')
-          .select('id,email,display_name,username')
-          .eq('email', session.user.email)
-          .single()
-          .catch(() => ({ data: null }));
-        currentUser = userRow || {
-          id: session.user.id,
-          email: session.user.email,
-          display_name: session.user.user_metadata?.full_name
-                     || session.user.email?.split('@')[0] || 'User'
-        };
-      }
-    } catch(e) {}
-  }
-
-  // Still nothing — hard stop
-  if (!currentUser) { toast('Please sign in to submit a ticket', 'err'); return; }
-
-  const subject  = document.getElementById('tk-subject').value.trim();
-  const message  = document.getElementById('tk-message').value.trim();
-  const category = document.getElementById('tk-category').value;
-  if (!subject || !message) { toast('Please fill in subject and message', 'err'); return; }
-
-  const btn = document.getElementById('submitTicketBtn');
-  btn.disabled = true;
-  btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Submitting…';
-
-  let ticket = null;
-  let insertError = null;
-  try {
-    const res = await db.from('support_tickets').insert([{
-      subject,
-      category,
-      status:        'open',
-      user_id:       currentUser.id,
-      user_email:    currentUser.email || null,
-      message:       message,
-      is_ai_handled: false,
-      created_at:    new Date().toISOString()
-    }]).select().single();
-    ticket = res.data;
+═════════════════════════════════════════*/
+;
     insertError = res.error;
   } catch(e) {
     insertError = e;
@@ -1444,7 +1422,78 @@ async function submitTicket() {
 /* ══════════════════════════════════════════
    MY TICKETS — user side
 ══════════════════════════════════════════ */
+ async function submitTicket() {
+  await ensureUser();
+  if (!currentUser) { toast('Please sign in to submit a ticket', 'err'); return; }
+
+  const subject  = document.getElementById('tk-subject').value.trim();
+  const message  = document.getElementById('tk-message').value.trim();
+  const category = document.getElementById('tk-category').value;
+  if (!subject || !message) { toast('Please fill in subject and message', 'err'); return; }
+
+  const btn = document.getElementById('submitTicketBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Submitting…';
+
+  let ticket = null, insertError = null;
+  try {
+    const res = await db.from('support_tickets').insert([{
+      subject,
+      category,
+      status:        'open',
+      user_id:       currentUser.id,
+      user_email:    currentUser.email || null,
+      message,
+      is_ai_handled: false,
+      created_at:    new Date().toISOString()
+    }]).select().single();
+    ticket = res.data;
+    insertError = res.error;
+  } catch(e) { insertError = e; }
+
+  if (insertError || !ticket) {
+    toast('❌ ' + (insertError?.message || 'Submission failed. Please try again.'), 'err');
+    btn.disabled = false;
+    btn.innerHTML = '<i class="bi bi-send-fill"></i> Submit Ticket';
+    return;
+  }
+
+  try {
+    await db.from('support_messages').insert([{
+      ticket_id:   ticket.id,
+      message,
+      sender_type: 'user',
+      sender_id:   currentUser.id,
+      sender_name: currentUser.display_name || currentUser.email?.split('@')[0] || 'User',
+      created_at:  new Date().toISOString()
+    }]);
+  } catch(e) {}
+
+  const autoReply = getAutoResponse(subject + ' ' + message);
+  setTimeout(async () => {
+    try {
+      await db.from('support_messages').insert([{
+        ticket_id:   ticket.id,
+        message:     autoReply,
+        sender_type: 'ai',
+        sender_name: 'Support',
+        created_at:  new Date(Date.now() + 2000).toISOString()
+      }]);
+    } catch(e) {}
+    setTimeout(loadMyTickets, 500);
+  }, 2500);
+
+  toast('✅ Ticket submitted! Support will respond soon.', 'ok');
+  document.getElementById('tk-subject').value  = '';
+  document.getElementById('tk-message').value  = '';
+  document.getElementById('tk-category').value = 'general';
+  btn.disabled = false;
+  btn.innerHTML = '<i class="bi bi-send-fill"></i> Submit Ticket';
+  loadMyTickets();
+}
+
 async function loadMyTickets() {
+  await ensureUser();
   if (!currentUser) {
     document.getElementById('myTicketsList').innerHTML =
       '<div style="text-align:center;padding:28px;color:var(--muted);font-size:13px;">Sign in to view your tickets.</div>';
@@ -1503,47 +1552,10 @@ async function loadMyTickets() {
   });
 }
 
-async function toggleTicketChat(id) {
-  const wrap   = document.getElementById('tc-' + id);
-  const isOpen = wrap.classList.contains('open');
-  document.querySelectorAll('.ticket-chat-wrap.open').forEach(x => x.classList.remove('open'));
-  if (!isOpen) {
-    wrap.classList.add('open');
-    await loadTicketMessages(id);
-    unreadTicketIds.delete(id);
-    document.getElementById('mt-' + id)?.classList.remove('has-unread');
-    updateUnreadBadge();
-  }
-}
-
-async function loadTicketMessages(id) {
-  const el = document.getElementById('tcm-' + id);
-  let data = null;
-  try {
-    const res = await db.from('support_messages').select('*').eq('ticket_id', id)
-      .order('created_at', { ascending: true });
-    data = res.data;
-  } catch(e) { data = null; }
-  if (!data?.length) {
-    el.innerHTML = '<div style="font-size:12px;color:var(--muted);text-align:center;padding:10px">No messages yet.</div>';
-    return;
-  }
-  el.innerHTML = data.map(m => {
-    const role  = m.sender_type === 'user' ? 'user' : m.sender_type === 'admin' ? 'admin' : 'ai';
-    const label = role === 'admin'
-      ? `<div class="tc-msg-label"><i class="bi bi-shield-fill" style="color:var(--green)"></i> ${m.sender_name || 'Support Agent'}</div>`
-      : role === 'ai'
-      ? `<div class="tc-msg-label"><i class="bi bi-headset" style="color:var(--blue)"></i> ${m.sender_name || 'Support'}</div>` : '';
-    return `<div class="tc-msg ${role}">${label}
-      <div class="tc-msg-bubble">${sanitize(m.message)}</div>
-      <div class="tc-msg-time">${timeAgo(m.created_at)}</div>
-    </div>`;
-  }).join('');
-  el.scrollTop = el.scrollHeight;
-}
-
 async function replyTicket(ticketId) {
+  await ensureUser();
   if (!currentUser) { toast('Please sign in', 'err'); return; }
+
   const input = document.getElementById('tr-' + ticketId);
   const btn   = document.querySelector(`#tc-${ticketId} .tc-send-btn`);
   const text  = input?.value.trim();
@@ -1574,7 +1586,6 @@ async function replyTicket(ticketId) {
     if (input) input.value = text;
   } else {
     await loadTicketMessages(ticketId);
-    // Auto keyword reply
     const autoReply = getAutoResponse(text);
     setTimeout(async () => {
       await db.from('support_messages').insert([{
