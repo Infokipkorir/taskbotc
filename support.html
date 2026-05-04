@@ -1117,11 +1117,10 @@ function startNewChat() {
 /* ══════════════════════════════════════════
    AUTH GUARD — redirect if not logged in
 ══════════════════════════════════════════ */
-document.addEventListener('DOMContentLoaded', async () => {
-  // Block all content until auth check completes
+    document.addEventListener('DOMContentLoaded', async () => {
   const guard = document.getElementById('authGuard');
 
-  // 1. Try Supabase auth session
+  // 1. Try Supabase auth session → fetch full user row from DB
   try {
     const { data: { session } } = await db.auth.getSession();
     if (session?.user) {
@@ -1134,23 +1133,43 @@ document.addEventListener('DOMContentLoaded', async () => {
       currentUser = userRow || {
         id: session.user.id,
         email: session.user.email,
-        display_name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User'
+        display_name: session.user.user_metadata?.full_name
+                   || session.user.email?.split('@')[0] || 'User'
       };
     }
   } catch(e) {}
 
-  // 2. Fallback: localStorage custom auth session
+  // 2. Fallback: localStorage — but ALSO re-fetch full row from DB
+  //    so we always have the real id, display_name, etc.
   if (!currentUser) {
     try {
-      const stored = localStorage.getItem('ot_user') || localStorage.getItem('currentUser') || localStorage.getItem('user');
+      const stored = localStorage.getItem('ot_user')
+                  || localStorage.getItem('currentUser')
+                  || localStorage.getItem('user');
       if (stored) {
         const parsed = JSON.parse(stored);
-        if (parsed?.id || parsed?.email) currentUser = parsed;
+        if (parsed?.email) {
+          // Re-fetch from DB to get fresh, complete user row
+          const { data: userRow } = await db.from('users')
+            .select('id,email,display_name,username')
+            .eq('email', parsed.email)
+            .single()
+            .catch(() => ({ data: null }));
+          currentUser = userRow || (parsed?.id ? parsed : null);
+        } else if (parsed?.id) {
+          // Have id but no email — fetch by id
+          const { data: userRow } = await db.from('users')
+            .select('id,email,display_name,username')
+            .eq('id', parsed.id)
+            .single()
+            .catch(() => ({ data: null }));
+          currentUser = userRow || parsed;
+        }
       }
     } catch(e) {}
   }
 
-  // 3. Not logged in — redirect to login page
+  // 3. Not logged in — redirect to index.html
   if (!currentUser) {
     if (guard) {
       guard.innerHTML = `
@@ -1167,7 +1186,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         </div>`;
     }
     setTimeout(() => { window.location.href = 'index.html'; }, 1800);
-    return; // Stop all further initialisation
+    return;
   }
 
   // 4. Logged in — hide guard and boot the page
@@ -1176,16 +1195,20 @@ document.addEventListener('DOMContentLoaded', async () => {
   const name        = currentUser.display_name || currentUser.username || currentUser.full_name || currentUser.email || 'User';
   const displayName = currentUser.display_name || currentUser.username || currentUser.email?.split('@')[0] || 'User';
 
-  const chip       = document.getElementById('userChip');
-  const ava        = document.getElementById('userAva');
-  const fallbackAva= document.getElementById('userAvaFallback');
-  const nameLabel  = document.getElementById('userNameLabel');
+  const chip        = document.getElementById('userChip');
+  const ava         = document.getElementById('userAva');
+  const fallbackAva = document.getElementById('userAvaFallback');
+  const nameLabel   = document.getElementById('userNameLabel');
 
   ava.textContent = iniAvatar(name);
   ava.title = currentUser.email || name;
   nameLabel.textContent = displayName;
   chip.style.display = 'flex';
   if (fallbackAva) fallbackAva.style.display = 'none';
+
+  // Auto-switch to tab if coming from dashboard.html with ?tab=tickets
+  const urlTab = new URLSearchParams(window.location.search).get('tab');
+  if (urlTab) switchTab(urlTab, document.getElementById('tab' + urlTab.charAt(0).toUpperCase() + urlTab.slice(1)));
 
   loadMyTickets();
   initRealtime();
