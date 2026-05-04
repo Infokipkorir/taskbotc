@@ -1118,10 +1118,9 @@ function startNewChat() {
    AUTH GUARD — redirect if not logged in
 ══════════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded', async () => {
-  // Block all content until auth check completes
   const guard = document.getElementById('authGuard');
 
-  // 1. Try Supabase auth session
+  // 1. Try Supabase active session first
   try {
     const { data: { session } } = await db.auth.getSession();
     if (session?.user) {
@@ -1134,58 +1133,64 @@ document.addEventListener('DOMContentLoaded', async () => {
       currentUser = userRow || {
         id: session.user.id,
         email: session.user.email,
-        display_name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User'
+        display_name: session.user.user_metadata?.full_name
+                   || session.user.email?.split('@')[0] || 'User'
       };
     }
   } catch(e) {}
 
-  // 2. Fallback: localStorage custom auth session
+  // 2. Fallback: localStorage — re-fetch full row from DB
   if (!currentUser) {
     try {
-      const stored = localStorage.getItem('ot_user') || localStorage.getItem('currentUser') || localStorage.getItem('user');
+      const stored = localStorage.getItem('ot_user')
+                  || localStorage.getItem('currentUser')
+                  || localStorage.getItem('user');
       if (stored) {
         const parsed = JSON.parse(stored);
-        if (parsed?.id || parsed?.email) currentUser = parsed;
+        if (parsed?.email) {
+          const { data: userRow } = await db.from('users')
+            .select('id,email,display_name,username')
+            .eq('email', parsed.email)
+            .single()
+            .catch(() => ({ data: null }));
+          currentUser = userRow || (parsed?.id ? parsed : null);
+        } else if (parsed?.id) {
+          const { data: userRow } = await db.from('users')
+            .select('id,email,display_name,username')
+            .eq('id', parsed.id)
+            .single()
+            .catch(() => ({ data: null }));
+          currentUser = userRow || parsed;
+        }
       }
     } catch(e) {}
   }
 
-  // 3. Not logged in — redirect to login page
-  if (!currentUser) {
-    if (guard) {
-      guard.innerHTML = `
-        <div style="text-align:center">
-          <div style="width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,#1d4ed8,#3b82f6);display:flex;align-items:center;justify-content:center;font-size:26px;color:#fff;margin:0 auto 18px;box-shadow:0 6px 20px rgba(29,78,216,.3)">
-            <i class="bi bi-shield-lock-fill"></i>
-          </div>
-          <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:#0f172a;margin-bottom:8px">Sign in required</div>
-          <div style="font-size:13px;color:#64748b;margin-bottom:22px">You need to be logged in to access Help & Support.</div>
-          <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#94a3b8;justify-content:center">
-            <div style="width:8px;height:8px;border-radius:50%;background:#3b82f6;animation:spin 1s linear infinite"></div>
-            Redirecting to login…
-          </div>
-        </div>`;
-    }
-    setTimeout(() => { window.location.href = 'login.html'; }, 1800);
-    return; // Stop all further initialisation
-  }
-
-  // 4. Logged in — hide guard and boot the page
+  // 3. Hide guard — no redirect, just boot the page with whatever session we have
   if (guard) guard.style.display = 'none';
 
-  const name        = currentUser.display_name || currentUser.username || currentUser.full_name || currentUser.email || 'User';
-  const displayName = currentUser.display_name || currentUser.username || currentUser.email?.split('@')[0] || 'User';
+  if (currentUser) {
+    const name        = currentUser.display_name || currentUser.username || currentUser.full_name || currentUser.email || 'User';
+    const displayName = currentUser.display_name || currentUser.username || currentUser.email?.split('@')[0] || 'User';
 
-  const chip       = document.getElementById('userChip');
-  const ava        = document.getElementById('userAva');
-  const fallbackAva= document.getElementById('userAvaFallback');
-  const nameLabel  = document.getElementById('userNameLabel');
+    const chip        = document.getElementById('userChip');
+    const ava         = document.getElementById('userAva');
+    const fallbackAva = document.getElementById('userAvaFallback');
+    const nameLabel   = document.getElementById('userNameLabel');
 
-  ava.textContent = iniAvatar(name);
-  ava.title = currentUser.email || name;
-  nameLabel.textContent = displayName;
-  chip.style.display = 'flex';
-  if (fallbackAva) fallbackAva.style.display = 'none';
+    ava.textContent = iniAvatar(name);
+    ava.title = currentUser.email || name;
+    nameLabel.textContent = displayName;
+    chip.style.display = 'flex';
+    if (fallbackAva) fallbackAva.style.display = 'none';
+  }
+
+  // Auto-switch tab if coming from dashboard.html e.g. ?tab=tickets
+  const urlTab = new URLSearchParams(window.location.search).get('tab');
+  if (urlTab) {
+    const tabEl = document.getElementById('tab' + urlTab.charAt(0).toUpperCase() + urlTab.slice(1));
+    switchTab(urlTab, tabEl);
+  }
 
   loadMyTickets();
   initRealtime();
@@ -1194,7 +1199,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   loadChatSessions();
   await Promise.all([loadFAQs(), loadAITrainingData()]);
 });
-
 /* ══════════════════════════════════════════
    LOAD AI TRAINING DATA (knowledge base)
 ══════════════════════════════════════════ */
@@ -1355,7 +1359,9 @@ async function createAutoTicket(firstMessage) {
    TICKET SUBMISSION (from My Tickets form)
 ══════════════════════════════════════════ */
 async function submitTicket() {
+  await ensureUser();
   if (!currentUser) { toast('Please sign in to submit a ticket', 'err'); return; }
+
   const subject  = document.getElementById('tk-subject').value.trim();
   const message  = document.getElementById('tk-message').value.trim();
   const category = document.getElementById('tk-category').value;
@@ -1365,8 +1371,7 @@ async function submitTicket() {
   btn.disabled = true;
   btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Submitting…';
 
-  let ticket = null;
-  let insertError = null;
+  let ticket = null, insertError = null;
   try {
     const res = await db.from('support_tickets').insert([{
       subject,
@@ -1374,15 +1379,13 @@ async function submitTicket() {
       status:        'open',
       user_id:       currentUser.id,
       user_email:    currentUser.email || null,
-      message:       message,
+      message,
       is_ai_handled: false,
       created_at:    new Date().toISOString()
     }]).select().single();
     ticket = res.data;
     insertError = res.error;
-  } catch(e) {
-    insertError = e;
-  }
+  } catch(e) { insertError = e; }
 
   if (insertError || !ticket) {
     toast('❌ ' + (insertError?.message || 'Submission failed. Please try again.'), 'err');
@@ -1391,7 +1394,6 @@ async function submitTicket() {
     return;
   }
 
-  // Insert the user's first message
   try {
     await db.from('support_messages').insert([{
       ticket_id:   ticket.id,
@@ -1401,9 +1403,8 @@ async function submitTicket() {
       sender_name: currentUser.display_name || currentUser.email?.split('@')[0] || 'User',
       created_at:  new Date().toISOString()
     }]);
-  } catch(e) { /* non-fatal */ }
+  } catch(e) {}
 
-  // Automated keyword-based reply (no API cost)
   const autoReply = getAutoResponse(subject + ' ' + message);
   setTimeout(async () => {
     try {
@@ -1414,7 +1415,7 @@ async function submitTicket() {
         sender_name: 'Support',
         created_at:  new Date(Date.now() + 2000).toISOString()
       }]);
-    } catch(e) { /* non-fatal */ }
+    } catch(e) {}
     setTimeout(loadMyTickets, 500);
   }, 2500);
 
@@ -1427,6 +1428,114 @@ async function submitTicket() {
   loadMyTickets();
 }
 
+async function loadMyTickets() {
+  await ensureUser();
+  if (!currentUser) {
+    document.getElementById('myTicketsList').innerHTML =
+      '<div style="text-align:center;padding:28px;color:var(--muted);font-size:13px;">Sign in to view your tickets.</div>';
+    return;
+  }
+  const { data } = await db.from('support_tickets').select('*')
+    .eq('user_id', currentUser.id).order('created_at', { ascending: false }).limit(30)
+    .catch(() => ({ data: null }));
+  const el = document.getElementById('myTicketsList');
+  if (!data?.length) {
+    el.innerHTML = `<div style="text-align:center;padding:36px 20px;color:var(--muted);">
+      <i class="bi bi-ticket" style="font-size:32px;display:block;margin-bottom:10px;opacity:.25;"></i>
+      <p style="font-size:13px;">No tickets yet. Submit one above if you need help!</p></div>`;
+    return;
+  }
+  el.innerHTML = data.map(t => {
+    const sc = t.status === 'resolved' ? 'resolved' : t.status === 'closed' ? 'closed' : t.status === 'pending' ? 'pending' : 'open';
+    const isUnread = unreadTicketIds.has(t.id);
+    return `
+      <div class="my-ticket ${isUnread ? 'has-unread' : ''}" id="mt-${t.id}">
+        <div class="my-ticket-head">
+          <div style="flex:1;min-width:0">
+            <div class="my-ticket-subject">${t.subject || 'Support Ticket'}</div>
+            <div class="my-ticket-meta">
+              <i class="bi bi-tag" style="font-size:10px"></i>
+              <span>${t.category || 'general'}</span> · <span>${timeAgo(t.created_at)}</span>
+              ${t.ticket_number ? `· <span style="font-weight:700;color:var(--blue)">${t.ticket_number}</span>` : ''}
+              ${isUnread ? '<span style="color:var(--blue);font-weight:700">· New reply ↓</span>' : ''}
+            </div>
+          </div>
+          <span class="chip ${sc}">${t.status || 'open'}</span>
+        </div>
+        <div class="ticket-chat-wrap" id="tc-${t.id}">
+          <div class="tc-msgs" id="tcm-${t.id}">
+            <div class="loading-row" style="padding:12px 0"><i class="bi bi-arrow-repeat spin-icon"></i></div>
+          </div>
+          ${t.status !== 'closed' ? `
+          <div class="tc-reply-row">
+            <input type="text" id="tr-${t.id}" placeholder="Reply to this ticket…"
+              onkeydown="if(event.key==='Enter')replyTicket('${t.id}')">
+            <button class="tc-send-btn" onclick="replyTicket('${t.id}')">
+              <i class="bi bi-send-fill"></i> Send
+            </button>
+          </div>` : `<div style="font-size:12px;color:var(--muted);margin-top:8px;text-align:center;padding:8px">This ticket is closed.</div>`}
+        </div>
+      </div>`;
+  }).join('');
+  data.forEach(t => {
+    const card = document.getElementById('mt-' + t.id);
+    if (card) {
+      card.addEventListener('click', e => {
+        if (e.target.closest('input') || e.target.closest('button')) return;
+        toggleTicketChat(t.id);
+      });
+    }
+  });
+}
+
+async function replyTicket(ticketId) {
+  await ensureUser();
+  if (!currentUser) { toast('Please sign in', 'err'); return; }
+
+  const input = document.getElementById('tr-' + ticketId);
+  const btn   = document.querySelector(`#tc-${ticketId} .tc-send-btn`);
+  const text  = input?.value.trim();
+  if (!text) return;
+  input.value = '';
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="bi bi-hourglass-split"></i>'; }
+
+  const msgsEl = document.getElementById('tcm-' + ticketId);
+  if (msgsEl) {
+    const bubble = document.createElement('div');
+    bubble.className = 'tc-msg user';
+    bubble.innerHTML = `<div class="tc-msg-bubble">${sanitize(text)}</div><div class="tc-msg-time">Sending…</div>`;
+    msgsEl.appendChild(bubble);
+    msgsEl.scrollTop = msgsEl.scrollHeight;
+  }
+
+  const { error } = await db.from('support_messages').insert([{
+    ticket_id:   ticketId,
+    message:     text,
+    sender_type: 'user',
+    sender_id:   currentUser.id,
+    sender_name: currentUser.display_name || currentUser.email?.split('@')[0] || 'User',
+    created_at:  new Date().toISOString()
+  }]).catch(e => ({ error: e }));
+
+  if (error) {
+    toast('❌ Failed to send.', 'err');
+    if (input) input.value = text;
+  } else {
+    await loadTicketMessages(ticketId);
+    const autoReply = getAutoResponse(text);
+    setTimeout(async () => {
+      await db.from('support_messages').insert([{
+        ticket_id:   ticketId,
+        message:     autoReply,
+        sender_type: 'ai',
+        sender_name: 'Support',
+        created_at:  new Date(Date.now() + 1500).toISOString()
+      }]).catch(() => {});
+      await loadTicketMessages(ticketId);
+    }, 2000);
+  }
+  if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-send-fill"></i> Send'; }
+}
 /* ══════════════════════════════════════════
    MY TICKETS — user side
 ══════════════════════════════════════════ */
