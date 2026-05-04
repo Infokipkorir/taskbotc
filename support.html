@@ -1160,14 +1160,25 @@ async function loadAITrainingData() {
    FAQs — load from DB with fallback
 ══════════════════════════════════════════ */
 async function loadFAQs() {
-  // 1. Try faq_items table
-  const { data: faqRows } = await db.from('faq_items').select('*').eq('is_active', true)
-    .order('order_index', { ascending: true }).catch(() => ({ data: null }));
+  const { data: faqRows, error } = await sb
+    .from('faq_items')
+    .select('*')
+    .eq('is_active', true)
+    .order('order_index', { ascending: true });
+
+  if (error) {
+    console.error('loadFAQs error:', error);
+    return;
+  }
+
   if (faqRows?.length) {
     allFAQs = faqRows;
     document.getElementById('faqCount').textContent = faqRows.length + ' answers';
-    renderFAQCategories(); renderFAQs(allFAQs); return;
+    renderFAQCategories();
+    renderFAQs(allFAQs);
+    return;
   }
+}
   // 2. Fallback to ai_training_pairs
   const { data: pairs } = await db.from('ai_training_pairs')
     .select('id,question,answer,keywords,category,created_at')
