@@ -1346,9 +1346,31 @@ async function createAutoTicket(firstMessage) {
 
 /* ══════════════════════════════════════════
    TICKET SUBMISSION (from My Tickets form)
-══════════════════════════════════════════ */
+═════════════════════════════════════════ 
 async function submitTicket() {
+  // If currentUser is null, try one more time to get the active session
+  if (!currentUser) {
+    try {
+      const { data: { session } } = await db.auth.getSession();
+      if (session?.user) {
+        const { data: userRow } = await db.from('users')
+          .select('id,email,display_name,username')
+          .eq('email', session.user.email)
+          .single()
+          .catch(() => ({ data: null }));
+        currentUser = userRow || {
+          id: session.user.id,
+          email: session.user.email,
+          display_name: session.user.user_metadata?.full_name
+                     || session.user.email?.split('@')[0] || 'User'
+        };
+      }
+    } catch(e) {}
+  }
+
+  // Still nothing — hard stop
   if (!currentUser) { toast('Please sign in to submit a ticket', 'err'); return; }
+
   const subject  = document.getElementById('tk-subject').value.trim();
   const message  = document.getElementById('tk-message').value.trim();
   const category = document.getElementById('tk-category').value;
@@ -1394,9 +1416,9 @@ async function submitTicket() {
       sender_name: currentUser.display_name || currentUser.email?.split('@')[0] || 'User',
       created_at:  new Date().toISOString()
     }]);
-  } catch(e) { /* non-fatal */ }
+  } catch(e) {}
 
-  // Automated keyword-based reply (no API cost)
+  // Automated keyword-based reply
   const autoReply = getAutoResponse(subject + ' ' + message);
   setTimeout(async () => {
     try {
@@ -1407,11 +1429,11 @@ async function submitTicket() {
         sender_name: 'Support',
         created_at:  new Date(Date.now() + 2000).toISOString()
       }]);
-    } catch(e) { /* non-fatal */ }
+    } catch(e) {}
     setTimeout(loadMyTickets, 500);
   }, 2500);
 
-  toast('✅ Ticket submitted! Support will respond soon.', 'ok');
+  toast(' Ticket submitted! Support will respond soon.', 'ok');
   document.getElementById('tk-subject').value  = '';
   document.getElementById('tk-message').value  = '';
   document.getElementById('tk-category').value = 'general';
@@ -1419,7 +1441,6 @@ async function submitTicket() {
   btn.innerHTML = '<i class="bi bi-send-fill"></i> Submit Ticket';
   loadMyTickets();
 }
-
 /* ══════════════════════════════════════════
    MY TICKETS — user side
 ══════════════════════════════════════════ */
