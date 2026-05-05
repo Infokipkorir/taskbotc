@@ -2784,21 +2784,6 @@ if (ticketBgEl) ticketBgEl.classList.add('open');
   async function updateTicketStatus(status){
   if(!cTk) return;
 
-  const { error } = await sb
-    .from('support_tickets')
-    .update({ status, updated_at: new Date().toISOString() })
-    .eq('id', cTk.id);
-
-  if (error) {
-    showToast('Update failed: ' + error.message);
-    return;
-  }
-
-  cTk.status = status;
-  showToast('Ticket status updated to ' + status);
-  loadTickets();
-  }
-
 // ── goPage — add community ────────────────────────────────
 function goPage(n,btn){
   document.querySelectorAll('.pg').forEach(p=>p.classList.remove('active'));
