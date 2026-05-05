@@ -2313,7 +2313,7 @@ async function delTask(id){if(!confirm('Delete task?'))return;await sb.from('tas
 function openRV(sub){
   cSub=sub;
   var taskTitle=sub.tasks?sub.tasks.title:(sub.task_id?'Task #'+sub.task_id.slice(0,8):'—');
-  var userEmail=sub.users?sub.users.email||sub.users.display_name:'—';
+  var userEmail = emailMap[sub.user_id] || sub.user_id?.slice(0,8) || '—';
   var ssHtml=sub.screenshot_url?`<img src="${sub.screenshot_url}" class="ss-preview" onclick="window.open('${sub.screenshot_url}','_blank')" title="Click for full size"/>`:'<div style="font-size:12px;color:var(--mu);font-style:italic">No screenshot</div>';
   document.getElementById('rv-body').innerHTML=`
     <div class="mfield"><label>User</label><div class="proof-box">${userEmail}</div></div>
