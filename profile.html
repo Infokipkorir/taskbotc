@@ -1,0 +1,1969 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Profile</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%231a56db'/><text x='50' y='60' font-size='40' text-anchor='middle' fill='white'>OT</text></svg>">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+
+<style>
+:root {
+  --blue: #1a56db;
+  --blue-light: #eef2ff;
+  --blue-mid: #3b72f6;
+  --gray: #6b7280;
+  --gray-light: #f3f4f6;
+  --red: #ef4444;
+  --amber: #f59e0b;
+  --green: #22c55e;
+  --bg: #f1f5f9;
+  --card: #ffffff;
+  --text: #111827;
+  --subtext: #6b7280;
+  --border: #e5e7eb;
+  --radius: 16px;
+  --radius-sm: 10px;
+  --shadow: 0 2px 16px rgba(0,0,0,0.07);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+h1,h2,h3,h4 { font-family: 'Sora', sans-serif; }
+
+/* ── VIEW ── */
+.view { display: none; padding-bottom: 100px; }
+
+/* ── HERO BANNER ── */
+.hero-banner {
+  background: linear-gradient(135deg, #1a56db 0%, #3b72f6 60%, #6d96ff 100%);
+  height: 120px;
+  position: relative;
+}
+.hero-banner::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* ── PROFILE CARD ── */
+.profile-card {
+  background: var(--card);
+  margin: 0 16px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: visible;
+  position: relative;
+  margin-top: -20px;
+}
+
+.profile-top {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 20px 20px;
+  padding-top: 0;
+}
+
+.avatar-wrap {
+  margin-top: -40px;
+  position: relative;
+}
+
+.avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1a56db, #6d96ff);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Sora', sans-serif;
+  font-weight: 700;
+  font-size: 30px;
+  border: 4px solid #fff;
+  box-shadow: 0 4px 14px rgba(26,86,219,0.3);
+}
+
+.profile-name {
+  font-family: 'Sora', sans-serif;
+  font-weight: 700;
+  font-size: 20px;
+  color: var(--text);
+  margin-top: 10px;
+  text-align: center;
+}
+
+.profile-username {
+  font-size: 13px;
+  color: var(--subtext);
+  margin-top: 2px;
+}
+
+.profile-email {
+  font-size: 13px;
+  color: var(--subtext);
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.profile-email i { color: var(--blue); font-size: 14px; }
+
+.profile-country {
+  margin-top: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--blue-light);
+  color: var(--blue);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-family: 'Sora', sans-serif;
+}
+
+.profile-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 16px 20px 0;
+}
+
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  padding: 14px 12px;
+  gap: 4px;
+}
+
+.stat-item {
+  text-align: center;
+  padding: 8px 4px;
+}
+
+.stat-item b {
+  display: block;
+  font-family: 'Sora', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--blue);
+}
+
+.stat-item small {
+  font-size: 11px;
+  color: var(--subtext);
+  font-weight: 500;
+}
+
+.stat-divider {
+  width: 1px;
+  background: var(--border);
+  align-self: stretch;
+  margin: 8px 0;
+}
+
+/* ── EDIT PROFILE BUTTON ── */
+.edit-profile-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 14px 16px 0;
+  padding: 12px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--blue);
+  color: #fff;
+  font-family: 'Sora', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  width: calc(100% - 32px);
+  transition: all 0.2s;
+  box-shadow: 0 4px 14px rgba(26,86,219,0.3);
+}
+.edit-profile-btn:hover { background: var(--blue-mid); transform: translateY(-1px); }
+.edit-profile-btn:active { transform: scale(0.98); }
+
+/* ── SECTION CARDS ── */
+.section-label {
+  font-family: 'Sora', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--subtext);
+  margin: 20px 16px 8px;
+}
+
+.card {
+  background: var(--card);
+  margin: 0 16px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.card + .card { margin-top: 10px; }
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 15px 18px;
+  cursor: pointer;
+  transition: background 0.15s;
+  border-bottom: 1px solid var(--border);
+  text-decoration: none;
+  color: var(--text);
+}
+
+.menu-item:last-child { border-bottom: none; }
+.menu-item:hover { background: #f8fafc; }
+.menu-item:active { background: var(--gray-light); }
+
+.menu-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.menu-icon.blue { background: #eef2ff; color: var(--blue); }
+.menu-icon.amber { background: #fffbeb; color: var(--amber); }
+.menu-icon.green { background: #f0fdf4; color: var(--green); }
+.menu-icon.red { background: #fef2f2; color: var(--red); }
+.menu-icon.gray { background: var(--gray-light); color: var(--gray); }
+.menu-icon.purple { background: #f5f3ff; color: #7c3aed; }
+
+.menu-text { flex: 1; }
+.menu-text b { display: block; font-size: 14px; font-weight: 600; }
+.menu-text span { font-size: 12px; color: var(--subtext); }
+
+.menu-arrow { color: var(--subtext); font-size: 14px; }
+
+/* ── SIGN OUT ── */
+.signout-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 16px 16px 0;
+  padding: 14px;
+  border: 2px solid var(--red);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--red);
+  font-family: 'Sora', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  width: calc(100% - 32px);
+  transition: all 0.2s;
+}
+.signout-btn:hover { background: #fef2f2; }
+.signout-btn:active { transform: scale(0.98); }
+
+/* ── MODALS ── */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(4px);
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 99999;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+.modal-box {
+  background: #fff;
+  width: 100%;
+  max-width: 480px;
+  padding: 24px;
+  border-radius: 24px 24px 0 0;
+  max-height: 92vh;
+  overflow-y: auto;
+  box-shadow: 0 -10px 40px rgba(0,0,0,0.15);
+  animation: slideUp 0.3s ease;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.modal-title {
+  font-family: 'Sora', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.modal-close {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--gray-light);
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--subtext);
+  transition: background 0.2s;
+}
+.modal-close:hover { background: var(--border); }
+
+/* ── FORM ELEMENTS ── */
+.form-group { margin-bottom: 14px; }
+
+.form-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: 'Sora', sans-serif;
+  color: var(--subtext);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 6px;
+}
+
+.form-input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-family: 'DM Sans', sans-serif;
+  color: var(--text);
+  background: #fafafa;
+  transition: border 0.2s, box-shadow 0.2s;
+  outline: none;
+}
+
+.form-input:focus {
+  border-color: var(--blue);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(26,86,219,0.1);
+}
+
+.form-input:disabled {
+  background: var(--gray-light);
+  color: var(--subtext);
+  cursor: not-allowed;
+}
+
+.form-section-title {
+  font-family: 'Sora', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  margin: 20px 0 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* ── BUTTONS ── */
+.btn-primary {
+  width: 100%;
+  padding: 13px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--blue);
+  color: #fff;
+  font-family: 'Sora', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 6px;
+}
+.btn-primary:hover { background: var(--blue-mid); }
+.btn-primary:active { transform: scale(0.98); }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btn-secondary {
+  width: 100%;
+  padding: 13px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text);
+  font-family: 'Sora', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  margin-top: 6px;
+  transition: background 0.2s;
+}
+.btn-secondary:hover { background: var(--gray-light); }
+
+.btn-danger {
+  width: 100%;
+  padding: 13px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--red);
+  color: #fff;
+  font-family: 'Sora', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  margin-top: 6px;
+  transition: all 0.2s;
+}
+.btn-danger:hover { background: #dc2626; }
+.btn-danger:active { transform: scale(0.98); }
+
+/* ── OTP INPUT ── */
+.otp-row {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin: 8px 0 16px;
+}
+
+.otp-box {
+  width: 46px;
+  height: 52px;
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  text-align: center;
+  font-size: 20px;
+  font-family: 'Sora', sans-serif;
+  font-weight: 700;
+  outline: none;
+  transition: border 0.2s, box-shadow 0.2s;
+  background: #fafafa;
+}
+.otp-box:focus {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(26,86,219,0.1);
+  background: #fff;
+}
+
+/* ── PASSWORD STRENGTH ── */
+.strength-bar {
+  height: 4px;
+  border-radius: 4px;
+  background: var(--border);
+  margin-top: 8px;
+  overflow: hidden;
+}
+.strength-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s, background 0.3s;
+  width: 0%;
+}
+
+/* ── PASSWORD TOGGLE ── */
+.input-wrap {
+  position: relative;
+}
+.input-wrap .form-input { padding-right: 44px; }
+.toggle-pw {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--subtext);
+  font-size: 16px;
+  padding: 4px;
+}
+
+/* ── LOCK MESSAGE ── */
+.lock-msg {
+  display: none;
+  font-size: 12px;
+  color: var(--amber);
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ── TOAST ── */
+.toast-wrap {
+  position: fixed;
+  bottom: 90px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 999999;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+}
+.toast {
+  background: #1f2937;
+  color: #fff;
+  padding: 10px 18px;
+  border-radius: 30px;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: 'Sora', sans-serif;
+  white-space: nowrap;
+  animation: toastIn 0.3s ease, toastOut 0.3s ease 2.5s forwards;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.toast.success { background: #065f46; }
+.toast.error { background: #991b1b; }
+
+@keyframes toastIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes toastOut { to { opacity: 0; transform: translateY(-6px); } }
+
+/* ── ACTIVITY ── */
+.activity-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--border);
+}
+.activity-item:last-child { border-bottom: none; }
+.activity-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--blue);
+  flex-shrink: 0;
+}
+.activity-text { font-size: 13px; color: var(--text); }
+
+/* ── BOTTOM NAV ── */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  background: #fff;
+  border-top: 1px solid var(--border);
+  display: flex;
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.06);
+}
+.nav-item {
+  flex: 1;
+  text-align: center;
+  padding: 10px 0 8px;
+  cursor: pointer;
+}
+.nav-item i { font-size: 22px; color: var(--gray); display: block; }
+.nav-item span { font-size: 10px; color: var(--gray); display: block; margin-top: 2px; font-family: 'Sora', sans-serif; }
+.nav-item.active i, .nav-item.active span { color: var(--blue); }
+
+/* ── DELETION CONFIRM ── */
+.danger-zone {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: var(--radius-sm);
+  padding: 14px;
+  margin: 12px 0;
+}
+.danger-zone p { font-size: 13px; color: #7f1d1d; line-height: 1.5; }
+
+.spinner { text-align: center; padding: 20px; color: var(--subtext); }
+.locked-field {
+  background: var(--gray-light) !important;
+  color: var(--subtext) !important;
+  cursor: not-allowed !important;
+  border-color: var(--border) !important;
+  user-select: none;
+}
+.paypal-badge {
+  background: #003087;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-family: 'Sora', sans-serif;
+}
+
+/* ── LOCKED FIELDS (from registration) ── */
+.locked-field,
+input.locked-field,
+input.locked-field:disabled {
+  background: var(--gray-light) !important;
+  color: var(--subtext) !important;
+  cursor: not-allowed !important;
+  border-color: var(--border) !important;
+  box-shadow: none !important;
+  -webkit-text-fill-color: var(--subtext);
+  opacity: 1;
+}
+
+/* ── WALLET TABS ── */
+.wallet-tab {
+  flex:0 0 auto; padding:8px 14px; border:none; border-radius:10px 10px 0 0;
+  background:transparent; color:var(--subtext); font-family:'Sora',sans-serif;
+  font-weight:600; font-size:12px; cursor:pointer; display:flex; align-items:center;
+  gap:6px; white-space:nowrap; border-bottom:2px solid transparent; transition:all .15s;
+}
+.wallet-tab:hover { color:var(--blue); background:var(--blue-light); }
+.wallet-tab.active { color:var(--blue); border-bottom-color:var(--blue); background:var(--blue-light); }
+
+/* ── PAYMENT METHOD CARDS ── */
+.payment-method-card {
+  background:var(--bg); border:1.5px solid var(--border); border-radius:var(--radius-sm);
+  padding:14px 16px; margin-bottom:10px; transition:border-color .15s, box-shadow .15s;
+}
+.payment-method-card.connected { border-color:var(--green); background:#f0fdf4; }
+.payment-method-card:hover { border-color:#93c5fd; box-shadow:0 2px 12px rgba(26,86,219,.08); }
+.pm-icon {
+  width:40px; height:40px; border-radius:10px; display:flex; align-items:center;
+  justify-content:center; flex-shrink:0;
+}
+.pm-edit-btn {
+  width:32px; height:32px; border-radius:8px; background:var(--card);
+  border:1.5px solid var(--border); color:var(--subtext); font-size:13px;
+  cursor:pointer; display:flex; align-items:center; justify-content:center;
+  flex-shrink:0; transition:all .15s;
+}
+.pm-edit-btn:hover { border-color:var(--blue); color:var(--blue); background:var(--blue-light); }
+.connected-badge {
+  display:inline-flex; align-items:center; gap:3px; font-size:10px; font-weight:700;
+  color:var(--green); background:#f0fdf4; border:1px solid #bbf7d0;
+  padding:2px 7px; border-radius:10px;
+}
+
+/* ── WITHDRAWAL HISTORY ── */
+.wd-item {
+  display:flex; align-items:center; gap:12px; padding:13px 0;
+  border-bottom:1px solid var(--border);
+}
+.wd-item:last-child { border-bottom:none; }
+.wd-icon {
+  width:38px; height:38px; border-radius:10px; display:flex;
+  align-items:center; justify-content:center; font-size:16px; flex-shrink:0;
+}
+.wd-icon.pending  { background:#fffbeb; color:var(--amber); }
+.wd-icon.approved { background:#f0fdf4; color:var(--green); }
+.wd-icon.rejected { background:#fef2f2; color:var(--red); }
+.wd-status { display:inline-flex; align-items:center; gap:3px; font-size:10px; font-weight:700; padding:2px 7px; border-radius:10px; }
+.wd-status.pending  { background:#fffbeb; color:#b45309; }
+.wd-status.approved { background:#f0fdf4; color:#15803d; }
+.wd-status.rejected { background:#fef2f2; color:#b91c1c; }
+
+@keyframes spin { to { transform:rotate(360deg); } }
+</style>
+</head>
+
+<body>
+
+<!-- ── TOAST CONTAINER ── -->
+<div class="toast-wrap" id="toast-wrap"></div>
+
+<!-- ══════════════════════════════════
+     PROFILE VIEW
+══════════════════════════════════ -->
+<div class="view" id="view-profile">
+
+  <!-- Hero Banner -->
+  <div class="hero-banner"></div>
+
+  <!-- Profile Card -->
+  <div class="profile-card" style="margin-top:-30px;">
+    <div class="profile-top">
+      <div class="avatar-wrap">
+        <div class="avatar" id="avatar">U</div>
+      </div>
+      <div class="profile-name" id="name">Loading…</div>
+      <div class="profile-username" id="username"></div>
+      <div class="profile-email">
+        <i class="bi bi-envelope-fill"></i>
+        <span id="email">—</span>
+      </div>
+      <div class="profile-country" id="country">
+        <span id="country-flag">🌍</span>
+        <span id="country-name">Unknown</span>
+      </div>
+      <div id="verify-badge"></div>
+    </div>
+
+    <div class="profile-divider"></div>
+
+    <div class="stats-row">
+      <div class="stat-item">
+        <b id="tasks">0</b>
+        <small>Tasks</small>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <b id="earnings">$0</b>
+        <small>Earned</small>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <b id="members">0</b>
+        <small>Team</small>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <b id="since">—</b>
+        <small>Joined</small>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Profile Button -->
+  <button class="edit-profile-btn" onclick="openEditModal()">
+    <i class="bi bi-pencil-square"></i> Edit Profile
+  </button>
+
+  <!-- Account Section -->
+  <div class="section-label">Account</div>
+  <div class="card">
+    <div class="menu-item" onclick="openEditModal()">
+      <div class="menu-icon blue"><i class="bi bi-person-fill"></i></div>
+      <div class="menu-text">
+        <b>Personal Info</b>
+        <span>Name, username, DOB, phone</span>
+      </div>
+      <i class="bi bi-chevron-right menu-arrow"></i>
+    </div>
+    <div class="menu-item" onclick="openWalletModal()">
+      <div class="menu-icon green"><i class="bi bi-wallet2"></i></div>
+      <div class="menu-text">
+        <b>Wallet & Payments</b>
+        <span id="wallet-preview">No payment method set</span>
+      </div>
+      <i class="bi bi-chevron-right menu-arrow"></i>
+    </div>
+    <div class="menu-item" onclick="location.href='support.html'">
+      <div class="menu-icon purple"><i class="bi bi-headset"></i></div>
+      <div class="menu-text">
+        <b>Help & Support</b>
+        <span>Chat, FAQ, or open a ticket</span>
+      </div>
+      <i class="bi bi-chevron-right menu-arrow"></i>
+    </div>
+  </div>
+
+  <!-- Security Section -->
+  <div class="section-label">Security</div>
+  <div class="card">
+    <div class="menu-item" onclick="openPasswordModal()">
+      <div class="menu-icon amber"><i class="bi bi-lock-fill"></i></div>
+      <div class="menu-text">
+        <b>Change Password</b>
+        <span>OTP verification required</span>
+      </div>
+      <i class="bi bi-chevron-right menu-arrow"></i>
+    </div>
+    <div class="menu-item" onclick="openDeleteModal()">
+      <div class="menu-icon red"><i class="bi bi-trash3-fill"></i></div>
+      <div class="menu-text">
+        <b>Delete Account</b>
+        <span>Permanently remove your account</span>
+      </div>
+      <i class="bi bi-chevron-right menu-arrow"></i>
+    </div>
+  </div>
+
+  <!-- Sign Out -->
+  <button class="signout-btn" onclick="logout()" style="margin-top:20px;">
+    <i class="bi bi-box-arrow-right"></i> Sign Out
+  </button>
+
+</div><!-- /view-profile -->
+
+
+<!-- ══════════════════════════════════
+     EDIT PROFILE MODAL
+══════════════════════════════════ -->
+<div class="modal-overlay" id="edit-modal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title">Edit Profile</div>
+      <button class="modal-close" onclick="closeModal('edit-modal')"><i class="bi bi-x"></i></button>
+    </div>
+
+    <!-- ── READ-ONLY SECTION (from registration) ── -->
+    <div style="background:var(--blue-light);border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:16px;display:flex;align-items:center;gap:8px;">
+      <i class="bi bi-shield-lock-fill" style="color:var(--blue);font-size:15px;flex-shrink:0;"></i>
+      <span style="font-size:12px;color:var(--blue);font-family:'Sora',sans-serif;font-weight:600;">Name, email and country are set during registration and cannot be changed.</span>
+    </div>
+
+    <!-- Full Name — LOCKED -->
+    <div class="form-group">
+      <label class="form-label">
+        Full Name &nbsp;<i class="bi bi-lock-fill" style="color:var(--amber);font-size:11px;"></i>
+      </label>
+      <input id="edit-name" class="form-input locked-field" disabled placeholder="—">
+    </div>
+
+    <!-- Email — LOCKED -->
+    <div class="form-group">
+      <label class="form-label">
+        Email Address &nbsp;<i class="bi bi-lock-fill" style="color:var(--amber);font-size:11px;"></i>
+      </label>
+      <input id="edit-email" class="form-input locked-field" disabled placeholder="—">
+    </div>
+
+    <!-- Country — LOCKED, shown as styled display -->
+    <div class="form-group">
+      <label class="form-label">
+        Country &nbsp;<i class="bi bi-lock-fill" style="color:var(--amber);font-size:11px;"></i>
+      </label>
+      <div id="country-locked-display" class="locked-field" style="display:flex;align-items:center;gap:10px;padding:12px 14px;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:var(--gray-light);">
+        <span id="country-locked-flag" style="font-size:20px;">🌍</span>
+        <span id="country-locked-name" style="font-size:14px;color:var(--subtext);font-family:'DM Sans',sans-serif;">Not set</span>
+      </div>
+    </div>
+
+    <!-- Date of Birth — LOCKED -->
+    <div class="form-group">
+      <label class="form-label">
+        Date of Birth &nbsp;<i class="bi bi-lock-fill" style="color:var(--amber);font-size:11px;"></i>
+      </label>
+      <input id="edit-dob-display" class="form-input locked-field" disabled placeholder="—">
+    </div>
+
+    <!-- ── EDITABLE SECTION ── -->
+    <div class="form-section-title" style="margin-top:20px;">
+      <i class="bi bi-pencil-square" style="color:var(--blue);margin-right:6px;"></i>You can edit these
+    </div>
+
+    <!-- Username — editable once per month -->
+    <div class="form-group">
+      <label class="form-label">Username</label>
+      <div class="input-wrap">
+        <input id="edit-username" class="form-input" placeholder="@username" oninput="onUsernameInput(this)" style="padding-right:44px;">
+        <span id="username-status" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:16px;"></span>
+      </div>
+      <div id="username-msg" style="font-size:12px;margin-top:4px;font-family:'Sora',sans-serif;"></div>
+      <div id="username-lock-msg" style="display:none;font-size:12px;color:var(--amber);margin-top:4px;align-items:center;gap:4px;font-family:'Sora',sans-serif;">
+        <i class="bi bi-clock-fill"></i> <span id="username-lock-text">Username can be changed once per month</span>
+      </div>
+    </div>
+
+    <!-- Gender -->
+    <div class="form-group">
+      <label class="form-label">Gender</label>
+      <select id="edit-gender" class="form-input">
+        <option value="">Select gender</option>
+        <option>Male</option>
+        <option>Female</option>
+        <option>Transgender</option>
+        <option>Prefer not to say</option>
+      </select>
+    </div>
+
+    <!-- Phone -->
+    <div class="form-group">
+      <label class="form-label">Phone Number</label>
+      <input id="edit-phone" class="form-input" placeholder="+1 234 567 8900">
+    </div>
+
+    <!-- Address -->
+    <div class="form-group">
+      <label class="form-label">Address</label>
+      <input id="edit-address" class="form-input" placeholder="Your address">
+    </div>
+
+    <button class="btn-primary" onclick="saveProfile()" id="save-profile-btn">
+      Save Changes
+    </button>
+    <button class="btn-secondary" onclick="closeModal('edit-modal')">Cancel</button>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════
+     WALLET MODAL
+══════════════════════════════════ -->
+<div class="modal-overlay" id="wallet-modal">
+  <div class="modal-box" style="padding:0;overflow:hidden;border-radius:24px 24px 0 0;">
+
+    <!-- Header -->
+    <div style="padding:20px 20px 0;background:#fff;position:sticky;top:0;z-index:10;border-bottom:1px solid var(--border);">
+      <div class="modal-header" style="margin-bottom:0;padding-bottom:14px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:36px;height:36px;border-radius:10px;background:var(--blue-light);display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--blue);">
+            <i class="bi bi-wallet2"></i>
+          </div>
+          <div class="modal-title">My Wallet</div>
+        </div>
+        <button class="modal-close" onclick="closeModal('wallet-modal')"><i class="bi bi-x"></i></button>
+      </div>
+
+      <!-- Balance pill -->
+      <div id="wallet-balance-row" style="background:linear-gradient(135deg,#1a56db,#3b72f6);border-radius:14px;padding:16px 18px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;color:#fff;">
+        <div>
+          <div style="font-size:11px;opacity:.75;font-family:'Sora',sans-serif;text-transform:uppercase;letter-spacing:.06em;">Available Balance</div>
+          <div id="wallet-balance" style="font-family:'Sora',sans-serif;font-size:26px;font-weight:700;margin-top:2px;">$0.00</div>
+        </div>
+        <button onclick="openWithdrawPanel()" style="background:rgba(255,255,255,.2);border:1.5px solid rgba(255,255,255,.4);border-radius:10px;color:#fff;font-family:'Sora',sans-serif;font-weight:700;font-size:13px;padding:9px 16px;cursor:pointer;display:flex;align-items:center;gap:6px;backdrop-filter:blur(4px);">
+          <i class="bi bi-box-arrow-up"></i> Withdraw
+        </button>
+      </div>
+
+      <!-- Wallet Tabs -->
+      <div style="display:flex;gap:4px;overflow-x:auto;padding-bottom:0;scrollbar-width:none;">
+        <button class="wallet-tab active" id="wtab-methods" onclick="switchWalletTab('methods',this)">
+          <i class="bi bi-credit-card-2-front"></i> Payment Methods
+        </button>
+        <button class="wallet-tab" id="wtab-withdraw" onclick="switchWalletTab('withdraw',this)">
+          <i class="bi bi-box-arrow-up"></i> Withdraw
+        </button>
+        <button class="wallet-tab" id="wtab-history" onclick="switchWalletTab('history',this)">
+          <i class="bi bi-clock-history"></i> History
+        </button>
+      </div>
+    </div>
+
+    <!-- Tab content -->
+    <div style="padding:18px 20px 80px;overflow-y:auto;max-height:60vh;">
+
+      <!-- ── PAYMENT METHODS TAB ── -->
+      <div id="wpanel-methods" class="wallet-panel active">
+        <div style="font-family:'Sora',sans-serif;font-size:12px;font-weight:700;color:var(--subtext);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px;">Connected Accounts</div>
+
+        <!-- PayPal -->
+        <div class="payment-method-card" id="pm-paypal">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div class="pm-icon" style="background:#003087;">
+              <i class="bi bi-paypal" style="color:#fff;font-size:18px;"></i>
+            </div>
+            <div style="flex:1;min-width:0;">
+              <div style="font-weight:700;font-size:14px;">PayPal</div>
+              <div id="pm-paypal-val" style="font-size:12px;color:var(--subtext);margin-top:1px;">Not connected</div>
+            </div>
+            <button class="pm-edit-btn" onclick="openPmForm('paypal')">
+              <i class="bi bi-pencil-fill"></i>
+            </button>
+          </div>
+          <!-- inline form -->
+          <div class="pm-form" id="pmf-paypal" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
+            <label class="form-label">PayPal Email</label>
+            <input id="inp-paypal" class="form-input" type="email" placeholder="paypal@example.com">
+            <div style="display:flex;gap:8px;margin-top:8px;">
+              <button class="btn-primary" style="margin-top:0;padding:10px;" onclick="savePm('paypal')">Save</button>
+              <button class="btn-secondary" style="margin-top:0;padding:10px;" onclick="closePmForm('paypal')">Cancel</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- M-Pesa -->
+        <div class="payment-method-card" id="pm-mpesa">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div class="pm-icon" style="background:#4CAF50;">
+              <span style="color:#fff;font-size:13px;font-weight:900;font-family:'Sora',sans-serif;">M</span>
+            </div>
+            <div style="flex:1;min-width:0;">
+              <div style="font-weight:700;font-size:14px;">M-Pesa</div>
+              <div id="pm-mpesa-val" style="font-size:12px;color:var(--subtext);margin-top:1px;">Not connected</div>
+            </div>
+            <button class="pm-edit-btn" onclick="openPmForm('mpesa')">
+              <i class="bi bi-pencil-fill"></i>
+            </button>
+          </div>
+          <div class="pm-form" id="pmf-mpesa" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
+            <label class="form-label">M-Pesa Phone Number</label>
+            <input id="inp-mpesa" class="form-input" type="tel" placeholder="+254 7XX XXX XXX">
+            <div style="font-size:11px;color:var(--subtext);margin-top:4px;">Include country code e.g. +254 for Kenya</div>
+            <div style="display:flex;gap:8px;margin-top:8px;">
+              <button class="btn-primary" style="margin-top:0;padding:10px;" onclick="savePm('mpesa')">Save</button>
+              <button class="btn-secondary" style="margin-top:0;padding:10px;" onclick="closePmForm('mpesa')">Cancel</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Binance -->
+        <div class="payment-method-card" id="pm-binance">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div class="pm-icon" style="background:#F0B90B;">
+              <i class="bi bi-currency-bitcoin" style="color:#1a1a1a;font-size:18px;"></i>
+            </div>
+            <div style="flex:1;min-width:0;">
+              <div style="font-weight:700;font-size:14px;">Binance Pay</div>
+              <div id="pm-binance-val" style="font-size:12px;color:var(--subtext);margin-top:1px;">Not connected</div>
+            </div>
+            <button class="pm-edit-btn" onclick="openPmForm('binance')">
+              <i class="bi bi-pencil-fill"></i>
+            </button>
+          </div>
+          <div class="pm-form" id="pmf-binance" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
+            <label class="form-label">Binance Pay ID / Email</label>
+            <input id="inp-binance" class="form-input" placeholder="Binance Pay ID or email">
+            <div style="font-size:11px;color:var(--subtext);margin-top:4px;">Find your Pay ID in Binance → Pay → Receive</div>
+            <div style="display:flex;gap:8px;margin-top:8px;">
+              <button class="btn-primary" style="margin-top:0;padding:10px;" onclick="savePm('binance')">Save</button>
+              <button class="btn-secondary" style="margin-top:0;padding:10px;" onclick="closePmForm('binance')">Cancel</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- MiniPay -->
+        <div class="payment-method-card" id="pm-minipay">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div class="pm-icon" style="background:linear-gradient(135deg,#35D07F,#FBCC5C);">
+              <i class="bi bi-phone-fill" style="color:#fff;font-size:17px;"></i>
+            </div>
+            <div style="flex:1;min-width:0;">
+              <div style="font-weight:700;font-size:14px;">MiniPay</div>
+              <div id="pm-minipay-val" style="font-size:12px;color:var(--subtext);margin-top:1px;">Not connected</div>
+            </div>
+            <button class="pm-edit-btn" onclick="openPmForm('minipay')">
+              <i class="bi bi-pencil-fill"></i>
+            </button>
+          </div>
+          <div class="pm-form" id="pmf-minipay" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
+            <label class="form-label">MiniPay Phone / Address</label>
+            <input id="inp-minipay" class="form-input" placeholder="+254 7XX XXX XXX or 0x…wallet">
+            <div style="font-size:11px;color:var(--subtext);margin-top:4px;">MiniPay is available in the Opera Mini browser</div>
+            <div style="display:flex;gap:8px;margin-top:8px;">
+              <button class="btn-primary" style="margin-top:0;padding:10px;" onclick="savePm('minipay')">Save</button>
+              <button class="btn-secondary" style="margin-top:0;padding:10px;" onclick="closePmForm('minipay')">Cancel</button>
+            </div>
+          </div>
+        </div>
+
+        <p style="font-size:11px;color:var(--subtext);text-align:center;margin-top:14px;line-height:1.5;">
+          <i class="bi bi-shield-lock-fill" style="color:var(--blue);"></i>
+          Payment details are encrypted and stored securely.
+        </p>
+      </div>
+
+      <!-- ── WITHDRAW TAB ── -->
+      <div id="wpanel-withdraw" class="wallet-panel" style="display:none;">
+        <div id="withdraw-form-wrap">
+          <div style="background:var(--blue-light);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:16px;font-size:12px;color:var(--blue);font-family:'Sora',sans-serif;font-weight:600;display:flex;align-items:flex-start;gap:8px;">
+            <i class="bi bi-info-circle-fill" style="flex-shrink:0;margin-top:1px;"></i>
+            Minimum withdrawal is <strong>$5.00</strong>. Processing takes 1–3 business days.
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Amount (USD)</label>
+            <div style="position:relative;">
+              <span style="position:absolute;left:13px;top:50%;transform:translateY(-50%);font-weight:700;color:var(--subtext);">$</span>
+              <input id="wd-amount" class="form-input" type="number" min="5" step="0.01" placeholder="5.00" style="padding-left:26px;">
+            </div>
+            <div id="wd-amount-hint" style="font-size:11px;color:var(--subtext);margin-top:4px;">Available: <span id="wd-available">$0.00</span></div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Payment Method</label>
+            <select id="wd-method" class="form-input" onchange="onWdMethodChange()">
+              <option value="">Select method…</option>
+              <option value="paypal">PayPal</option>
+              <option value="mpesa">M-Pesa</option>
+              <option value="binance">Binance Pay</option>
+              <option value="minipay">MiniPay</option>
+            </select>
+          </div>
+
+          <div id="wd-destination-wrap" style="display:none;" class="form-group">
+            <label class="form-label">Send to</label>
+            <input id="wd-destination" class="form-input" readonly style="background:var(--gray-light);color:var(--subtext);">
+            <div style="font-size:11px;color:var(--subtext);margin-top:4px;">
+              <i class="bi bi-info-circle"></i> Update this in Payment Methods tab
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Note (optional)</label>
+            <input id="wd-note" class="form-input" placeholder="Reason for withdrawal…" maxlength="120">
+          </div>
+
+          <button class="btn-primary" onclick="submitWithdrawal()" id="wd-submit-btn">
+            <i class="bi bi-box-arrow-up"></i> Request Withdrawal
+          </button>
+        </div>
+
+        <div id="wd-success-wrap" style="display:none;text-align:center;padding:30px 10px;">
+          <div style="width:64px;height:64px;background:#f0fdf4;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:30px;">✅</div>
+          <div style="font-family:'Sora',sans-serif;font-size:17px;font-weight:700;margin-bottom:6px;">Withdrawal Submitted!</div>
+          <div style="font-size:13px;color:var(--subtext);line-height:1.6;margin-bottom:20px;">Your request has been submitted and is being processed. You'll be notified once it's approved.</div>
+          <button class="btn-secondary" onclick="switchWalletTab('history',document.getElementById('wtab-history'))">View History</button>
+        </div>
+      </div>
+
+      <!-- ── HISTORY TAB ── -->
+      <div id="wpanel-history" class="wallet-panel" style="display:none;">
+        <div id="wd-history-list">
+          <div class="spinner"><i class="bi bi-arrow-repeat" style="animation:spin .8s linear infinite;display:inline-block;"></i> Loading…</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════
+     CHANGE PASSWORD MODAL
+══════════════════════════════════ -->
+<div class="modal-overlay" id="password-modal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title">Change Password</div>
+      <button class="modal-close" onclick="closeModal('password-modal')"><i class="bi bi-x"></i></button>
+    </div>
+
+    <!-- Step 1: Request OTP -->
+    <div id="pw-step-1">
+      <p style="font-size:13px;color:var(--subtext);line-height:1.6;margin-bottom:16px;">
+        We'll send a 6-digit verification code to <b id="pw-email-display">your email</b> to verify it's you.
+      </p>
+      <button class="btn-primary" onclick="sendOTP()" id="send-otp-btn">
+        <i class="bi bi-send-fill"></i> Send Verification Code
+      </button>
+      <button class="btn-secondary" onclick="closeModal('password-modal')">Cancel</button>
+    </div>
+
+    <!-- Step 2: Enter OTP + New Password -->
+    <div id="pw-step-2" style="display:none;">
+      <p style="font-size:13px;color:var(--subtext);margin-bottom:16px;">
+        Enter the 6-digit code sent to your email, then set your new password.
+      </p>
+
+      <div class="form-group">
+        <label class="form-label">Verification Code</label>
+        <div class="otp-row" id="otp-row">
+          <input class="otp-box" maxlength="1" inputmode="numeric" oninput="otpInput(this,0)">
+          <input class="otp-box" maxlength="1" inputmode="numeric" oninput="otpInput(this,1)">
+          <input class="otp-box" maxlength="1" inputmode="numeric" oninput="otpInput(this,2)">
+          <input class="otp-box" maxlength="1" inputmode="numeric" oninput="otpInput(this,3)">
+          <input class="otp-box" maxlength="1" inputmode="numeric" oninput="otpInput(this,4)">
+          <input class="otp-box" maxlength="1" inputmode="numeric" oninput="otpInput(this,5)">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">New Password</label>
+        <div class="input-wrap">
+          <input id="new-password" class="form-input" type="password" placeholder="Min. 8 characters" oninput="checkStrength(this.value)">
+          <button class="toggle-pw" onclick="togglePw('new-password', this)" type="button">
+            <i class="bi bi-eye"></i>
+          </button>
+        </div>
+        <div class="strength-bar"><div class="strength-fill" id="strength-fill"></div></div>
+        <div id="strength-label" style="font-size:11px;color:var(--subtext);margin-top:4px;font-family:'Sora',sans-serif;"></div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Confirm New Password</label>
+        <div class="input-wrap">
+          <input id="confirm-password" class="form-input" type="password" placeholder="Repeat new password">
+          <button class="toggle-pw" onclick="togglePw('confirm-password', this)" type="button">
+            <i class="bi bi-eye"></i>
+          </button>
+        </div>
+      </div>
+
+      <button class="btn-primary" onclick="changePassword()" id="change-pw-btn">
+        <i class="bi bi-shield-lock-fill"></i> Update Password
+      </button>
+      <button class="btn-secondary" onclick="closeModal('password-modal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════
+     DELETE ACCOUNT MODAL
+══════════════════════════════════ -->
+<div class="modal-overlay" id="delete-modal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title" style="color:var(--red);">Delete Account</div>
+      <button class="modal-close" onclick="closeModal('delete-modal')"><i class="bi bi-x"></i></button>
+    </div>
+
+    <div style="text-align:center;margin-bottom:16px;">
+      <div style="width:60px;height:60px;background:#fef2f2;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:28px;">⚠️</div>
+      <div style="font-family:'Sora',sans-serif;font-size:16px;font-weight:700;margin-bottom:6px;">This cannot be undone</div>
+    </div>
+
+    <div class="danger-zone">
+      <p>Deleting your account will permanently remove all your data including tasks, earnings, and profile information. <b>This action is irreversible.</b></p>
+    </div>
+
+    <div class="form-group" style="margin-top:14px;">
+      <label class="form-label">Type <b>DELETE</b> to confirm</label>
+      <input id="delete-confirm-input" class="form-input" placeholder='Type "DELETE" here' oninput="checkDeleteConfirm()">
+    </div>
+
+    <button class="btn-danger" id="confirm-delete-btn" onclick="deleteAccount()" disabled>
+      <i class="bi bi-trash3-fill"></i> Permanently Delete Account
+    </button>
+    <button class="btn-secondary" onclick="closeModal('delete-modal')">Keep My Account</button>
+  </div>
+</div>
+
+
+<!-- ── BOTTOM NAV ── -->
+<nav class="bottom-nav">
+  <div class="nav-item" onclick="location.href='dashboard.html'">
+    <i class="bi bi-house"></i><span>Home</span>
+  </div>
+  <div class="nav-item" onclick="location.href='mytasks.html'">
+    <i class="bi bi-list-check"></i><span>MY Tasks</span>
+  </div>
+  <div class="nav-item" onclick="location.href='tasks.html'">
+    <i class="bi bi-coin"></i><span>Tasks</span>
+  </div>
+  <div class="nav-item active">
+    <i class="bi bi-person-circle"></i><span>Profile</span>
+  </div>
+</nav>
+
+
+<!-- ══════════════════════════════════
+     SCRIPTS
+══════════════════════════════════ -->
+<script>
+/* ── SUPABASE ── */
+const db = supabase.createClient(
+  "https://lwnbfjjsstxkyexeojcl.supabase.co",
+  "sb_publishable_Pj9ocGkssu5Gh6qZXFnZQQ_LdghnZt9"
+);
+
+let currentUser = null;
+
+/* ── COUNTRIES ── */
+const COUNTRIES = [
+  {code:"KE",name:"Kenya"},{code:"NG",name:"Nigeria"},{code:"US",name:"United States"},
+  {code:"GB",name:"United Kingdom"},{code:"IN",name:"India"},{code:"CA",name:"Canada"},
+  {code:"DE",name:"Germany"},{code:"FR",name:"France"},{code:"ZA",name:"South Africa"},
+  {code:"TZ",name:"Tanzania"},{code:"UG",name:"Uganda"},{code:"RW",name:"Rwanda"},
+  {code:"ET",name:"Ethiopia"},{code:"BR",name:"Brazil"},{code:"CN",name:"China"},
+  {code:"JP",name:"Japan"},{code:"RU",name:"Russia"},{code:"AU",name:"Australia"},
+  {code:"IT",name:"Italy"},{code:"ES",name:"Spain"},{code:"MX",name:"Mexico"},
+  {code:"GH",name:"Ghana"},{code:"EG",name:"Egypt"},{code:"MA",name:"Morocco"},
+  {code:"AR",name:"Argentina"},{code:"PK",name:"Pakistan"},{code:"ID",name:"Indonesia"},
+  {code:"PH",name:"Philippines"},{code:"TR",name:"Turkey"},{code:"AE",name:"UAE"},
+  {code:"SA",name:"Saudi Arabia"},{code:"KR",name:"South Korea"},{code:"SG",name:"Singapore"},
+  {code:"NL",name:"Netherlands"},{code:"SE",name:"Sweden"},{code:"NO",name:"Norway"},
+  {code:"PL",name:"Poland"}
+];
+
+const FLAGS = {
+  KE:"🇰🇪",NG:"🇳🇬",ZA:"🇿🇦",UG:"🇺🇬",TZ:"🇹🇿",RW:"🇷🇼",ET:"🇪🇹",
+  GH:"🇬🇭",EG:"🇪🇬",MA:"🇲🇦",GB:"🇬🇧",US:"🇺🇸",CA:"🇨🇦",AU:"🇦🇺",
+  DE:"🇩🇪",FR:"🇫🇷",IT:"🇮🇹",ES:"🇪🇸",NL:"🇳🇱",SE:"🇸🇪",NO:"🇳🇴",PL:"🇵🇱",
+  IN:"🇮🇳",CN:"🇨🇳",JP:"🇯🇵",KR:"🇰🇷",PK:"🇵🇰",ID:"🇮🇩",PH:"🇵🇭",
+  SG:"🇸🇬",SA:"🇸🇦",AE:"🇦🇪",TR:"🇹🇷",BR:"🇧🇷",AR:"🇦🇷",MX:"🇲🇽",RU:"🇷🇺"
+};
+
+const NAME_TO_FLAG = {};
+COUNTRIES.forEach(c => { NAME_TO_FLAG[c.name] = FLAGS[c.code] || "🌍"; });
+// Build name→code map for locked country display
+const NAME_TO_CODE = {};
+COUNTRIES.forEach(c => { NAME_TO_CODE[c.name] = c.code; });
+
+function getFlag(code) { return FLAGS[String(code||"").toUpperCase()] || "🌍"; }
+function setText(id, val) { const el = document.getElementById(id); if (el) el.textContent = val; }
+
+/* ── TOAST ── */
+function toast(msg, type = '') {
+  const wrap = document.getElementById('toast-wrap');
+  const t = document.createElement('div');
+  t.className = 'toast ' + type;
+  const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️';
+  t.innerHTML = icon + ' ' + msg;
+  wrap.appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
+
+/* ── INIT — AUTH GATE ── */
+document.addEventListener("DOMContentLoaded", async () => {
+  // Page is hidden by default (.view { display:none })
+  // Only reveal after confirming a valid session
+  const { data: sessionData } = await db.auth.getSession();
+
+  if (sessionData?.session?.user) {
+    currentUser = sessionData.session.user;
+  } else {
+    const { data: userData } = await db.auth.getUser();
+    if (!userData?.user) {
+      location.href = "index.html";
+      return;
+    }
+    currentUser = userData.user;
+  }
+
+  document.getElementById("view-profile").style.display = "block";
+  await loadProfile();
+  await loadStats();
+  subscribeRealtime();
+});
+
+/* ── LOAD PROFILE ── */
+async function loadProfile() {
+  try {
+    const { data, error } = await db
+      .from("profiles")
+      .select("*")
+      .eq("id", currentUser.id)
+      .maybeSingle();
+
+    if (!data) {
+      setText("name", currentUser.email?.split("@")[0] || "User");
+      setText("email", currentUser.email);
+      setText("avatar", (currentUser.email?.[0] || "U").toUpperCase());
+      const cfEl = document.getElementById("country-flag");
+      const cnEl = document.getElementById("country-name");
+      if (cfEl) cfEl.textContent = "🌍";
+      if (cnEl) cnEl.textContent = "Unknown";
+      setText("since", new Date(currentUser.created_at).getFullYear());
+      setText("wallet-preview", "No payment method set");
+      return;
+    }
+
+    const displayName = data.full_name || currentUser.email?.split("@")[0] || "User";
+    setText("name", displayName);
+    setText("username", data.username ? "@" + data.username : "");
+    setText("email", currentUser.email);
+    setText("avatar", displayName[0].toUpperCase());
+
+    // Country with flag — set flag and name separately
+    const countryCode = NAME_TO_CODE[data.country] || "";
+    const flag = (countryCode ? FLAGS[countryCode] : null) || "🌍";
+    const countryFlagEl = document.getElementById("country-flag");
+    const countryNameEl = document.getElementById("country-name");
+    if (countryFlagEl) countryFlagEl.textContent = flag;
+    if (countryNameEl) countryNameEl.textContent = data.country || "Unknown";
+
+    setText("since", new Date(currentUser.created_at).getFullYear());
+
+    // Wallet preview — show first connected method
+    const methods = [];
+    if (data.paypal_email)   methods.push("PayPal");
+    if (data.mpesa_phone)    methods.push("M-Pesa");
+    if (data.binance_id)     methods.push("Binance");
+    if (data.minipay_address) methods.push("MiniPay");
+    setText("wallet-preview", methods.length ? methods.join(", ") + " connected" : "No payment method set");
+  } catch(e) {
+    console.error("loadProfile:", e);
+  }
+}
+
+/* ── LOAD STATS ── */
+async function loadStats() {
+  try {
+    const { data: tasks } = await db
+      .from("user_tasks")
+      .select("id, reward, status")
+      .eq("user_id", currentUser.id);
+
+    setText("tasks", tasks?.length || 0);
+
+    const earned = (tasks || [])
+      .filter(t => ["completed","done","approved"].includes(t.status))
+      .reduce((sum, t) => sum + (parseFloat(t.reward) || 0), 0);
+    setText("earnings", "$" + (Number.isInteger(earned) ? earned : earned.toFixed(2)));
+
+    const { count: teamCount } = await db
+      .from("profiles")
+      .select("id", { count: "exact", head: true })
+      .eq("referred_by", currentUser.id);
+    setText("members", teamCount || 0);
+
+    setText("since", new Date(currentUser.created_at).getFullYear());
+  } catch(e) {
+    console.error("loadStats:", e);
+  }
+}
+
+/* ── REAL-TIME SUBSCRIPTION ── */
+let realtimeChannel = null;
+function subscribeRealtime() {
+  if (realtimeChannel) db.removeChannel(realtimeChannel);
+  realtimeChannel = db
+    .channel("profile-rt-" + currentUser.id)
+    .on("postgres_changes", {
+      event: "*", schema: "public", table: "profiles",
+      filter: "id=eq." + currentUser.id
+    }, () => loadProfile())
+    .on("postgres_changes", {
+      event: "*", schema: "public", table: "user_tasks",
+      filter: "user_id=eq." + currentUser.id
+    }, () => loadStats())
+    .subscribe();
+}
+
+/* ── MODAL HELPERS ── */
+function openModal(id) { document.getElementById(id).style.display = "flex"; }
+function closeModal(id) { document.getElementById(id).style.display = "none"; }
+
+/* ── EDIT PROFILE MODAL ── */
+let originalUsername = "";
+let usernameAvailable = true;
+let usernameTimer = null;
+let usernameLockedUntil = null; // Date object or null
+
+async function openEditModal() {
+  openModal("edit-modal");
+
+  const { data } = await db
+    .from("profiles")
+    .select("*")
+    .eq("id", currentUser.id)
+    .maybeSingle();
+
+  // ── LOCKED FIELDS (from registration) ──
+  // Full Name
+  const nameEl = document.getElementById("edit-name");
+  nameEl.value = data?.full_name || currentUser.email?.split("@")[0] || "";
+
+  // Email
+  const emailEl = document.getElementById("edit-email");
+  emailEl.value = currentUser.email || "";
+
+  // Country — show flag + name in the styled locked display
+  const countryName = data?.country || "";
+  const countryCode = NAME_TO_CODE[countryName] || "";
+  const countryFlag = (countryCode ? FLAGS[countryCode] : null) || "🌍";
+  document.getElementById("country-locked-flag").textContent = countryFlag;
+  document.getElementById("country-locked-name").textContent = countryName || "Not set from registration";
+
+  // Date of Birth — formatted display
+  const dobEl = document.getElementById("edit-dob-display");
+  if (data?.dob) {
+    const d = new Date(data.dob + "T00:00:00");
+    const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    dobEl.value = `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+  } else {
+    dobEl.value = "Not provided";
+  }
+
+  // ── EDITABLE FIELDS ──
+  // Username — check if it was changed within the last 30 days
+  originalUsername = data?.username || "";
+  const uInput = document.getElementById("edit-username");
+  uInput.value = originalUsername;
+  usernameAvailable = true;
+  document.getElementById("username-status").textContent = "";
+  document.getElementById("username-msg").textContent = "";
+
+  const lockMsg   = document.getElementById("username-lock-msg");
+  const lockText  = document.getElementById("username-lock-text");
+  usernameLockedUntil = null;
+
+  if (data?.username_changed_at) {
+    const changedAt = new Date(data.username_changed_at);
+    const unlockAt  = new Date(changedAt.getTime() + 30 * 24 * 60 * 60 * 1000);
+    if (new Date() < unlockAt) {
+      usernameLockedUntil = unlockAt;
+      const daysLeft = Math.ceil((unlockAt - new Date()) / (24 * 60 * 60 * 1000));
+      lockText.textContent = `Username locked — can change again in ${daysLeft} day${daysLeft === 1 ? "" : "s"}`;
+      lockMsg.style.display = "flex";
+      uInput.disabled = true;
+      uInput.classList.add("locked-field");
+    } else {
+      lockText.textContent = "Username can be changed once per month";
+      lockMsg.style.display = "flex";
+      uInput.disabled = false;
+      uInput.classList.remove("locked-field");
+    }
+  } else {
+    lockMsg.style.display = "none";
+    uInput.disabled = false;
+    uInput.classList.remove("locked-field");
+  }
+
+  // Gender
+  const gs = document.getElementById("edit-gender");
+  gs.selectedIndex = 0;
+  if (data?.gender) {
+    for (let i = 0; i < gs.options.length; i++) {
+      if (gs.options[i].text === data.gender) { gs.selectedIndex = i; break; }
+    }
+  }
+
+  // Phone & Address
+  document.getElementById("edit-phone").value   = data?.phone   || "";
+  document.getElementById("edit-address").value = data?.address || "";
+}
+
+/* ── USERNAME CHECK ── */
+function onUsernameInput(el) {
+  if (usernameLockedUntil) return; // locked, ignore
+  const val = el.value.trim().toLowerCase().replace(/[^a-z0-9_]/g, "");
+  el.value = val;
+  const status = document.getElementById("username-status");
+  const msg    = document.getElementById("username-msg");
+
+  if (!val || val === originalUsername) {
+    status.textContent = "";
+    msg.textContent    = "";
+    usernameAvailable  = true;
+    return;
+  }
+  if (val.length < 3) {
+    status.textContent = "❌";
+    msg.style.color    = "var(--red)";
+    msg.textContent    = "At least 3 characters";
+    usernameAvailable  = false;
+    return;
+  }
+
+  status.textContent = "⏳";
+  msg.style.color    = "var(--subtext)";
+  msg.textContent    = "Checking…";
+  usernameAvailable  = false;
+
+  clearTimeout(usernameTimer);
+  usernameTimer = setTimeout(async () => {
+    const { data } = await db
+      .from("profiles")
+      .select("id")
+      .eq("username", val)
+      .neq("id", currentUser.id)
+      .maybeSingle();
+
+    if (data) {
+      status.textContent = "❌";
+      msg.style.color    = "var(--red)";
+      msg.textContent    = "@" + val + " is already taken";
+      usernameAvailable  = false;
+    } else {
+      status.textContent = "✅";
+      msg.style.color    = "var(--green)";
+      msg.textContent    = "@" + val + " is available";
+      usernameAvailable  = true;
+    }
+  }, 600);
+}
+
+/* ── SAVE PROFILE (only editable fields) ── */
+async function saveProfile() {
+  const btn = document.getElementById("save-profile-btn");
+
+  // Username validation
+  const newUsername = document.getElementById("edit-username").value.trim();
+  const usernameChanged = newUsername && newUsername !== originalUsername;
+
+  if (usernameLockedUntil) {
+    toast("Username is locked — please wait until it can be changed again", "error");
+    return;
+  }
+  if (usernameChanged && !usernameAvailable) {
+    toast("Please choose an available username", "error");
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = "Saving…";
+
+  // Only update the fields the user is allowed to change
+  const updates = {
+    gender:  document.getElementById("edit-gender").value  || null,
+    phone:   document.getElementById("edit-phone").value.trim()   || null,
+    address: document.getElementById("edit-address").value.trim() || null,
+  };
+
+  if (usernameChanged) {
+    updates.username             = newUsername;
+    updates.username_changed_at  = new Date().toISOString();
+  }
+
+  const { error } = await db
+    .from("profiles")
+    .update(updates)
+    .eq("id", currentUser.id);
+
+  btn.disabled = false;
+  btn.innerHTML = "Save Changes";
+
+  if (error) { toast(error.message, "error"); return; }
+
+  toast("Profile updated!", "success");
+  closeModal("edit-modal");
+  await loadProfile();
+}
+
+/* ══════════════════════════════════════════
+   WALLET MODAL
+══════════════════════════════════════════ */
+let walletData = {}; // cached payment method data
+
+async function openWalletModal() {
+  openModal("wallet-modal");
+  switchWalletTab("methods", document.getElementById("wtab-methods"));
+
+  // Load balance
+  try {
+    const { data: tasks } = await db.from("user_tasks")
+      .select("reward,status").eq("user_id", currentUser.id);
+    const bal = (tasks||[]).filter(t => ["completed","done","approved"].includes(t.status))
+      .reduce((s,t) => s + (parseFloat(t.reward)||0), 0);
+    setText("wallet-balance", "$" + bal.toFixed(2));
+    setText("wd-available",   "$" + bal.toFixed(2));
+  } catch(e) {}
+
+  // Load payment methods
+  try {
+    const { data } = await db.from("profiles")
+      .select("paypal_email,mpesa_phone,binance_id,minipay_address")
+      .eq("id", currentUser.id).maybeSingle();
+    walletData = data || {};
+    renderPaymentMethods();
+  } catch(e) {}
+}
+
+function renderPaymentMethods() {
+  const d = walletData;
+  updatePmDisplay("paypal",  d.paypal_email,    d.paypal_email);
+  updatePmDisplay("mpesa",   d.mpesa_phone,     d.mpesa_phone);
+  updatePmDisplay("binance", d.binance_id,      d.binance_id);
+  updatePmDisplay("minipay", d.minipay_address, d.minipay_address);
+
+  // Wallet-preview in profile
+  const methods = [];
+  if (d.paypal_email)    methods.push("PayPal");
+  if (d.mpesa_phone)     methods.push("M-Pesa");
+  if (d.binance_id)      methods.push("Binance");
+  if (d.minipay_address) methods.push("MiniPay");
+  setText("wallet-preview", methods.length ? methods.join(", ") + " connected" : "No payment method set");
+}
+
+function updatePmDisplay(method, value, raw) {
+  const card  = document.getElementById("pm-" + method);
+  const valEl = document.getElementById("pm-" + method + "-val");
+  if (!card || !valEl) return;
+  if (value) {
+    valEl.innerHTML = `<span class="connected-badge"><i class="bi bi-check-circle-fill"></i> Connected</span> &nbsp;<span style="color:var(--subtext);font-size:11px;">${value}</span>`;
+    card.classList.add("connected");
+  } else {
+    valEl.textContent = "Not connected";
+    card.classList.remove("connected");
+  }
+}
+
+function switchWalletTab(tab, btn) {
+  document.querySelectorAll(".wallet-tab").forEach(b => b.classList.remove("active"));
+  document.querySelectorAll(".wallet-panel").forEach(p => p.style.display = "none");
+  if (btn) btn.classList.add("active");
+  const panel = document.getElementById("wpanel-" + tab);
+  if (panel) panel.style.display = "block";
+  if (tab === "history") loadWithdrawalHistory();
+  if (tab === "withdraw") {
+    document.getElementById("wd-success-wrap").style.display = "none";
+    document.getElementById("withdraw-form-wrap").style.display = "block";
+    document.getElementById("wd-method").value = "";
+    document.getElementById("wd-amount").value = "";
+    document.getElementById("wd-destination-wrap").style.display = "none";
+  }
+}
+
+function openWithdrawPanel() {
+  switchWalletTab("withdraw", document.getElementById("wtab-withdraw"));
+}
+
+function openPmForm(method) {
+  // Close all forms first
+  ["paypal","mpesa","binance","minipay"].forEach(m => {
+    const f = document.getElementById("pmf-" + m);
+    if (f) f.style.display = "none";
+  });
+  const form = document.getElementById("pmf-" + method);
+  if (!form) return;
+  form.style.display = "block";
+  // Pre-fill with existing value
+  const valMap = { paypal: walletData.paypal_email, mpesa: walletData.mpesa_phone, binance: walletData.binance_id, minipay: walletData.minipay_address };
+  const inp = document.getElementById("inp-" + method);
+  if (inp) inp.value = valMap[method] || "";
+  inp?.focus();
+}
+function closePmForm(method) {
+  const f = document.getElementById("pmf-" + method);
+  if (f) f.style.display = "none";
+}
+
+async function savePm(method) {
+  const inp = document.getElementById("inp-" + method);
+  const val = inp?.value.trim() || null;
+
+  // Validate PayPal email format
+  if (method === "paypal" && val && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) {
+    toast("Please enter a valid PayPal email", "error"); return;
+  }
+  // Validate M-Pesa phone
+  if (method === "mpesa" && val && !/^\+?\d{9,15}$/.test(val.replace(/\s/g,""))) {
+    toast("Please enter a valid phone number", "error"); return;
+  }
+
+  const fieldMap = { paypal:"paypal_email", mpesa:"mpesa_phone", binance:"binance_id", minipay:"minipay_address" };
+  const { error } = await db.from("profiles").update({ [fieldMap[method]]: val || null }).eq("id", currentUser.id);
+  if (error) { toast(error.message, "error"); return; }
+
+  walletData[fieldMap[method]] = val;
+  closePmForm(method);
+  renderPaymentMethods();
+  toast(val ? "Payment method saved!" : "Payment method removed", "success");
+}
+
+/* ── Withdrawal method auto-fill destination ── */
+function onWdMethodChange() {
+  const method = document.getElementById("wd-method").value;
+  const wrap   = document.getElementById("wd-destination-wrap");
+  const dest   = document.getElementById("wd-destination");
+  const fieldMap = { paypal: walletData.paypal_email, mpesa: walletData.mpesa_phone, binance: walletData.binance_id, minipay: walletData.minipay_address };
+  const val = fieldMap[method];
+  if (method && val) {
+    dest.value = val;
+    wrap.style.display = "block";
+  } else if (method && !val) {
+    dest.value = "Not set — add in Payment Methods tab";
+    wrap.style.display = "block";
+  } else {
+    wrap.style.display = "none";
+  }
+}
+
+/* ── Submit Withdrawal ── */
+async function submitWithdrawal() {
+  const amount = parseFloat(document.getElementById("wd-amount").value);
+  const method = document.getElementById("wd-method").value;
+  const note   = document.getElementById("wd-note").value.trim();
+
+  if (!amount || amount < 5) { toast("Minimum withdrawal is $5.00", "error"); return; }
+  if (!method)               { toast("Please select a payment method", "error"); return; }
+
+  const fieldMap = { paypal:"paypal_email", mpesa:"mpesa_phone", binance:"binance_id", minipay:"minipay_address" };
+  const destination = walletData[fieldMap[method]];
+  if (!destination) { toast("Please add your " + method + " details in Payment Methods first", "error"); return; }
+
+  const btn = document.getElementById("wd-submit-btn");
+  btn.disabled = true;
+  btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Submitting…';
+
+  const { error } = await db.from("withdrawal_requests").insert([{
+    user_id:     currentUser.id,
+    amount:      amount,
+    method:      method,
+    destination: destination,
+    note:        note || null,
+    status:      "pending",
+    created_at:  new Date().toISOString()
+  }]);
+
+  btn.disabled = false;
+  btn.innerHTML = '<i class="bi bi-box-arrow-up"></i> Request Withdrawal';
+
+  if (error) { toast("Failed: " + error.message, "error"); return; }
+
+  document.getElementById("withdraw-form-wrap").style.display = "none";
+  document.getElementById("wd-success-wrap").style.display = "block";
+  toast("Withdrawal request submitted!", "success");
+}
+
+/* ── Withdrawal History ── */
+async function loadWithdrawalHistory() {
+  const el = document.getElementById("wd-history-list");
+  el.innerHTML = '<div class="spinner"><i class="bi bi-arrow-repeat" style="animation:spin .8s linear infinite;display:inline-block;font-size:20px;"></i></div>';
+
+  try {
+    const { data, error } = await db.from("withdrawal_requests")
+      .select("*")
+      .eq("user_id", currentUser.id)
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+    if (!data || !data.length) {
+      el.innerHTML = `<div style="text-align:center;padding:40px 20px;color:var(--subtext);">
+        <i class="bi bi-inbox" style="font-size:36px;display:block;margin-bottom:10px;opacity:.3;"></i>
+        <div style="font-family:'Sora',sans-serif;font-weight:700;">No withdrawals yet</div>
+        <div style="font-size:12px;margin-top:4px;">Your withdrawal history will appear here.</div>
+      </div>`;
+      return;
+    }
+
+    const methodLabels = { paypal:"PayPal", mpesa:"M-Pesa", binance:"Binance Pay", minipay:"MiniPay" };
+    const iconMap      = { paypal:"bi-paypal", mpesa:"bi-phone-fill", binance:"bi-currency-bitcoin", minipay:"bi-phone-fill" };
+
+    el.innerHTML = data.map(w => {
+      const st = (w.status || "pending").toLowerCase();
+      const dt = new Date(w.created_at);
+      const dateStr = dt.toLocaleDateString("en-GB", { day:"2-digit", month:"short", year:"numeric" });
+      const timeStr = dt.toLocaleTimeString([], { hour:"2-digit", minute:"2-digit" });
+      const icon = iconMap[w.method] || "bi-cash";
+      const methodLabel = methodLabels[w.method] || w.method;
+
+      return `<div class="wd-item">
+        <div class="wd-icon ${st}">
+          <i class="bi ${icon}"></i>
+        </div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:700;font-size:13px;">$${parseFloat(w.amount).toFixed(2)} via ${methodLabel}</div>
+          <div style="font-size:11px;color:var(--subtext);margin-top:2px;">${dateStr} · ${timeStr}</div>
+          ${w.destination ? `<div style="font-size:11px;color:var(--subtext);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:160px;">${w.destination}</div>` : ""}
+          ${w.note ? `<div style="font-size:11px;color:var(--subtext);margin-top:2px;font-style:italic;">"${w.note}"</div>` : ""}
+        </div>
+        <span class="wd-status ${st}">${st.charAt(0).toUpperCase()+st.slice(1)}</span>
+      </div>`;
+    }).join("");
+  } catch(e) {
+    el.innerHTML = `<div style="text-align:center;padding:30px;color:var(--subtext);font-size:13px;">
+      <i class="bi bi-exclamation-circle" style="font-size:24px;display:block;margin-bottom:8px;"></i>
+      Could not load history. Please try again.
+    </div>`;
+  }
+}
+
+/* ── PASSWORD MODAL ── */
+function openPasswordModal() {
+  document.getElementById("pw-step-1").style.display = "block";
+  document.getElementById("pw-step-2").style.display = "none";
+  setText("pw-email-display", currentUser.email);
+  document.querySelectorAll(".otp-box").forEach(b => b.value = "");
+  document.getElementById("new-password").value = "";
+  document.getElementById("confirm-password").value = "";
+  openModal("password-modal");
+}
+
+async function sendOTP() {
+  const btn = document.getElementById("send-otp-btn");
+  btn.disabled = true; btn.textContent = "Sending…";
+  const { error } = await db.auth.resetPasswordForEmail(currentUser.email, {
+    redirectTo: window.location.href
+  });
+  btn.disabled = false;
+  btn.innerHTML = '<i class="bi bi-send-fill"></i> Send Verification Code';
+  if (error) { toast(error.message, "error"); return; }
+  toast("Code sent to " + currentUser.email, "success");
+  document.getElementById("pw-step-1").style.display = "none";
+  document.getElementById("pw-step-2").style.display = "block";
+  document.querySelector(".otp-box").focus();
+}
+
+function otpInput(el, idx) {
+  el.value = el.value.replace(/\D/g, "");
+  const boxes = document.querySelectorAll(".otp-box");
+  if (el.value && idx < 5) boxes[idx + 1].focus();
+}
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Backspace") {
+    const boxes = document.querySelectorAll(".otp-box");
+    boxes.forEach((b, i) => {
+      if (document.activeElement === b && !b.value && i > 0) boxes[i - 1].focus();
+    });
+  }
+});
+
+function checkStrength(pw) {
+  const fill  = document.getElementById("strength-fill");
+  const label = document.getElementById("strength-label");
+  let score = 0;
+  if (pw.length >= 8)        score++;
+  if (/[A-Z]/.test(pw))      score++;
+  if (/[0-9]/.test(pw))      score++;
+  if (/[^A-Za-z0-9]/.test(pw)) score++;
+  const levels = [
+    {pct:"0%",  bg:"",        txt:""},
+    {pct:"25%", bg:"#ef4444", txt:"Weak"},
+    {pct:"50%", bg:"#f59e0b", txt:"Fair"},
+    {pct:"75%", bg:"#3b82f6", txt:"Good"},
+    {pct:"100%",bg:"#22c55e", txt:"Strong"},
+  ];
+  const l = levels[score] || levels[0];
+  fill.style.width      = l.pct;
+  fill.style.background = l.bg;
+  label.textContent     = l.txt;
+  label.style.color     = l.bg;
+}
+
+function togglePw(inputId, btn) {
+  const inp = document.getElementById(inputId);
+  const isHidden = inp.type === "password";
+  inp.type = isHidden ? "text" : "password";
+  btn.innerHTML = isHidden ? '<i class="bi bi-eye-slash"></i>' : '<i class="bi bi-eye"></i>';
+}
+
+async function changePassword() {
+  const boxes = document.querySelectorAll(".otp-box");
+  const otp   = Array.from(boxes).map(b => b.value).join("");
+  const newPw = document.getElementById("new-password").value;
+  const conPw = document.getElementById("confirm-password").value;
+  if (otp.length < 6)    { toast("Enter the 6-digit code", "error"); return; }
+  if (newPw.length < 8)  { toast("Password must be at least 8 characters", "error"); return; }
+  if (newPw !== conPw)   { toast("Passwords do not match", "error"); return; }
+
+  const btn = document.getElementById("change-pw-btn");
+  btn.disabled = true; btn.textContent = "Updating…";
+
+  const { error: verifyError } = await db.auth.verifyOtp({
+    email: currentUser.email, token: otp, type: "recovery"
+  });
+  if (verifyError) {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="bi bi-shield-lock-fill"></i> Update Password';
+    toast("Invalid or expired code. " + verifyError.message, "error");
+    return;
+  }
+
+  const { error: updateError } = await db.auth.updateUser({ password: newPw });
+  btn.disabled = false;
+  btn.innerHTML = '<i class="bi bi-shield-lock-fill"></i> Update Password';
+  if (updateError) { toast(updateError.message, "error"); return; }
+  toast("Password changed successfully!", "success");
+  closeModal("password-modal");
+}
+
+/* ── DELETE ACCOUNT ── */
+function openDeleteModal() {
+  openModal("delete-modal");
+  document.getElementById("delete-confirm-input").value = "";
+  document.getElementById("confirm-delete-btn").disabled = true;
+}
+
+function checkDeleteConfirm() {
+  const val = document.getElementById("delete-confirm-input").value;
+  document.getElementById("confirm-delete-btn").disabled = val !== "DELETE";
+}
+
+async function deleteAccount() {
+  const btn = document.getElementById("confirm-delete-btn");
+  btn.disabled = true; btn.textContent = "Deleting…";
+  await db.from("profiles").update({
+    deactivated: true,
+    deleted_at: new Date().toISOString()
+  }).eq("id", currentUser.id);
+  if (realtimeChannel) db.removeChannel(realtimeChannel);
+  await db.auth.signOut();
+  location.href = "index.html";
+}
+
+/* ── SIGN OUT ── */
+async function logout() {
+  if (realtimeChannel) db.removeChannel(realtimeChannel);
+  await db.auth.signOut();
+  location.href = "index.html";
+}
+
+
+</script>
+</body>
+</html>
