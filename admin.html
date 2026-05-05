@@ -2009,6 +2009,7 @@ function openCreateTicketModal(){
 async function loadTickets(){
   var{data:tickets}=await sb.from('support_tickets')
     .select('id,ticket_number,subject,category,status,priority,is_ai_handled,created_at,user_email')
+    .select('id,...,created_at,users(email)')
     .order('created_at',{ascending:false});
   allTickets=tickets||[];
   renderTickets(allTickets);
@@ -2022,7 +2023,7 @@ function renderTickets(list){
   if(!filtered.length){tb.innerHTML='<tr><td colspan="8"><div class="empty">No tickets found.</div></td></tr>';return;}
   tb.innerHTML=filtered.map(t=>`<tr>
     <td class="ticket-num">${t.ticket_number||'—'}</td>
-    <td style="font-size:11px">${t.users?t.users.email||'—':'—'}</td>
+    <td style="font-size:11px">${t.user_email||'—'}</td>
     <td style="font-size:12px;max-width:200px">${t.subject||'—'}</td>
     <td><span class="badge bgr">${t.category||'general'}</span></td>
     <td>${stbadge(t.status)}</td>
