@@ -2774,20 +2774,30 @@ async function loadTicket(tk){
     chat.scrollTop=chat.scrollHeight;
   }
   // Ticket actions
-  document.getElementById('tk-actions').innerHTML=`
-    <button class="btn bp" onclick="updateTicketStatus('in_progress')">Mark In Progress</button>
-    <button class="btn bs" onclick="updateTicketStatus('resolved')">Mark Resolved</button>
-    <button class="btn bg" onclick="updateTicketStatus('closed')">Close</button>`;
-  document.getElementById('ticket-bg').classList.add('open');
+  const tkActionsEl = document.getElementById('tk-actions');
+if (tkActionsEl) {
+  tkActionsEl.innerHTML = `...`;
 }
+const ticketBgEl = document.getElementById('ticket-bg');
+if (ticketBgEl) ticketBgEl.classList.add('open');
 
-async function updateTicketStatus(status){
-  if(!cTk)return;
-  await sb.from('support_tickets').update({status,updated_at:new Date().toISOString()}).eq('id',cTk.id);
-  cTk.status=status;
-  showToast('Ticket status updated to '+status);
+  async function updateTicketStatus(status){
+  if(!cTk) return;
+
+  const { error } = await sb
+    .from('support_tickets')
+    .update({ status, updated_at: new Date().toISOString() })
+    .eq('id', cTk.id);
+
+  if (error) {
+    showToast('Update failed: ' + error.message);
+    return;
+  }
+
+  cTk.status = status;
+  showToast('Ticket status updated to ' + status);
   loadTickets();
-}
+  }
 
 // ── goPage — add community ────────────────────────────────
 function goPage(n,btn){
