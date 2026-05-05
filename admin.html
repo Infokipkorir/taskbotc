@@ -2008,7 +2008,7 @@ function openCreateTicketModal(){
 // ── LOAD TICKETS ─────────────────────────────────────────────
 async function loadTickets(){
   var{data:tickets}=await sb.from('support_tickets')
-    .select('id,ticket_number,subject,category,status,priority,is_ai_handled,created_at,user_id,users(email)')
+    .select('id,ticket_number,subject,category,status,priority,is_ai_handled,created_at,user_email')
     .order('created_at',{ascending:false});
   allTickets=tickets||[];
   renderTickets(allTickets);
