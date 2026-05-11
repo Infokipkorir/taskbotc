@@ -56,10 +56,51 @@ body{font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden;color:v
   background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%232563eb' fill-opacity='0.04'%3E%3Ccircle cx='30' cy='30' r='1.5'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
 }
 
+/* ══ FLAG SLIDER STRIP ══ */
+.flag-strip-wrap{
+  position:relative;z-index:1;
+  background:rgba(255,255,255,.75);
+  backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--border);
+  padding:10px 0;
+  overflow:hidden;
+}
+.flag-strip-label{
+  position:absolute;left:0;top:0;bottom:0;
+  display:flex;align-items:center;
+  padding:0 18px;
+  background:linear-gradient(90deg,rgba(255,255,255,.98) 60%,transparent);
+  font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.6px;text-transform:uppercase;
+  z-index:2;white-space:nowrap;pointer-events:none;
+}
+.flag-track{
+  display:flex;gap:18px;
+  animation:slideFlags 32s linear infinite;
+  width:max-content;
+}
+.flag-track:hover{animation-play-state:paused}
+.flag-item{
+  display:flex;align-items:center;gap:7px;
+  padding:4px 12px;
+  background:rgba(37,99,235,.06);
+  border:1px solid rgba(37,99,235,.1);
+  border-radius:999px;
+  font-size:12.5px;font-weight:500;color:var(--text2);
+  white-space:nowrap;
+  transition:background var(--trans),transform var(--trans);
+  cursor:default;
+}
+.flag-item:hover{background:rgba(37,99,235,.14);transform:translateY(-1px)}
+.flag-item .fi{font-size:18px;line-height:1}
+@keyframes slideFlags{
+  0%{transform:translateX(0)}
+  100%{transform:translateX(-50%)}
+}
+
 /* ══ SPLASH ══ */
 #splash{
   position:relative;z-index:1;
-  min-height:100vh;
+  min-height:calc(100vh - 52px);
   display:flex;align-items:center;
   padding:40px 20px 80px;
   max-width:1100px;margin:0 auto;
@@ -84,7 +125,6 @@ body{font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden;color:v
 }
 @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
 
-/* glow behind image */
 .hero-glow{
   position:absolute;width:280px;height:280px;border-radius:50%;
   background:radial-gradient(circle,rgba(37,99,235,.18) 0%,transparent 70%);
@@ -133,17 +173,22 @@ body{font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden;color:v
 .feat i{font-size:14px;color:var(--blue)}
 
 /* CTA */
-.splash-cta{display:flex;gap:12px;flex-wrap:wrap}
+.splash-cta{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:4px}
 @media(max-width:860px){.splash-cta{justify-content:center}}
 
 .btn-primary{
   display:inline-flex;align-items:center;gap:8px;
-  padding:13px 30px;
+  padding:14px 32px;
   background:linear-gradient(135deg,var(--blue),var(--blue2));
   color:#fff;border:none;border-radius:12px;
-  font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;cursor:pointer;
+  font-family:'DM Sans',sans-serif;font-size:15px;font-weight:700;cursor:pointer;
   box-shadow:0 6px 24px rgba(37,99,235,.38);
   transition:transform var(--trans),box-shadow var(--trans);
+  position:relative;overflow:hidden;
+}
+.btn-primary::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(255,255,255,.15),transparent);
 }
 .btn-primary:hover{transform:translateY(-2px);box-shadow:0 10px 32px rgba(37,99,235,.5)}
 .btn-outline{
@@ -335,6 +380,216 @@ select.form-input{appearance:none;cursor:pointer}
 @keyframes riseRight{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:translateX(0)}}
 @keyframes riseIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
 @keyframes spin{to{transform:rotate(360deg)}}
+
+/* ══ POST-SIGNUP SUCCESS SCREEN ══ */
+#successScreen{
+  position:fixed;inset:0;z-index:600;
+  background:rgba(15,23,42,.5);
+  backdrop-filter:blur(18px);
+  display:none;align-items:center;justify-content:center;
+  padding:20px;
+  opacity:0;transition:opacity .35s;
+}
+#successScreen.visible{display:flex}
+#successScreen.shown{opacity:1}
+.success-card{
+  background:#fff;border-radius:24px;
+  padding:36px 32px;
+  max-width:440px;width:100%;
+  box-shadow:0 30px 90px rgba(15,23,42,.22);
+  text-align:center;
+  transform:translateY(20px) scale(.97);
+  transition:transform .4s cubic-bezier(.34,1.56,.64,1);
+  position:relative;
+}
+#successScreen.shown .success-card{transform:translateY(0) scale(1)}
+.success-icon{
+  width:72px;height:72px;border-radius:50%;
+  background:linear-gradient(135deg,#d1fae5,#a7f3d0);
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 20px;font-size:36px;
+  box-shadow:0 8px 28px rgba(22,163,74,.2);
+}
+.success-card h2{font-family:'Syne',sans-serif;font-size:1.5rem;font-weight:800;color:var(--text);margin-bottom:8px}
+.success-card p{font-size:14px;color:var(--text2);line-height:1.7;margin-bottom:24px}
+
+/* referral code display */
+.ref-code-box{
+  background:var(--blue4);border:2px dashed rgba(37,99,235,.3);
+  border-radius:14px;padding:16px 20px;margin-bottom:22px;
+}
+.ref-code-label{font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.8px;text-transform:uppercase;margin-bottom:8px}
+.ref-code-value{
+  font-family:'Syne',sans-serif;font-size:1.9rem;font-weight:800;
+  color:var(--blue);letter-spacing:3px;
+  display:flex;align-items:center;justify-content:center;gap:12px;
+}
+.ref-copy-btn{
+  background:none;border:none;color:var(--text3);cursor:pointer;
+  font-size:18px;padding:4px;transition:color var(--trans),transform var(--trans);
+}
+.ref-copy-btn:hover{color:var(--blue);transform:scale(1.1)}
+.ref-share-hint{font-size:12px;color:var(--text3);margin-top:8px}
+
+.success-actions{display:flex;flex-direction:column;gap:10px}
+.btn-success-primary{
+  display:block;width:100%;padding:13px;
+  background:linear-gradient(135deg,var(--blue),var(--blue2));
+  color:#fff;border:none;border-radius:12px;
+  font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;cursor:pointer;
+  box-shadow:0 6px 20px rgba(37,99,235,.36);
+  transition:transform var(--trans),box-shadow var(--trans);
+  text-decoration:none;text-align:center;
+}
+.btn-success-primary:hover{transform:translateY(-2px)}
+.btn-success-secondary{
+  display:block;width:100%;padding:11px;
+  background:transparent;color:var(--blue);
+  border:1.5px solid rgba(37,99,235,.25);border-radius:12px;
+  font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;
+  transition:background var(--trans),border-color var(--trans);
+  text-align:center;
+}
+.btn-success-secondary:hover{background:var(--blue4);border-color:rgba(37,99,235,.4)}
+.confetti-emoji{font-size:14px;display:inline-block;animation:popIn .5s .4s ease both}
+@keyframes popIn{from{opacity:0;transform:scale(.5) rotate(-10deg)}to{opacity:1;transform:scale(1) rotate(0)}}
+
+/* ══ AI FENA FLOATING SUPPORT ══ */
+#fenaBtn{
+  position:fixed;bottom:90px;right:22px;
+  width:56px;height:56px;
+  background:linear-gradient(135deg,#7c3aed,#4f46e5);
+  border-radius:50%;border:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 8px 28px rgba(124,58,237,.48);
+  z-index:400;
+  transition:transform .25s cubic-bezier(.34,1.56,.64,1),box-shadow var(--trans);
+  animation:fenaPop .6s 1.5s cubic-bezier(.34,1.56,.64,1) both;
+}
+#fenaBtn:hover{transform:scale(1.12);box-shadow:0 12px 36px rgba(124,58,237,.6)}
+#fenaBtn .fena-pulse{
+  position:absolute;inset:-4px;border-radius:50%;
+  border:2px solid rgba(124,58,237,.4);
+  animation:fenaPulse 2.5s ease-in-out infinite;
+}
+#fenaBtn svg{width:28px;height:28px}
+.fena-badge{
+  position:absolute;top:-3px;right:-3px;
+  width:18px;height:18px;border-radius:50%;
+  background:linear-gradient(135deg,#f59e0b,#ef4444);
+  border:2px solid #fff;
+  font-size:10px;font-weight:700;color:#fff;
+  display:flex;align-items:center;justify-content:center;
+}
+@keyframes fenaPop{from{opacity:0;transform:scale(0) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}
+@keyframes fenaPulse{0%,100%{opacity:0;transform:scale(1)}50%{opacity:.6;transform:scale(1.25)}}
+
+/* Fena Chat Panel */
+#fenaPanel{
+  position:fixed;bottom:162px;right:22px;
+  width:340px;max-height:520px;
+  background:#fff;border-radius:20px;
+  box-shadow:0 20px 70px rgba(15,23,42,.18),0 4px 16px rgba(0,0,0,.08);
+  border:1px solid rgba(124,58,237,.15);
+  display:flex;flex-direction:column;
+  z-index:401;
+  transform:translateY(20px) scale(.95);
+  opacity:0;pointer-events:none;
+  transition:transform .3s cubic-bezier(.34,1.56,.64,1),opacity .25s;
+  overflow:hidden;
+}
+#fenaPanel.open{transform:translateY(0) scale(1);opacity:1;pointer-events:all}
+@media(max-width:420px){
+  #fenaPanel{width:calc(100vw - 24px);right:12px;bottom:152px}
+}
+
+.fena-header{
+  background:linear-gradient(135deg,#7c3aed,#4f46e5);
+  padding:14px 16px;display:flex;align-items:center;gap:10px;flex-shrink:0;
+}
+.fena-avatar{
+  width:38px;height:38px;border-radius:50%;
+  background:rgba(255,255,255,.2);
+  display:flex;align-items:center;justify-content:center;font-size:20px;
+  border:2px solid rgba(255,255,255,.3);flex-shrink:0;
+}
+.fena-info{flex:1}
+.fena-name{font-family:'Syne',sans-serif;font-weight:800;color:#fff;font-size:14px}
+.fena-status{font-size:11px;color:rgba(255,255,255,.75);display:flex;align-items:center;gap:5px}
+.fena-dot{width:7px;height:7px;background:#4ade80;border-radius:50%;flex-shrink:0;animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.4}}
+.fena-close{background:rgba(255,255,255,.15);border:none;color:#fff;width:28px;height:28px;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;transition:background var(--trans)}
+.fena-close:hover{background:rgba(255,255,255,.25)}
+
+.fena-messages{
+  flex:1;overflow-y:auto;padding:14px 14px 8px;
+  display:flex;flex-direction:column;gap:10px;
+  scrollbar-width:thin;scrollbar-color:#e2e8f0 transparent;
+}
+
+.fena-bubble{
+  max-width:85%;
+  padding:10px 13px;
+  border-radius:14px;
+  font-size:13px;line-height:1.6;
+  animation:bubbleIn .3s ease;
+}
+@keyframes bubbleIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.fena-bubble.bot{
+  background:#f5f3ff;color:var(--text);
+  border-bottom-left-radius:4px;align-self:flex-start;
+  border:1px solid rgba(124,58,237,.1);
+}
+.fena-bubble.user{
+  background:linear-gradient(135deg,#7c3aed,#4f46e5);
+  color:#fff;border-bottom-right-radius:4px;align-self:flex-end;
+}
+.fena-bubble.typing{
+  display:flex;gap:4px;align-items:center;padding:12px 16px;
+}
+.fena-bubble.typing span{
+  width:7px;height:7px;border-radius:50%;
+  background:rgba(124,58,237,.5);
+  animation:typingDot 1.2s infinite;
+}
+.fena-bubble.typing span:nth-child(2){animation-delay:.2s}
+.fena-bubble.typing span:nth-child(3){animation-delay:.4s}
+@keyframes typingDot{0%,80%,100%{transform:scale(.6);opacity:.4}40%{transform:scale(1);opacity:1}}
+
+.fena-quick-chips{
+  display:flex;flex-wrap:wrap;gap:6px;padding:8px 14px;flex-shrink:0;
+  border-top:1px solid var(--border);
+}
+.fena-chip{
+  padding:5px 12px;background:var(--blue4);
+  border:1px solid rgba(37,99,235,.15);border-radius:999px;
+  font-size:12px;font-weight:500;color:var(--blue);cursor:pointer;
+  transition:background var(--trans),transform var(--trans);
+  white-space:nowrap;
+}
+.fena-chip:hover{background:var(--blue3);transform:translateY(-1px)}
+
+.fena-input-row{
+  display:flex;align-items:center;gap:8px;
+  padding:10px 12px;border-top:1px solid var(--border);flex-shrink:0;
+}
+.fena-input{
+  flex:1;padding:9px 13px;
+  background:var(--input);border:1.5px solid var(--border);border-radius:10px;
+  font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);outline:none;
+  transition:border-color var(--trans);
+}
+.fena-input:focus{border-color:rgba(124,58,237,.45);background:#fff}
+.fena-send{
+  width:36px;height:36px;border-radius:10px;
+  background:linear-gradient(135deg,#7c3aed,#4f46e5);
+  border:none;color:#fff;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;font-size:15px;
+  flex-shrink:0;transition:transform var(--trans),box-shadow var(--trans);
+  box-shadow:0 4px 12px rgba(124,58,237,.36);
+}
+.fena-send:hover{transform:scale(1.08)}
+.fena-powered{text-align:center;font-size:10px;color:var(--text3);padding:6px;flex-shrink:0}
 </style>
 </head>
 <body>
@@ -355,6 +610,16 @@ select.form-input{appearance:none;cursor:pointer}
   </div>
 </div>
 
+<!-- ══ COUNTRY FLAG SLIDER ══ -->
+<div class="flag-strip-wrap" aria-label="Countries where Amulytask is available">
+  <div class="flag-strip-label"><i class="bi bi-globe2" style="margin-right:5px"></i> Available in 80+ countries</div>
+  <div style="padding-left:200px;overflow:hidden">
+    <div class="flag-track" id="flagTrack">
+      <!-- flags injected by JS for seamless loop -->
+    </div>
+  </div>
+</div>
+
 <!-- ══ SPLASH ══ -->
 <div id="splash">
 
@@ -369,7 +634,7 @@ select.form-input{appearance:none;cursor:pointer}
 
     <div class="features">
       <div class="feat"><i class="bi bi-lightning-charge-fill"></i> Instant payouts</div>
-      <div class="feat"><i class="bi bi-globe2"></i> 40+ countries</div>
+      <div class="feat"><i class="bi bi-globe2"></i> 80+ countries</div>
       <div class="feat"><i class="bi bi-shield-check"></i> Bank-level security</div>
       <div class="feat"><i class="bi bi-phone"></i> Any device</div>
       <div class="feat"><i class="bi bi-bullseye"></i> 100+ daily tasks</div>
@@ -377,7 +642,7 @@ select.form-input{appearance:none;cursor:pointer}
 
     <div class="splash-cta">
       <button class="btn-primary" onclick="openAuth('register')">
-        Get Started <i class="bi bi-arrow-right"></i>
+        <i class="bi bi-rocket-takeoff-fill"></i> Start Earning Now
       </button>
       <button class="btn-outline" onclick="openAuth('login')">
         <i class="bi bi-box-arrow-in-right"></i> Login
@@ -437,7 +702,6 @@ select.form-input{appearance:none;cursor:pointer}
     <div id="loginBox">
       <p class="modal-sub">Welcome back — let's get you earning.</p>
 
-      <!-- Google Sign In -->
       <button class="btn-google" onclick="handleGoogleAuth()">
         <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
           <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -552,7 +816,6 @@ select.form-input{appearance:none;cursor:pointer}
     <div id="registerBox" style="display:none">
       <p class="modal-sub">Create your free account — it takes 30 seconds.</p>
 
-      <!-- Google Sign Up -->
       <button class="btn-google" onclick="handleGoogleAuth()">
         <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
           <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -718,7 +981,6 @@ select.form-input{appearance:none;cursor:pointer}
             <option value="OM">🇴🇲 Oman</option>
             <option value="PS">🇵🇸 Palestine</option>
             <option value="PA">🇵🇦 Panama</option>
-            <option value="PG">🇵🇬 Papua New Guinea</option>
             <option value="PY">🇵🇾 Paraguay</option>
             <option value="PE">🇵🇪 Peru</option>
             <option value="PL">🇵🇱 Poland</option>
@@ -765,7 +1027,7 @@ select.form-input{appearance:none;cursor:pointer}
         <div class="input-wrap">
           <i class="bi bi-gift input-icon"></i>
           <input class="form-input" id="r-referral" type="text"
-                 placeholder="e.g. AT-A1B2C3" autocomplete="off" maxlength="12"
+                 placeholder="e.g. A85D90C6N" autocomplete="off" maxlength="12"
                  oninput="checkReferralCode(this.value)"
                  style="text-transform:uppercase;letter-spacing:1px">
           <div class="input-suffix"><span class="status-icon" id="ref-dot"></span></div>
@@ -789,10 +1051,80 @@ select.form-input{appearance:none;cursor:pointer}
   </div>
 </div>
 
+<!-- ══ POST-SIGNUP SUCCESS SCREEN ══ -->
+<div id="successScreen">
+  <div class="success-card">
+    <div class="success-icon">🎉</div>
+    <h2>Welcome to Amulytask! <span class="confetti-emoji">🚀</span></h2>
+    <p>Your account has been created. Check your email to confirm and activate it. Meanwhile, here's your unique referral code — share it and earn bonuses!</p>
+
+    <div class="ref-code-box">
+      <div class="ref-code-label"><i class="bi bi-gift-fill" style="margin-right:5px;color:var(--blue)"></i> Your Referral Code</div>
+      <div class="ref-code-value" id="displayRefCode">
+        <span id="refCodeText">—</span>
+        <button class="ref-copy-btn" onclick="copyRefCode()" title="Copy code">
+          <i class="bi bi-clipboard" id="copyIcon"></i>
+        </button>
+      </div>
+      <div class="ref-share-hint">Share this code — earn a bonus for every friend who joins!</div>
+    </div>
+
+    <div class="success-actions">
+      <a href="dashboard.html" class="btn-success-primary">
+        <i class="bi bi-rocket-takeoff-fill"></i> Go to Dashboard
+      </a>
+      <button class="btn-success-secondary" onclick="shareReferral()">
+        <i class="bi bi-share"></i> Share Referral Link
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ AI FENA FLOATING BUTTON ══ -->
+<button id="fenaBtn" onclick="toggleFena()" aria-label="Chat with AI Fena support">
+  <div class="fena-pulse"></div>
+  <div class="fena-badge">AI</div>
+  <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="16" cy="14" r="7" fill="white" opacity=".95"/>
+    <circle cx="13" cy="13" r="1.5" fill="#7c3aed"/>
+    <circle cx="19" cy="13" r="1.5" fill="#7c3aed"/>
+    <path d="M13 17c0 0 1 1.5 3 1.5s3-1.5 3-1.5" stroke="#7c3aed" stroke-width="1.2" stroke-linecap="round"/>
+    <path d="M9 22c0-3.86 3.13-7 7-7s7 3.14 7 7" stroke="white" stroke-width="2" stroke-linecap="round" opacity=".9"/>
+  </svg>
+</button>
+
+<!-- ══ AI FENA CHAT PANEL ══ -->
+<div id="fenaPanel" role="dialog" aria-label="AI Fena Support Chat">
+  <div class="fena-header">
+    <div class="fena-avatar">🤖</div>
+    <div class="fena-info">
+      <div class="fena-name">Fena AI</div>
+      <div class="fena-status"><span class="fena-dot"></span> Online · Amulytask Support</div>
+    </div>
+    <button class="fena-close" onclick="toggleFena()"><i class="bi bi-x-lg"></i></button>
+  </div>
+
+  <div class="fena-messages" id="fenaMessages"></div>
+
+  <div class="fena-quick-chips" id="fenaChips">
+    <span class="fena-chip" onclick="fenaQuick('How do I earn?')">How do I earn?</span>
+    <span class="fena-chip" onclick="fenaQuick('How do I withdraw?')">Withdraw funds</span>
+    <span class="fena-chip" onclick="fenaQuick('What tasks are available?')">Available tasks</span>
+    <span class="fena-chip" onclick="fenaQuick('How does referral work?')">Referral bonuses</span>
+  </div>
+
+  <div class="fena-input-row">
+    <input class="fena-input" id="fenaInput" type="text" placeholder="Ask me anything…" maxlength="300"
+           onkeydown="if(event.key==='Enter')fenaSend()">
+    <button class="fena-send" onclick="fenaSend()"><i class="bi bi-send-fill"></i></button>
+  </div>
+  <div class="fena-powered">Powered by Amulytask AI · Fena v1.0</div>
+</div>
+
 <!-- ══ SCRIPTS ══ -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-/* ── SUPABASE — using the correct JWT anon key ── */
+/* ── SUPABASE ── */
 const db = supabase.createClient(
   "https://lwnbfjjsstxkyexeojcl.supabase.co",
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx3bmJmampzc3R4a3lleGVvamNsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzMjc4MTgsImV4cCI6MjA5MTkwMzgxOH0.EzB9H8dzwS7VME9-wwnpSHkA4R-04Wd8msK9E24hBDg"
@@ -802,127 +1134,115 @@ const db = supabase.createClient(
 let _userIP = null;
 async function getUserIP(){
   if(_userIP) return _userIP;
-  try{
-    const r = await fetch('https://api.ipify.org?format=json');
-    const d = await r.json();
-    _userIP = d.ip || null;
-  }catch(e){ _userIP = null; }
+  try{const r=await fetch('https://api.ipify.org?format=json');const d=await r.json();_userIP=d.ip||null;}catch(e){_userIP=null;}
   return _userIP;
 }
-// Prefetch IP immediately so it's ready when needed
 getUserIP();
+
+/* ══ FLAG SLIDER ══ */
+(function(){
+  const flags=[
+    {f:'🇰🇪',n:'Kenya'},{f:'🇳🇬',n:'Nigeria'},{f:'🇬🇭',n:'Ghana'},{f:'🇿🇦',n:'South Africa'},
+    {f:'🇺🇬',n:'Uganda'},{f:'🇹🇿',n:'Tanzania'},{f:'🇺🇸',n:'United States'},{f:'🇬🇧',n:'UK'},
+    {f:'🇮🇳',n:'India'},{f:'🇵🇭',n:'Philippines'},{f:'🇧🇷',n:'Brazil'},{f:'🇲🇽',n:'Mexico'},
+    {f:'🇫🇷',n:'France'},{f:'🇩🇪',n:'Germany'},{f:'🇯🇵',n:'Japan'},{f:'🇨🇳',n:'China'},
+    {f:'🇮🇩',n:'Indonesia'},{f:'🇵🇰',n:'Pakistan'},{f:'🇧🇩',n:'Bangladesh'},{f:'🇪🇬',n:'Egypt'},
+    {f:'🇪🇹',n:'Ethiopia'},{f:'🇷🇼',n:'Rwanda'},{f:'🇿🇲',n:'Zambia'},{f:'🇿🇼',n:'Zimbabwe'},
+    {f:'🇨🇦',n:'Canada'},{f:'🇦🇺',n:'Australia'},{f:'🇸🇬',n:'Singapore'},{f:'🇦🇪',n:'UAE'},
+    {f:'🇹🇷',n:'Turkey'},{f:'🇲🇦',n:'Morocco'}
+  ];
+  const track=document.getElementById('flagTrack');
+  const doubled=[...flags,...flags];
+  doubled.forEach(({f,n})=>{
+    const el=document.createElement('div');
+    el.className='flag-item';
+    el.innerHTML=`<span class="fi">${f}</span>${n}`;
+    track.appendChild(el);
+  });
+})();
 
 /* ── Parse ?ref= from URL on load ── */
 (function(){
-  const params = new URLSearchParams(window.location.search);
-  const refCode = params.get('ref');
+  const params=new URLSearchParams(window.location.search);
+  const refCode=params.get('ref');
   if(refCode){
-    const inp = document.getElementById('r-referral');
-    if(inp){ inp.value = refCode.toUpperCase(); checkReferralCode(inp.value); }
-    // Open register tab automatically if referral code present
+    const inp=document.getElementById('r-referral');
+    if(inp){inp.value=refCode.toUpperCase();checkReferralCode(inp.value);}
     openAuth('register');
   }
-  // Pre-fill remember email
-  const saved = localStorage.getItem('at_remember');
-  if(saved){ const e = document.getElementById('l-email'); if(e) e.value = saved; }
+  const saved=localStorage.getItem('at_remember');
+  if(saved){const e=document.getElementById('l-email');if(e)e.value=saved;}
 })();
 
-/* ── AUTH EVENTS: handle Google redirect & email confirm ── */
-db.auth.onAuthStateChange(async (event, session) => {
-  if((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session?.user){
-    const u = session.user;
-    const isNew = event === 'SIGNED_IN' &&
-      (u.app_metadata?.provider === 'google' ||
-       (u.created_at && (Date.now() - new Date(u.created_at).getTime()) < 10000));
-
-    if(isNew){
-      await provisionNewUser(u, null /* referralId will be null for google-auto */);
-    }
-    // Redirect if we're on this page with a session
-    if(window.location.pathname.includes('index') || window.location.pathname === '/'){
-      window.location.href = 'dashboard.html';
+/* ── AUTH EVENTS ── */
+db.auth.onAuthStateChange(async(event,session)=>{
+  if((event==='SIGNED_IN'||event==='INITIAL_SESSION')&&session?.user){
+    const u=session.user;
+    const isNew=event==='SIGNED_IN'&&
+      (u.app_metadata?.provider==='google'||
+       (u.created_at&&(Date.now()-new Date(u.created_at).getTime())<10000));
+    if(isNew) await provisionNewUser(u,null);
+    if(window.location.pathname.includes('index')||window.location.pathname==='/'){
+      window.location.href='dashboard.html';
     }
   }
 });
 
-/* ── PROVISION NEW USER (shared between Google + Email reg) ── */
-async function provisionNewUser(user, resolvedReferrerId){
-  const userId    = user.id;
-  const email     = (user.email || '').toLowerCase();
-  const fullName  = user.user_metadata?.full_name || user.user_metadata?.name || email.split('@')[0];
-  const username  = (user.user_metadata?.username ||
-                     fullName.replace(/\s+/g,'').toLowerCase().slice(0,16) +
-                     Math.floor(Math.random()*999)).slice(0,20);
-  const country   = user.user_metadata?.country || '';
-  const newReferralCode = await generateUniqueReferralCode();
-  const ipAddress = await getUserIP();
+/* ── PROVISION NEW USER ── */
+async function provisionNewUser(user,resolvedReferrerId){
+  const userId=user.id;
+  const email=(user.email||'').toLowerCase();
+  const fullName=user.user_metadata?.full_name||user.user_metadata?.name||email.split('@')[0];
+  const username=(user.user_metadata?.username||fullName.replace(/\s+/g,'').toLowerCase().slice(0,16)+Math.floor(Math.random()*999)).slice(0,20);
+  const country=user.user_metadata?.country||'';
+  const newReferralCode=await generateUniqueReferralCode();
+  const ipAddress=await getUserIP();
 
-  // 1. Insert/upsert profiles
   await db.from('profiles').upsert({
-    id: userId, username, full_name: fullName,
-    email, country,
-    referral_code: newReferralCode,
-    referred_by: resolvedReferrerId || null,
-    ip_address: ipAddress,
-    created_at: new Date().toISOString()
-  }, { onConflict: 'id' });
+    id:userId,username,full_name:fullName,email,country,
+    referral_code:newReferralCode,referred_by:resolvedReferrerId||null,
+    ip_address:ipAddress,created_at:new Date().toISOString()
+  },{onConflict:'id'});
 
-  // 2. Insert/upsert users
   await db.from('users').upsert({
-    id: userId, username, full_name: fullName,
-    email, country,
-    referral_code: newReferralCode,
-    referred_by: resolvedReferrerId || null,
-    ip_address: ipAddress,
-    balance: 0, pending_balance: 0, bonus_balance: 0,
-    status: 'active',
-    created_at: new Date().toISOString()
-  }, { onConflict: 'id' });
+    id:userId,username,full_name:fullName,email,country,
+    referral_code:newReferralCode,referred_by:resolvedReferrerId||null,
+    ip_address:ipAddress,balance:0,pending_balance:0,bonus_balance:0,
+    status:'active',created_at:new Date().toISOString()
+  },{onConflict:'id'});
 
-  // 3. Insert into community_posts table (community membership)
   await db.from('community_members').upsert({
-    user_id: userId,
-    username, full_name: fullName,
-    joined_at: new Date().toISOString(),
-    is_active: true
-  }, { onConflict: 'user_id' }).catch(()=>{});
+    user_id:userId,username,full_name:fullName,
+    joined_at:new Date().toISOString(),is_active:true
+  },{onConflict:'user_id'}).catch(()=>{});
 
-  // 4. Insert referral record if referred
   if(resolvedReferrerId){
     await db.from('referrals').insert({
-      referrer_id:  resolvedReferrerId,
-      referred_id:  userId,
-      referral_code: (await db.from('users').select('referral_code').eq('id',resolvedReferrerId).single()).data?.referral_code || '',
-      status: 'pending',
-      created_at: new Date().toISOString()
+      referrer_id:resolvedReferrerId,referred_id:userId,
+      referral_code:(await db.from('users').select('referral_code').eq('id',resolvedReferrerId).single()).data?.referral_code||'',
+      status:'pending',created_at:new Date().toISOString()
     }).catch(()=>{});
-
-    // Optional: give referrer a bonus notification
     await db.from('notifications').insert({
-      user_id: resolvedReferrerId,
-      title: '🎉 New Referral!',
-      message: `Someone joined using your referral code. You'll earn a bonus once they complete their first task!`,
-      is_read: false,
-      created_at: new Date().toISOString()
+      user_id:resolvedReferrerId,title:'🎉 New Referral!',
+      message:`Someone joined using your referral code. You'll earn a bonus once they complete their first task!`,
+      is_read:false,created_at:new Date().toISOString()
     }).catch(()=>{});
   }
+
+  return newReferralCode;
 }
 
-/* ═══════════════════════════════════════════
-   SECURITY LAYER
-═══════════════════════════════════════════ */
-const SEC = {
-  MAX_ATTEMPTS: 5, LOCKOUT_MS: 15*60000, ATTEMPT_TTL: 10*60000,
-  getAttempts(){
-    try{const raw=localStorage.getItem('_at_fa');if(!raw)return{count:0,first:Date.now(),locked:false,until:0};const d=JSON.parse(raw);if(!d.locked&&Date.now()-d.first>this.ATTEMPT_TTL){this.resetAttempts();return{count:0,first:Date.now(),locked:false,until:0};}return d;}catch(e){return{count:0,first:Date.now(),locked:false,until:0};}
-  },
+/* ══ SECURITY LAYER ══ */
+const SEC={
+  MAX_ATTEMPTS:5,LOCKOUT_MS:15*60000,ATTEMPT_TTL:10*60000,
+  getAttempts(){try{const raw=localStorage.getItem('_at_fa');if(!raw)return{count:0,first:Date.now(),locked:false,until:0};const d=JSON.parse(raw);if(!d.locked&&Date.now()-d.first>this.ATTEMPT_TTL){this.resetAttempts();return{count:0,first:Date.now(),locked:false,until:0};}return d;}catch(e){return{count:0,first:Date.now(),locked:false,until:0};}},
   recordFail(){const d=this.getAttempts();d.count++;if(d.count>=this.MAX_ATTEMPTS){d.locked=true;d.until=Date.now()+this.LOCKOUT_MS;}localStorage.setItem('_at_fa',JSON.stringify(d));return d;},
   resetAttempts(){localStorage.removeItem('_at_fa');},
   isLocked(){const d=this.getAttempts();if(!d.locked)return false;if(Date.now()>d.until){this.resetAttempts();return false;}return d.until;},
   remainingText(until){const ms=until-Date.now();const min=Math.ceil(ms/60000);return min>1?`${min} minutes`:'less than a minute';}
 };
 
-const BOT = {
+const BOT={
   _moved:false,_typed:false,_focused:false,
   init(){document.addEventListener('mousemove',()=>this._moved=true,{once:true});document.addEventListener('keydown',()=>this._typed=true,{once:true});document.addEventListener('focusin',()=>this._focused=true,{once:true});},
   isBot(){const hp=document.getElementById('__hp_field');if(hp&&hp.value.length>0)return true;const signals=[this._moved,this._typed,this._focused].filter(Boolean).length;return signals<1;}
@@ -932,9 +1252,7 @@ BOT.init();
 (function(){if(!localStorage.getItem('at_cookies'))setTimeout(()=>document.getElementById('cookieBanner').classList.add('show'),1200);})();
 function cookieChoice(a){localStorage.setItem('at_cookies',a?'accepted':'declined');document.getElementById('cookieBanner').classList.remove('show');}
 
-function isSuspiciousInput(val){
-  return [/<script/i,/javascript:/i,/on\w+\s*=/i,/union.*select/i,/drop\s+table/i,/\.\.\//].some(p=>p.test(val));
-}
+function isSuspiciousInput(val){return[/<script/i,/javascript:/i,/on\w+\s*=/i,/union.*select/i,/drop\s+table/i,/\.\.\//].some(p=>p.test(val));}
 (function(){if(!sessionStorage.getItem('_at_stok'))sessionStorage.setItem('_at_stok',crypto.randomUUID());})();
 
 let usernameOk=false,emailOk=false,referralOk=true;
@@ -982,7 +1300,6 @@ function showToast(id,msg,type){
   if(t._dismissTimer)clearTimeout(t._dismissTimer);
   t.className=`toast ${type} visible`;
   t.innerHTML=ico+'&nbsp;'+msg;
-  // Only success toasts auto-dismiss; errors persist until the user's next action
   if(type==='success'){t._dismissTimer=setTimeout(()=>t.classList.remove('visible'),6000);}
 }
 
@@ -991,26 +1308,23 @@ function setLoading(btnId,spId,txtId,on,label){document.getElementById(btnId).di
 
 /* ── GOOGLE AUTH ── */
 async function handleGoogleAuth(){
-  const {error}=await db.auth.signInWithOAuth({
+  const{error}=await db.auth.signInWithOAuth({
     provider:'google',
-    options:{
-      redirectTo: window.location.origin+'/dashboard.html',
-      queryParams:{ access_type:'offline', prompt:'consent' }
-    }
+    options:{redirectTo:window.location.origin+'/dashboard.html',queryParams:{access_type:'offline',prompt:'consent'}}
   });
-  if(error) alert('Google sign-in failed: '+error.message);
+  if(error)alert('Google sign-in failed: '+error.message);
 }
 
 /* ── USERNAME CHECK ── */
 async function checkUsername(val){
-  const hint=document.getElementById('uname-hint');const dot=document.getElementById('uname-dot');const inp=document.getElementById('r-username');
+  const hint=document.getElementById('uname-hint'),dot=document.getElementById('uname-dot'),inp=document.getElementById('r-username');
   usernameOk=false;
   if(!val){hint.textContent='3–20 chars · letters, numbers & underscores only';hint.className='field-hint hint-info';dot.innerHTML='';inp.className='form-input';return;}
   if(!/^[a-zA-Z0-9_]{3,20}$/.test(val.trim())){hint.textContent='Only letters, numbers & underscores (3–20 chars)';hint.className='field-hint hint-err';dot.innerHTML='<i class="bi bi-x-circle-fill" style="color:var(--red)"></i>';inp.className='form-input error-field';return;}
   hint.textContent='Checking availability…';hint.className='field-hint hint-info';dot.innerHTML='<i class="bi bi-hourglass-split" style="color:var(--text3)"></i>';inp.className='form-input';
   clearTimeout(usernameTimer);
   usernameTimer=setTimeout(async()=>{
-    const {data,error}=await db.from('profiles').select('username').eq('username',val.trim().toLowerCase()).maybeSingle();
+    const{data,error}=await db.from('profiles').select('username').eq('username',val.trim().toLowerCase()).maybeSingle();
     if(error){hint.textContent='Could not verify. Try again.';return;}
     if(data){hint.textContent='Username already taken';hint.className='field-hint hint-err';dot.innerHTML='<i class="bi bi-x-circle-fill" style="color:var(--red)"></i>';inp.className='form-input error-field';usernameOk=false;}
     else{hint.textContent='Username is available!';hint.className='field-hint hint-ok';dot.innerHTML='<i class="bi bi-check-circle-fill" style="color:var(--green)"></i>';inp.className='form-input ok-field';usernameOk=true;}
@@ -1019,66 +1333,145 @@ async function checkUsername(val){
 
 /* ── EMAIL CHECK ── */
 async function checkEmail(val){
-  const hint=document.getElementById('email-hint');const dot=document.getElementById('email-dot');const inp=document.getElementById('r-email');
+  const hint=document.getElementById('email-hint'),dot=document.getElementById('email-dot'),inp=document.getElementById('r-email');
   emailOk=false;
   if(!val){hint.textContent='';dot.innerHTML='';inp.className='form-input';return;}
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)){hint.textContent='Enter a valid email address';hint.className='field-hint hint-err';dot.innerHTML='<i class="bi bi-x-circle-fill" style="color:var(--red)"></i>';inp.className='form-input error-field';return;}
   hint.textContent='Checking…';hint.className='field-hint hint-info';dot.innerHTML='<i class="bi bi-hourglass-split" style="color:var(--text3)"></i>';inp.className='form-input';
   clearTimeout(emailTimer);
   emailTimer=setTimeout(async()=>{
-    const {data,error}=await db.from('profiles').select('email').eq('email',val.toLowerCase()).maybeSingle();
+    const{data,error}=await db.from('profiles').select('email').eq('email',val.toLowerCase()).maybeSingle();
     if(error){hint.textContent='';emailOk=true;inp.className='form-input ok-field';dot.innerHTML='<i class="bi bi-check-circle-fill" style="color:var(--green)"></i>';return;}
     if(data){hint.textContent='An account with this email already exists';hint.className='field-hint hint-err';dot.innerHTML='<i class="bi bi-x-circle-fill" style="color:var(--red)"></i>';inp.className='form-input error-field';emailOk=false;}
     else{hint.textContent='Email is available';hint.className='field-hint hint-ok';dot.innerHTML='<i class="bi bi-check-circle-fill" style="color:var(--green)"></i>';inp.className='form-input ok-field';emailOk=true;}
   },500);
 }
 
-/* ── REFERRAL CODE CHECK ── */
+/* ── REFERRAL CODE CHECK (new format: A85D90C6N style, 9 chars alphanumeric) ── */
 async function checkReferralCode(val){
-  const hint=document.getElementById('ref-hint');const dot=document.getElementById('ref-dot');const inp=document.getElementById('r-referral');
+  const hint=document.getElementById('ref-hint'),dot=document.getElementById('ref-dot'),inp=document.getElementById('r-referral');
   resolvedReferrerId=null;referralOk=true;
   inp.value=val.toUpperCase();val=inp.value.trim();
   if(!val){hint.textContent='Have a referral code? Enter it above to get a bonus!';hint.className='field-hint hint-info';dot.innerHTML='';inp.className='form-input';return;}
-  if(!/^AT-[A-Z0-9]{6}$/.test(val)){hint.textContent='Invalid format — should look like AT-A1B2C3';hint.className='field-hint hint-err';dot.innerHTML='<i class="bi bi-x-circle-fill" style="color:var(--red)"></i>';inp.className='form-input error-field';referralOk=false;return;}
+  // Support both old format AT-XXXXXX and new format (9 chars: e.g. A85D90C6N)
+  const validFormat=/^([A-Z0-9]{9}|AT-[A-Z0-9]{6})$/.test(val);
+  if(!validFormat){hint.textContent='Invalid format — should look like A85D90C6N';hint.className='field-hint hint-err';dot.innerHTML='<i class="bi bi-x-circle-fill" style="color:var(--red)"></i>';inp.className='form-input error-field';referralOk=false;return;}
   hint.textContent='Checking code…';hint.className='field-hint hint-info';dot.innerHTML='<i class="bi bi-hourglass-split" style="color:var(--text3)"></i>';inp.className='form-input';
   clearTimeout(referralTimer);
   referralTimer=setTimeout(async()=>{
-    const {data,error}=await db.from('users').select('id,full_name').eq('referral_code',val).maybeSingle();
+    const{data,error}=await db.from('users').select('id,full_name').eq('referral_code',val).maybeSingle();
     if(error){hint.textContent='Could not verify code. You can still proceed.';hint.className='field-hint hint-info';referralOk=true;return;}
     if(data){hint.textContent='✓ Referred by '+data.full_name+' — bonus applied!';hint.className='field-hint hint-ok';dot.innerHTML='<i class="bi bi-check-circle-fill" style="color:var(--green)"></i>';inp.className='form-input ok-field';referralOk=true;resolvedReferrerId=data.id;}
     else{hint.textContent='Referral code not found';hint.className='field-hint hint-err';dot.innerHTML='<i class="bi bi-x-circle-fill" style="color:var(--red)"></i>';inp.className='form-input error-field';referralOk=false;}
   },500);
 }
 
-/* ── REFERRAL CODE GENERATOR ── */
-function generateReferralCode(){const chars='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';let code='AT-';for(let i=0;i<6;i++)code+=chars[Math.floor(Math.random()*chars.length)];return code;}
-async function generateUniqueReferralCode(){let attempts=0;while(attempts<10){const code=generateReferralCode();const{data}=await db.from('users').select('id').eq('referral_code',code).maybeSingle();if(!data)return code;attempts++;}return 'AT-'+Date.now().toString(36).slice(-6).toUpperCase();}
+/* ── REFERRAL CODE GENERATOR (new format: A85D90C6N — 9 chars) ── */
+function generateReferralCode(){
+  const chars='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let code='';
+  for(let i=0;i<9;i++) code+=chars[Math.floor(Math.random()*chars.length)];
+  return code;
+}
+async function generateUniqueReferralCode(){
+  let attempts=0;
+  while(attempts<10){
+    const code=generateReferralCode();
+    const{data}=await db.from('users').select('id').eq('referral_code',code).maybeSingle();
+    if(!data) return code;
+    attempts++;
+  }
+  return Date.now().toString(36).toUpperCase().slice(-9).padStart(9,'A');
+}
 
 /* ── PASSWORD STRENGTH ── */
-function checkStrength(pw){let score=0;if(pw.length>=8)score++;if(/[A-Z]/.test(pw))score++;if(/[0-9]/.test(pw))score++;if(/[^A-Za-z0-9]/.test(pw))score++;const colors=['#ef4444','#f97316','#eab308','#16a34a'];const labels=['Weak','Fair','Good','Strong'];['s1','s2','s3','s4'].forEach((id,i)=>{document.getElementById(id).style.background=i<score?colors[score-1]:'var(--border)';});const hint=document.getElementById('strength-hint');if(!pw.length){hint.textContent='';return;}hint.textContent='Password strength: '+(labels[score-1]||'Weak');hint.className='field-hint '+(['hint-err','hint-err','hint-info','hint-ok'][score-1]||'hint-info');checkConfirm();}
-function checkConfirm(){const pw=document.getElementById('r-password').value;const conf=document.getElementById('r-confirm').value;const hint=document.getElementById('confirm-hint');const inp=document.getElementById('r-confirm');if(!conf){hint.textContent='';inp.className='form-input';return;}if(pw===conf){hint.textContent='Passwords match';hint.className='field-hint hint-ok';inp.className='form-input ok-field';}else{hint.textContent='Passwords do not match';hint.className='field-hint hint-err';inp.className='form-input error-field';}}
+function checkStrength(pw){
+  let score=0;if(pw.length>=8)score++;if(/[A-Z]/.test(pw))score++;if(/[0-9]/.test(pw))score++;if(/[^A-Za-z0-9]/.test(pw))score++;
+  const colors=['#ef4444','#f97316','#eab308','#16a34a'];const labels=['Weak','Fair','Good','Strong'];
+  ['s1','s2','s3','s4'].forEach((id,i)=>{document.getElementById(id).style.background=i<score?colors[score-1]:'var(--border)';});
+  const hint=document.getElementById('strength-hint');
+  if(!pw.length){hint.textContent='';return;}
+  hint.textContent='Password strength: '+(labels[score-1]||'Weak');
+  hint.className='field-hint '+(['hint-err','hint-err','hint-info','hint-ok'][score-1]||'hint-info');
+  checkConfirm();
+}
+function checkConfirm(){
+  const pw=document.getElementById('r-password').value;const conf=document.getElementById('r-confirm').value;
+  const hint=document.getElementById('confirm-hint');const inp=document.getElementById('r-confirm');
+  if(!conf){hint.textContent='';inp.className='form-input';return;}
+  if(pw===conf){hint.textContent='Passwords match';hint.className='field-hint hint-ok';inp.className='form-input ok-field';}
+  else{hint.textContent='Passwords do not match';hint.className='field-hint hint-err';inp.className='form-input error-field';}
+}
 
 /* ── FORGOT PASSWORD ── */
 let forgotEmail='';let resendCountdown=null;
-function openForgot(){const loginEmail=document.getElementById('l-email').value.trim();if(loginEmail)document.getElementById('f-email').value=loginEmail;showForgotStep(1);}
+function openForgot(){
+  const loginEmail=document.getElementById('l-email').value.trim();
+  if(loginEmail) document.getElementById('f-email').value=loginEmail;
+  showForgotStep(1);
+}
 async function handleSendOtp(){
   const email=document.getElementById('f-email').value.trim();
   if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){showToast('f1Toast','Please enter a valid email address.','error');return;}
   setLoading('f1Btn','f1Spinner','f1BtnText',true,'Send OTP Code');
-  const {data:profile,error:pErr}=await db.from('profiles').select('email').eq('email',email.toLowerCase()).maybeSingle();
+  const{data:profile,error:pErr}=await db.from('profiles').select('email').eq('email',email.toLowerCase()).maybeSingle();
   if(pErr||!profile){setLoading('f1Btn','f1Spinner','f1BtnText',false,'Send OTP Code');showToast('f1Toast',pErr?'Server error. Try again.':'No account found with that email.','error');return;}
-  const {error}=await db.auth.signInWithOtp({email,options:{shouldCreateUser:false}});
+  const{error}=await db.auth.signInWithOtp({email,options:{shouldCreateUser:false}});
   setLoading('f1Btn','f1Spinner','f1BtnText',false,'Send OTP Code');
   if(error){showToast('f1Toast',error.message,'error');return;}
   forgotEmail=email;document.getElementById('f-email-display').textContent=email;document.getElementById('f-otp').value='';
   showForgotStep(2);startResendTimer();
 }
-async function handleResendOtp(){const link=document.getElementById('resendLink');if(link.classList.contains('disabled'))return;link.classList.add('disabled');const {error}=await db.auth.signInWithOtp({email:forgotEmail,options:{shouldCreateUser:false}});if(error){showToast('f2Toast',error.message,'error');link.classList.remove('disabled');return;}showToast('f2Toast','New OTP sent — check your inbox.','success');startResendTimer();}
-function startResendTimer(){const link=document.getElementById('resendLink');const timerEl=document.getElementById('resendTimer');link.classList.add('disabled');let secs=60;timerEl.textContent='('+secs+'s)';clearInterval(resendCountdown);resendCountdown=setInterval(()=>{secs--;timerEl.textContent=secs>0?'('+secs+'s)':'';if(secs<=0){clearInterval(resendCountdown);link.classList.remove('disabled');}},1000);}
-async function handleVerifyOtp(){const otp=document.getElementById('f-otp').value.trim();if(!otp||otp.length!==6){showToast('f2Toast','Please enter the 6-digit code.','error');return;}setLoading('f2Btn','f2Spinner','f2BtnText',true,'Verify Code');const {error}=await db.auth.verifyOtp({email:forgotEmail,token:otp,type:'magiclink'});setLoading('f2Btn','f2Spinner','f2BtnText',false,'Verify Code');if(error){showToast('f2Toast','Invalid or expired code. Please try again.','error');return;}showForgotStep(3);}
-function checkForgotStrength(pw){let score=0;if(pw.length>=8)score++;if(/[A-Z]/.test(pw))score++;if(/[0-9]/.test(pw))score++;if(/[^A-Za-z0-9]/.test(pw))score++;const colors=['#ef4444','#f97316','#eab308','#16a34a'];const labels=['Weak','Fair','Good','Strong'];['fs1','fs2','fs3','fs4'].forEach((id,i)=>{document.getElementById(id).style.background=i<score?colors[score-1]:'var(--border)';});const hint=document.getElementById('f-strength-hint');if(!pw.length){hint.textContent='';return;}hint.textContent='Password strength: '+(labels[score-1]||'Weak');hint.className='field-hint '+(['hint-err','hint-err','hint-info','hint-ok'][score-1]||'hint-info');checkForgotConfirm();}
-function checkForgotConfirm(){const pw=document.getElementById('f-newpw').value;const conf=document.getElementById('f-confirmpw').value;const hint=document.getElementById('f-confirm-hint');const inp=document.getElementById('f-confirmpw');if(!conf){hint.textContent='';inp.className='form-input';return;}if(pw===conf){hint.textContent='Passwords match';hint.className='field-hint hint-ok';inp.className='form-input ok-field';}else{hint.textContent='Passwords do not match';hint.className='field-hint hint-err';inp.className='form-input error-field';}}
-async function handleSetNewPassword(){const pw=document.getElementById('f-newpw').value;const conf=document.getElementById('f-confirmpw').value;if(!pw||pw.length<8){showToast('f3Toast','Password must be at least 8 characters.','error');return;}if(pw!==conf){showToast('f3Toast','Passwords do not match.','error');return;}setLoading('f3Btn','f3Spinner','f3BtnText',true,'Set New Password');const {error}=await db.auth.updateUser({password:pw});setLoading('f3Btn','f3Spinner','f3BtnText',false,'Set New Password');if(error){showToast('f3Toast',error.message,'error');return;}showToast('f3Toast','Password updated! Signing you in…','success');setTimeout(()=>window.location.href='dashboard.html',1800);}
+async function handleResendOtp(){
+  const link=document.getElementById('resendLink');if(link.classList.contains('disabled'))return;
+  link.classList.add('disabled');
+  const{error}=await db.auth.signInWithOtp({email:forgotEmail,options:{shouldCreateUser:false}});
+  if(error){showToast('f2Toast',error.message,'error');link.classList.remove('disabled');return;}
+  showToast('f2Toast','New OTP sent — check your inbox.','success');startResendTimer();
+}
+function startResendTimer(){
+  const link=document.getElementById('resendLink');const timerEl=document.getElementById('resendTimer');
+  link.classList.add('disabled');let secs=60;timerEl.textContent='('+secs+'s)';
+  clearInterval(resendCountdown);
+  resendCountdown=setInterval(()=>{secs--;timerEl.textContent=secs>0?'('+secs+'s)':'';if(secs<=0){clearInterval(resendCountdown);link.classList.remove('disabled');}},1000);
+}
+async function handleVerifyOtp(){
+  const otp=document.getElementById('f-otp').value.trim();
+  if(!otp||otp.length!==6){showToast('f2Toast','Please enter the 6-digit code.','error');return;}
+  setLoading('f2Btn','f2Spinner','f2BtnText',true,'Verify Code');
+  const{error}=await db.auth.verifyOtp({email:forgotEmail,token:otp,type:'magiclink'});
+  setLoading('f2Btn','f2Spinner','f2BtnText',false,'Verify Code');
+  if(error){showToast('f2Toast','Invalid or expired code. Please try again.','error');return;}
+  showForgotStep(3);
+}
+function checkForgotStrength(pw){
+  let score=0;if(pw.length>=8)score++;if(/[A-Z]/.test(pw))score++;if(/[0-9]/.test(pw))score++;if(/[^A-Za-z0-9]/.test(pw))score++;
+  const colors=['#ef4444','#f97316','#eab308','#16a34a'];const labels=['Weak','Fair','Good','Strong'];
+  ['fs1','fs2','fs3','fs4'].forEach((id,i)=>{document.getElementById(id).style.background=i<score?colors[score-1]:'var(--border)';});
+  const hint=document.getElementById('f-strength-hint');
+  if(!pw.length){hint.textContent='';return;}
+  hint.textContent='Password strength: '+(labels[score-1]||'Weak');
+  hint.className='field-hint '+(['hint-err','hint-err','hint-info','hint-ok'][score-1]||'hint-info');
+  checkForgotConfirm();
+}
+function checkForgotConfirm(){
+  const pw=document.getElementById('f-newpw').value;const conf=document.getElementById('f-confirmpw').value;
+  const hint=document.getElementById('f-confirm-hint');const inp=document.getElementById('f-confirmpw');
+  if(!conf){hint.textContent='';inp.className='form-input';return;}
+  if(pw===conf){hint.textContent='Passwords match';hint.className='field-hint hint-ok';inp.className='form-input ok-field';}
+  else{hint.textContent='Passwords do not match';hint.className='field-hint hint-err';inp.className='form-input error-field';}
+}
+async function handleSetNewPassword(){
+  const pw=document.getElementById('f-newpw').value;const conf=document.getElementById('f-confirmpw').value;
+  if(!pw||pw.length<8){showToast('f3Toast','Password must be at least 8 characters.','error');return;}
+  if(pw!==conf){showToast('f3Toast','Passwords do not match.','error');return;}
+  setLoading('f3Btn','f3Spinner','f3BtnText',true,'Set New Password');
+  const{error}=await db.auth.updateUser({password:pw});
+  setLoading('f3Btn','f3Spinner','f3BtnText',false,'Set New Password');
+  if(error){showToast('f3Toast',error.message,'error');return;}
+  showToast('f3Toast','Password updated! Signing you in…','success');
+  setTimeout(()=>window.location.href='dashboard.html',1800);
+}
 
 /* ── LOGIN ── */
 async function handleLogin(){
@@ -1093,31 +1486,26 @@ async function handleLogin(){
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){showToast('loginToast','Please enter a valid email address.','error');return;}
   if(password.length<8){showToast('loginToast','Password must be at least 8 characters.','error');return;}
   setLoading('loginBtn','loginSpinner','loginBtnText',true,'Sign In');
-  const {data,error}=await db.auth.signInWithPassword({email,password});
+  const{data,error}=await db.auth.signInWithPassword({email,password});
   setLoading('loginBtn','loginSpinner','loginBtnText',false,'Sign In');
   if(error){
-    const d=SEC.recordFail();
-    const left=SEC.MAX_ATTEMPTS-d.count;
-    showToast('loginToast',left>0
-      ?`Invalid email or password. ${left} attempt${left===1?'':'s'} remaining.`
-      :`Account temporarily locked. Try again in ${SEC.remainingText(d.until)}.`,'error');
+    const d=SEC.recordFail();const left=SEC.MAX_ATTEMPTS-d.count;
+    showToast('loginToast',left>0?`Invalid email or password. ${left} attempt${left===1?'':'s'} remaining.`:`Account temporarily locked. Try again in ${SEC.remainingText(d.until)}.`,'error');
     return;
   }
   SEC.resetAttempts();
   remember?localStorage.setItem('at_remember',email):localStorage.removeItem('at_remember');
-  // Update last_login_ip in background
-  const ipAddress = await getUserIP();
-  if(ipAddress && data?.user?.id){
-    db.from('users').update({last_login_ip: ipAddress, last_login_at: new Date().toISOString()})
-      .eq('id', data.user.id).catch(()=>{});
-    db.from('profiles').update({last_login_ip: ipAddress, last_login_at: new Date().toISOString()})
-      .eq('id', data.user.id).catch(()=>{});
+  const ipAddress=await getUserIP();
+  if(ipAddress&&data?.user?.id){
+    db.from('users').update({last_login_ip:ipAddress,last_login_at:new Date().toISOString()}).eq('id',data.user.id).catch(()=>{});
+    db.from('profiles').update({last_login_ip:ipAddress,last_login_at:new Date().toISOString()}).eq('id',data.user.id).catch(()=>{});
   }
   showToast('loginToast','Login successful! Redirecting…','success');
   setTimeout(()=>window.location.href='dashboard.html',1000);
 }
 
 /* ── REGISTER ── */
+let _newUserRefCode='';
 async function handleRegister(){
   const name    =document.getElementById('r-name').value.trim();
   const username=document.getElementById('r-username').value.trim().toLowerCase();
@@ -1144,10 +1532,9 @@ async function handleRegister(){
   }
 
   setLoading('regBtn','regSpinner','regBtnText',true,'Create My Account');
-  // Clear any previous toast before new attempt
   const _rt=document.getElementById('regToast');if(_rt)_rt.classList.remove('visible');
 
-  const [{data:uRow,error:uErr},{data:eRow,error:eErr}]=await Promise.all([
+  const[{data:uRow,error:uErr},{data:eRow,error:eErr}]=await Promise.all([
     db.from('profiles').select('username').eq('username',username).maybeSingle(),
     db.from('profiles').select('email').eq('email',email.toLowerCase()).maybeSingle()
   ]);
@@ -1155,7 +1542,7 @@ async function handleRegister(){
   if(uRow){setLoading('regBtn','regSpinner','regBtnText',false,'Create My Account');showToast('regToast','Username is already taken.','error');return;}
   if(eRow){setLoading('regBtn','regSpinner','regBtnText',false,'Create My Account');showToast('regToast','An account with this email already exists. Please sign in.','error');return;}
 
-  const {data,error}=await db.auth.signUp({
+  const{data,error}=await db.auth.signUp({
     email,password,
     options:{
       emailRedirectTo:window.location.origin+'/dashboard.html',
@@ -1165,16 +1552,149 @@ async function handleRegister(){
 
   if(error){setLoading('regBtn','regSpinner','regBtnText',false,'Create My Account');showToast('regToast',error.message,'error');return;}
 
+  let userRefCode='';
   if(data?.user){
-    await provisionNewUser(
-      {...data.user, user_metadata:{full_name:name, username, country}},
+    userRefCode=await provisionNewUser(
+      {...data.user,user_metadata:{full_name:name,username,country}},
       resolvedReferrerId
     );
   }
 
   setLoading('regBtn','regSpinner','regBtnText',false,'Create My Account');
-  showToast('regToast','Account created! Check your email to confirm and activate your account.','success');
-  setTimeout(()=>switchTab('login'),3200);
+
+  // Close auth modal, show success screen with referral code
+  closeAuth();
+  showSuccessScreen(name,userRefCode||await generateReferralCode());
+}
+
+/* ── SUCCESS SCREEN ── */
+function showSuccessScreen(name,refCode){
+  _newUserRefCode=refCode;
+  document.getElementById('refCodeText').textContent=refCode;
+  const ss=document.getElementById('successScreen');
+  ss.classList.add('visible');
+  requestAnimationFrame(()=>ss.classList.add('shown'));
+}
+
+function copyRefCode(){
+  navigator.clipboard.writeText(_newUserRefCode).then(()=>{
+    const icon=document.getElementById('copyIcon');
+    icon.className='bi bi-clipboard-check';
+    setTimeout(()=>icon.className='bi bi-clipboard',2000);
+  }).catch(()=>{
+    // fallback
+    const ta=document.createElement('textarea');ta.value=_newUserRefCode;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);
+    const icon=document.getElementById('copyIcon');icon.className='bi bi-clipboard-check';setTimeout(()=>icon.className='bi bi-clipboard',2000);
+  });
+}
+
+function shareReferral(){
+  const url=window.location.origin+'?ref='+_newUserRefCode;
+  const text='Join me on Amulytask and earn money completing simple tasks! Use my referral code '+_newUserRefCode+' at signup: '+url;
+  if(navigator.share){
+    navigator.share({title:'Join Amulytask',text,url}).catch(()=>{});
+  } else {
+    navigator.clipboard.writeText(url).then(()=>alert('Referral link copied to clipboard!'));
+  }
+}
+
+/* ══ AI FENA SUPPORT ══ */
+let fenaOpen=false;
+let fenaHistory=[];
+const FENA_SYSTEM=`You are Fena, a friendly and helpful AI support assistant for Amulytask — an online platform where users earn money by completing simple tasks. You are concise, warm, and helpful.
+
+Key facts about Amulytask:
+- Users earn money by completing micro-tasks like surveys, watching videos, clicking ads, rating content, and more
+- Minimum payout: $1 (varies by payment method)
+- Payment methods: M-Pesa, PayPal, Airtel Money, Bank Transfer
+- Tasks are available 24/7 globally in 80+ countries
+- Referral program: Earn bonuses when friends join using your referral code
+- Account is free to create
+- Payouts are processed within 24 hours
+- Support email: support@amulytask.co.ke
+
+Always respond in 2-3 sentences max unless a detailed answer is truly needed. Be encouraging and positive. If you don't know something specific, direct them to support@amulytask.co.ke.`;
+
+const FENA_GREET=[
+  'Hi! 👋 I\'m Fena, your Amulytask AI assistant. How can I help you today?',
+  'Hello! I\'m Fena — here to answer any questions about Amulytask. What would you like to know?',
+];
+
+function toggleFena(){
+  fenaOpen=!fenaOpen;
+  const panel=document.getElementById('fenaPanel');
+  if(fenaOpen){
+    panel.classList.add('open');
+    if(fenaHistory.length===0){
+      // Show greeting
+      const greet=FENA_GREET[Math.floor(Math.random()*FENA_GREET.length)];
+      fenaAddBubble('bot',greet);
+    }
+    setTimeout(()=>document.getElementById('fenaInput').focus(),300);
+  } else {
+    panel.classList.remove('open');
+  }
+}
+
+function fenaAddBubble(role,text){
+  const msgs=document.getElementById('fenaMessages');
+  const div=document.createElement('div');
+  div.className='fena-bubble '+role;
+  div.textContent=text;
+  msgs.appendChild(div);
+  msgs.scrollTop=msgs.scrollHeight;
+}
+
+function fenaShowTyping(){
+  const msgs=document.getElementById('fenaMessages');
+  const div=document.createElement('div');
+  div.className='fena-bubble bot typing';div.id='fenaTyping';
+  div.innerHTML='<span></span><span></span><span></span>';
+  msgs.appendChild(div);msgs.scrollTop=msgs.scrollHeight;
+  return div;
+}
+
+function fenaQuick(q){
+  document.getElementById('fenaInput').value=q;
+  fenaSend();
+  // Hide chips after first use
+  document.getElementById('fenaChips').style.display='none';
+}
+
+async function fenaSend(){
+  const inp=document.getElementById('fenaInput');
+  const text=inp.value.trim();
+  if(!text)return;
+  inp.value='';
+  document.getElementById('fenaChips').style.display='none';
+
+  fenaAddBubble('user',text);
+  fenaHistory.push({role:'user',content:text});
+
+  const typing=fenaShowTyping();
+
+  try{
+    const response=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:300,
+        system:FENA_SYSTEM,
+        messages:fenaHistory
+      })
+    });
+    const data=await response.json();
+    const reply=data.content?.map(c=>c.text||'').join('')||'Sorry, I couldn\'t get a response. Please try again or email support@amulytask.co.ke';
+    typing.remove();
+    fenaAddBubble('bot',reply);
+    fenaHistory.push({role:'assistant',content:reply});
+    // Keep history to last 12 messages to avoid token issues
+    if(fenaHistory.length>12) fenaHistory=fenaHistory.slice(-12);
+  }catch(err){
+    typing.remove();
+    fenaAddBubble('bot','I\'m having trouble connecting right now. Please try again or contact support@amulytask.co.ke 🙏');
+  }
 }
 </script>
 </body>
