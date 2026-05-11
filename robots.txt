@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+
+Disallow: /dashboard.html
+Disallow: /profile.html
+Disallow: /earnings.html
+Disallow: /notifications.html
+
+Sitemap: https://amulytask.co.ke/sitemap.xml
