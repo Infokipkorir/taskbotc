@@ -1398,12 +1398,29 @@ async function load(isRefresh = false) {
     }
 
     /* tasks */
-    const { data: tasks } = await db.from("user_tasks").select("*").eq("user_id", uid).order("created_at", { ascending: false });
-    const arr = tasks || [];
-    allTasksData = arr;
-    document.getElementById("statTotal").textContent = arr.length;
-    document.getElementById("statWeek").textContent  = arr.filter(t => t.created_at >= weekAgo()).length;
+    const { data: tasks, error } = await db
+  .from("user_tasks")
+  .select("*")
+  .eq("user_id", uid)
+  .order("created_at", { ascending: false });
 
+if (error) {
+  console.error("Failed to load tasks:", error.message);
+  // show user-facing error state here
+  return;
+}
+
+const arr = tasks ?? [];
+allTasksData = arr;
+
+const weekAgoISO = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+
+document.getElementById("statTotal").textContent = arr.length;
+document.getElementById("statWeek").textContent  = arr.filter(t => t.created_at >= weekAgoISO).length;
+
+// Dashboard shows latest 10 non-pending tasks only
+const visibleTasks = arr.filter(t => t.status !== "pending").slice(0, 10);
+renderTasks(visibleTasks);
     /* Render only non-pending tasks on dashboard front-end */
     renderTasks(arr.filter(t => t.status !== "pending").slice(0, 10));
 
