@@ -601,43 +601,44 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
     </div>
 
     <!-- Referral -->
-    <div class="sec-head">
-      <h3><i class="bi bi-people" style="color:var(--brand)"></i> Referral Programme</h3>
-      <a href="referrals.html">Details <i class="bi bi-arrow-right-short"></i></a>
-    </div>
-    <div class="ref-card">
-      <div style="flex:1;min-width:0;">
-        <div class="ref-title">Friends Referred</div>
-        <div class="ref-count" id="refCount">0</div>
-        <div class="ref-sub">people joined via your link</div>
+    <!-- Referral -->
+<div class="sec-head">
+  <h3><i class="bi bi-people" style="color:var(--brand)"></i> Referral Programme</h3>
+  <a href="referrals.html">Details <i class="bi bi-arrow-right-short"></i></a>
+</div>
+<div class="ref-card">
+  <div style="flex:1;min-width:0;">
+    <div class="ref-title">Friends Referred</div>
+    <div class="ref-count" id="refCount">0</div>
+    <div class="ref-sub">people joined via your link</div>
 
-        <!-- Referral link display -->
-        <div style="margin-top:14px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);border-radius:12px;padding:10px 14px;">
-          <div style="font-size:9.5px;opacity:.55;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Your Referral Link</div>
-          <div style="font-size:11.5px;font-weight:600;color:#fff;word-break:break-all;opacity:.85;" id="refLink">Loading…</div>
-        </div>
-
-        <!-- Action buttons -->
-        <div style="display:flex;gap:8px;margin-top:10px;">
-          <button onclick="copyCode()" style="flex:1;padding:9px 10px;background:var(--brand);color:#fff;border:none;border-radius:11px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:5px;transition:opacity .15s;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
-            <i class="bi bi-copy"></i> Copy Link
-          </button>
-          <button onclick="shareReferral()" style="padding:9px 12px;background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:11px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:5px;transition:background .15s;" onmouseover="this.style.background='rgba(255,255,255,.2)'" onmouseout="this.style.background='rgba(255,255,255,.12)'">
-            <i class="bi bi-share-fill"></i> Share
-          </button>
-        </div>
-      </div>
-
-      <!-- Code box (tap to copy code only) -->
-      <div class="ref-code-box" onclick="copyRawCode()" title="Tap to copy code">
-        <div class="ref-code-label">Referral Code</div>
-        <div class="ref-code-val" id="refCode">———</div>
-        <div class="ref-copy"><i class="bi bi-copy"></i> tap to copy</div>
-      </div>
+    <!-- Referral link display -->
+    <div style="margin-top:14px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);border-radius:12px;padding:10px 14px;">
+      <div style="font-size:9.5px;opacity:.55;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Your Referral Link</div>
+      <div style="font-size:11.5px;font-weight:600;color:#fff;word-break:break-all;opacity:.85;" id="refLink">Loading…</div>
     </div>
 
+    <!-- Action buttons -->
+    <div style="display:flex;gap:8px;margin-top:10px;">
+      <button onclick="copyCode()" style="flex:1;padding:9px 10px;background:var(--brand);color:#fff;border:none;border-radius:11px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:5px;transition:opacity .15s;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+        <i class="bi bi-copy"></i> Copy Link
+      </button>
+      <button onclick="shareReferral()" id="shareBtn" style="padding:9px 12px;background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:11px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:5px;transition:background .15s;" onmouseover="this.style.background='rgba(255,255,255,.2)'" onmouseout="this.style.background='rgba(255,255,255,.12)'">
+        <i class="bi bi-share-fill"></i> Share
+      </button>
+    </div>
+  </div>
+
+  <!-- Code box -->
+  <div class="ref-code-box" onclick="copyRawCode()" title="Tap to copy code">
+    <div class="ref-code-label">Referral Code</div>
+    <div class="ref-code-val" id="refCode">———</div>
+    <div class="ref-copy"><i class="bi bi-copy"></i> tap to copy</div>
   </div>
 </div>
+
+<!-- Hidden canvas used to generate the share image -->
+<canvas id="refShareCanvas" style="display:none;"></canvas>
 
 <!-- TASK DETAIL MODAL -->
 <div class="td-backdrop" id="tdBackdrop" onclick="closeTdModal(event)">
@@ -1445,22 +1446,144 @@ async function load(isRefresh = false) {
       document.getElementById("refCount").textContent = p.referral_count || 0;
 
       /* ── Referral code: use existing or auto-generate ── */
-      let refCode = p.referral_code;
-      if (!refCode) {
-        /* generate a short unique code from uid + timestamp */
-        refCode = (uid.replace(/-/g, "").slice(0, 6) + Math.random().toString(36).slice(2, 5)).toUpperCase();
-        await db.from("users").update({ referral_code: refCode }).eq("id", uid);
-      }
-      document.getElementById("refCode").textContent = refCode;
-      const refLink = `https://taskbotc.vercel.app/${refCode}`;
-      const refLinkEl = document.getElementById("refLink");
-      if (refLinkEl) refLinkEl.textContent = refLink;
+      function buildShareImage(code, link, referralCount) {
+  const canvas = document.getElementById("refShareCanvas");
+  const W = 1080, H = 566;
+  canvas.width  = W;
+  canvas.height = H;
+  const ctx = canvas.getContext("2d");
 
-    } else {
-      const name = session.user.email.split("@")[0];
-      document.getElementById("sbName").textContent = name;
-      document.getElementById("sbAva").textContent  = ini(name);
+  /* background gradient */
+  const grad = ctx.createLinearGradient(0, 0, W, H);
+  grad.addColorStop(0, "#1a1208");
+  grad.addColorStop(1, "#2d1f0a");
+  ctx.fillStyle = grad;
+  ctx.roundRect(0, 0, W, H, 28);
+  ctx.fill();
+
+  /* decorative circle */
+  ctx.beginPath();
+  ctx.arc(W - 80, 80, 200, 0, Math.PI * 2);
+  ctx.fillStyle = "rgba(255,107,53,0.10)";
+  ctx.fill();
+
+  /* brand pill */
+  ctx.fillStyle = "#ff6b35";
+  ctx.roundRect(60, 60, 160, 38, 19);
+  ctx.fill();
+  ctx.fillStyle = "#fff";
+  ctx.font = "700 17px 'Plus Jakarta Sans', sans-serif";
+  ctx.fillText("Amulytask", 82, 84);
+
+  /* headline */
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "800 54px 'Plus Jakarta Sans', sans-serif";
+  ctx.fillText("Earn with me", 60, 200);
+
+  /* sub-headline */
+  ctx.fillStyle = "rgba(255,255,255,0.65)";
+  ctx.font = "400 26px 'Plus Jakarta Sans', sans-serif";
+  ctx.fillText("Complete tasks, get paid. Use my code to", 60, 248);
+  ctx.fillText("get started and we both earn a bonus.", 60, 282);
+
+  /* referral link box */
+  ctx.fillStyle = "rgba(255,255,255,0.10)";
+  ctx.roundRect(60, 330, W - 120, 72, 16);
+  ctx.fill();
+  ctx.strokeStyle = "rgba(255,255,255,0.18)";
+  ctx.lineWidth = 1;
+  ctx.roundRect(60, 330, W - 120, 72, 16);
+  ctx.stroke();
+
+  ctx.fillStyle = "rgba(255,255,255,0.5)";
+  ctx.font = "500 15px 'Plus Jakarta Sans', sans-serif";
+  ctx.fillText("REFERRAL LINK", 88, 357);
+
+  ctx.fillStyle = "#ff6b35";
+  ctx.font = "700 24px 'Plus Jakarta Sans', sans-serif";
+  ctx.fillText(link, 88, 386);
+
+  /* referral count badge */
+  if (referralCount > 0) {
+    ctx.fillStyle = "rgba(255,107,53,0.18)";
+    ctx.roundRect(60, 432, 260, 56, 14);
+    ctx.fill();
+    ctx.fillStyle = "#ff6b35";
+    ctx.font = "700 28px 'Plus Jakarta Sans', sans-serif";
+    ctx.fillText(`${referralCount} friends joined`, 84, 468);
+  }
+
+  /* code badge bottom-right */
+  ctx.fillStyle = "#ff6b35";
+  ctx.roundRect(W - 280, 430, 220, 56, 14);
+  ctx.fill();
+  ctx.fillStyle = "#fff";
+  ctx.font = "700 15px 'Plus Jakarta Sans', sans-serif";
+  ctx.fillText("CODE", W - 258, 455);
+  ctx.font = "800 26px 'Plus Jakarta Sans', sans-serif";
+  ctx.fillText(code, W - 258, 480);
+
+  return canvas;
+}
+
+async function shareReferral() {
+  const code  = document.getElementById("refCode").textContent;
+  const link  = document.getElementById("refLink").textContent;
+  const count = parseInt(document.getElementById("refCount").textContent) || 0;
+
+  if (!code || code === "———") { showToast("⚠️ Referral code not loaded yet."); return; }
+
+  const btn = document.getElementById("shareBtn");
+  const origHTML = btn.innerHTML;
+  btn.innerHTML = `<i class="bi bi-arrow-repeat spin"></i> Generating…`;
+  btn.disabled  = true;
+
+  try {
+    const canvas = buildShareImage(code, link, count);
+
+    /* try share with image file (mobile + modern browsers) */
+    if (navigator.share && navigator.canShare) {
+      const blob = await new Promise(res => canvas.toBlob(res, "image/png"));
+      const file = new File([blob], "amulytask-referral.png", { type: "image/png" });
+
+      if (navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          files:  [file],
+          title:  "Join Amulytask",
+          text:   `Use my referral link and start earning! 💸\n${link}`,
+        });
+        return;
+      }
     }
+
+    /* fallback 1 — share without image (text + url) */
+    if (navigator.share) {
+      await navigator.share({
+        title: "Join Amulytask",
+        text:  `Use my referral link and start earning! 💸`,
+        url:   link,
+      });
+      return;
+    }
+
+    /* fallback 2 — desktop: download the image + copy link */
+    const a = document.createElement("a");
+    a.href     = canvas.toDataURL("image/png");
+    a.download = "amulytask-referral.png";
+    a.click();
+    await navigator.clipboard.writeText(link);
+    showToast("🖼️ Image downloaded & link copied!");
+
+  } catch (err) {
+    if (err.name !== "AbortError") {
+      await navigator.clipboard.writeText(link).catch(() => {});
+      showToast(" Link copied!");
+    }
+  } finally {
+    btn.innerHTML = origHTML;
+    btn.disabled  = false;
+  }
+  }
 
     /* tasks */
     const { data: tasks, error } = await db
