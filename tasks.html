@@ -3,67 +3,74 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>OneTasks — Browse Tasks</title>
+<title>Amulytask — Browse Tasks</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
 <link rel="manifest" href="manifest.json">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-/* ═══════════════════════ TOKENS ═══════════════════════ */
+/* ═══════════ TOKENS ═══════════ */
 :root{
-  --blue:#1d4ed8;--blue-mid:#2563eb;--blue-pale:#eff6ff;--blue-dim:#1e3a8a;
-  --sidebar-bg:#1d4ed8;--bg:#f0f4ff;--white:#ffffff;--border:#e0e7ff;
-  --text:#0f172a;--muted:#64748b;--green:#16a34a;--amber:#f59e0b;
-  --red:#ef4444;--violet:#8b5cf6;--radius:14px;
-  --shadow:0 2px 16px rgba(29,78,216,.09);--nav-h:62px;--top-h:58px;
-  /* TimeBucks palette */
-  --tb-green:#28a745;--tb-green-dark:#1e7e34;--tb-header:#5a5a3c;
-  --tb-row-odd:#ffffff;--tb-row-even:#f9f9f9;--tb-border:#dee2e6;
+  --brand:#ff6b35; --brand-dark:#e5541f; --brand-pale:#fff3ee; --brand-dim:#ffd4c2;
+  --dark:#1a1208; --dark2:#2d1f0a;
+  --bg:#f8f6f3; --white:#ffffff; --border:#e8e3dc;
+  --text:#1a1208; --muted:#7a6e63;
+  --green:#16a34a; --green-bg:#dcfce7; --green-dark:#15803d;
+  --amber:#d97706; --amber-bg:#fef3c7;
+  --red:#dc2626; --red-bg:#fee2e2;
+  --violet:#7c3aed; --violet-bg:#ede9fe;
+  --radius:14px; --shadow:0 2px 16px rgba(26,18,8,.08);
+  --nav-h:62px; --top-h:58px;
 }
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
 
-/* ══ OVERLAY ══ */
-.overlay{display:none;position:fixed;inset:0;background:rgba(15,23,42,.5);backdrop-filter:blur(3px);z-index:200;}
+/* ── OVERLAY ── */
+.overlay{display:none;position:fixed;inset:0;background:rgba(26,18,8,.45);backdrop-filter:blur(3px);z-index:200;}
 .overlay.show{display:block;}
 
-/* ══ SIDEBAR ══ */
-.sidebar{position:fixed;top:0;left:0;width:252px;height:100vh;background:linear-gradient(180deg,#1d4ed8 0%,#1e3a8a 100%);display:flex;flex-direction:column;z-index:300;transform:translateX(-252px);transition:transform .28s cubic-bezier(.4,0,.2,1);}
+/* ── SIDEBAR ── */
+.sidebar{position:fixed;top:0;left:0;width:260px;height:100vh;background:#1a1208;display:flex;flex-direction:column;z-index:300;transform:translateX(-260px);transition:transform .28s cubic-bezier(.4,0,.2,1);}
+.sidebar::after{content:'';position:absolute;top:-60px;right:-60px;width:160px;height:160px;background:var(--brand);opacity:.08;border-radius:50%;pointer-events:none;}
 .sidebar.open{transform:translateX(0);}
-.sb-head{display:flex;align-items:center;justify-content:space-between;padding:20px 18px 16px;border-bottom:1px solid rgba(255,255,255,.12);}
+.sb-head{display:flex;align-items:center;justify-content:space-between;padding:22px 18px 16px;border-bottom:1px solid rgba(255,255,255,.08);}
 .sb-brand{display:flex;align-items:center;gap:10px;}
-.sb-brand .dot{width:32px;height:32px;background:rgba(255,255,255,.2);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;color:#fff;}
-.sb-brand span{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;color:#fff;}
-.sb-close-btn{width:30px;height:30px;background:rgba(255,255,255,.12);border:none;border-radius:8px;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;}
-.sb-user{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid rgba(255,255,255,.10);}
-.sb-ava{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.22);color:#fff;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.sb-uname{font-size:13px;font-weight:600;color:#fff;}
-.sb-urole{font-size:10.5px;color:rgba(255,255,255,.55);}
-.sb-nav{flex:1;overflow-y:auto;padding:12px 10px;display:flex;flex-direction:column;gap:2px;}
-.nav-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:rgba(255,255,255,.38);padding:8px 8px 3px;}
-.nav-item{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:10px;color:rgba(255,255,255,.75);font-size:13.5px;font-weight:500;cursor:pointer;text-decoration:none;transition:background .15s;}
-.nav-item i{font-size:16px;width:20px;text-align:center;}
-.nav-item:hover,.nav-item.active{background:rgba(255,255,255,.18);color:#fff;}
-.sb-foot{padding:12px 18px;border-top:1px solid rgba(255,255,255,.10);font-size:10.5px;color:rgba(255,255,255,.3);text-align:center;}
+.sb-brand .logo-mark{width:34px;height:34px;background:var(--brand);border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:18px;font-weight:800;color:#fff;}
+.sb-brand span{font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:#fff;}
+.sb-close-btn{width:30px;height:30px;background:rgba(255,255,255,.08);border:none;border-radius:8px;color:rgba(255,255,255,.7);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;}
+.sb-user{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid rgba(255,255,255,.06);}
+.sb-ava{width:38px;height:38px;border-radius:50%;background:var(--brand);color:#fff;font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'Playfair Display',serif;}
+.sb-uname{font-size:13px;font-weight:700;color:#fff;}
+.sb-urole{font-size:10.5px;color:rgba(255,255,255,.4);margin-top:1px;}
+.sb-nav{flex:1;overflow-y:auto;padding:14px 10px;display:flex;flex-direction:column;gap:2px;}
+.nav-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.9px;color:rgba(255,255,255,.28);padding:10px 8px 3px;}
+.nav-item{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:11px;color:rgba(255,255,255,.6);font-size:13px;font-weight:500;cursor:pointer;text-decoration:none;transition:background .15s,color .15s;}
+.nav-item i{font-size:15px;width:20px;text-align:center;}
+.nav-item:hover{background:rgba(255,255,255,.08);color:#fff;}
+.nav-item.active{background:var(--brand);color:#fff;font-weight:700;}
+.sb-foot{padding:14px 18px;border-top:1px solid rgba(255,255,255,.06);font-size:10px;color:rgba(255,255,255,.22);text-align:center;}
 
-/* ══ TOPBAR ══ */
-.topbar{position:sticky;top:0;z-index:100;background:var(--white);border-bottom:1px solid var(--border);height:var(--top-h);padding:0 14px;display:flex;align-items:center;justify-content:space-between;gap:8px;box-shadow:0 1px 8px rgba(29,78,216,.06);}
+/* ── TOPBAR ── */
+.topbar{position:sticky;top:0;z-index:100;background:var(--white);border-bottom:1px solid var(--border);height:var(--top-h);padding:0 14px;display:flex;align-items:center;justify-content:space-between;gap:8px;box-shadow:0 1px 8px rgba(26,18,8,.05);}
 .tb-left{display:flex;align-items:center;gap:9px;flex-shrink:0;}
-.hamburger{width:34px;height:34px;background:var(--blue-pale);border:1px solid var(--border);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--blue);cursor:pointer;}
-.tb-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:var(--text);}
+.hamburger{width:36px;height:36px;background:var(--brand-pale);border:1px solid var(--brand-dim);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--brand);cursor:pointer;transition:background .15s;}
+.hamburger:hover{background:var(--brand-dim);}
+.tb-title{font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--text);}
 .tb-right{display:flex;align-items:center;gap:5px;}
-.bal-pill{display:flex;align-items:center;gap:4px;padding:5px 9px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap;}
-.bal-pill.pending{background:#fff7ed;color:#c2410c;border:1px solid #fed7aa;}
-.bal-pill.bonus{background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;}
-.bal-pill.main-b{background:var(--blue);color:#fff;}
+
+/* Balance pills */
+.bal-pill{display:flex;align-items:center;gap:4px;padding:5px 10px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap;}
+.bal-pill.pending{background:var(--amber-bg);color:var(--amber);border:1px solid #fde68a;}
+.bal-pill.bonus{background:var(--green-bg);color:var(--green);border:1px solid #86efac;}
+.bal-pill.main-b{background:var(--brand);color:#fff;}
 .bal-pill .lbl{display:none;}
 @media(min-width:520px){.bal-pill .lbl{display:inline;}}
-.bell-btn{position:relative;width:34px;height:34px;background:var(--blue-pale);border:1px solid var(--border);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;color:var(--blue);cursor:pointer;}
+.bell-btn{position:relative;width:36px;height:36px;background:var(--bg);border:1px solid var(--border);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--muted);cursor:pointer;}
 .notif-badge{position:absolute;top:-5px;right:-5px;background:var(--red);color:#fff;font-size:9px;font-weight:700;min-width:16px;height:16px;border-radius:8px;display:flex;align-items:center;justify-content:center;padding:0 3px;border:2px solid #fff;}
 .notif-badge.gone{display:none;}
-.profile-link{width:34px;height:34px;background:var(--blue);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;text-decoration:none;}
+.profile-link{width:36px;height:36px;background:var(--brand);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:17px;text-decoration:none;flex-shrink:0;}
 
-/* ══ CATEGORY STRIP ══ */
+/* ── CATEGORY STRIP ── */
 .cat-strip-wrap{background:var(--white);border-bottom:1px solid var(--border);padding:0 14px;position:sticky;top:var(--top-h);z-index:90;}
 .cat-strip{display:flex;gap:8px;overflow-x:auto;padding:10px 0;scrollbar-width:none;}
 .cat-strip::-webkit-scrollbar{display:none;}
@@ -71,87 +78,73 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .cat-btn .cat-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;}
 .cat-btn .cat-name{font-size:11px;font-weight:600;color:var(--muted);}
 .cat-btn .cat-earn{font-size:10px;font-weight:700;color:var(--green);}
-.cat-btn:hover,.cat-btn.active{border-color:var(--blue);background:var(--blue-pale);}
-.cat-btn:hover .cat-name,.cat-btn.active .cat-name{color:var(--blue);}
-.ci-streak{background:#fff7ed;color:#f59e0b;}
-.ci-signup{background:#ecfdf5;color:#10b981;}
-.ci-apps{background:var(--blue-pale);color:var(--blue);}
-.ci-survey{background:#f5f3ff;color:#8b5cf6;}
-.ci-clicks{background:#fff1f2;color:#ef4444;}
-.ci-all{background:#f8fafc;color:#334155;}
+.cat-btn:hover,.cat-btn.active{border-color:var(--brand);background:var(--brand-pale);}
+.cat-btn:hover .cat-name,.cat-btn.active .cat-name{color:var(--brand);}
+.ci-streak{background:var(--amber-bg);color:var(--amber);}
+.ci-signup{background:var(--green-bg);color:var(--green);}
+.ci-apps{background:var(--brand-pale);color:var(--brand);}
+.ci-survey{background:var(--violet-bg);color:var(--violet);}
+.ci-clicks{background:var(--red-bg);color:var(--red);}
+.ci-all{background:#f1ede8;color:#5a4a35;}
 
-/* ══ CONTENT ══ */
+/* ── CONTENT ── */
 .content{padding:16px 14px calc(var(--nav-h) + 20px);max-width:700px;margin:0 auto;}
-.search-bar{display:flex;align-items:center;gap:10px;background:var(--white);border:1.5px solid var(--border);border-radius:12px;padding:10px 14px;margin-bottom:16px;box-shadow:var(--shadow);}
+.search-bar{display:flex;align-items:center;gap:10px;background:var(--white);border:1.5px solid var(--border);border-radius:13px;padding:10px 14px;margin-bottom:16px;box-shadow:var(--shadow);}
 .search-bar i{color:var(--muted);font-size:16px;}
-.search-bar input{flex:1;border:none;outline:none;font-size:13.5px;font-family:'DM Sans',sans-serif;background:transparent;color:var(--text);}
+.search-bar input{flex:1;border:none;outline:none;font-size:13.5px;font-family:'Plus Jakarta Sans',sans-serif;background:transparent;color:var(--text);}
 .search-bar input::placeholder{color:var(--muted);}
-.result-count{font-size:12px;color:var(--muted);margin-bottom:12px;padding-left:2px;}
+.result-count{font-size:12px;color:var(--muted);margin-bottom:12px;padding-left:2px;font-weight:500;}
 
-/* ══ TIMEBUCKS-STYLE TASK TABLE ══ */
-.tasks-table-wrap{background:var(--white);border-radius:16px;overflow:hidden;box-shadow:var(--shadow);border:1px solid var(--tb-border);}
-.tasks-thead{display:grid;grid-template-columns:1fr auto;background:var(--tb-header);padding:10px 16px;gap:8px;}
-.tasks-thead-cell{font-size:11.5px;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:.5px;}
+/* ── TASK TABLE ── */
+.tasks-table-wrap{background:var(--white);border-radius:18px;overflow:hidden;box-shadow:var(--shadow);border:1px solid var(--border);}
+.tasks-thead{display:grid;grid-template-columns:1fr auto;background:var(--dark);padding:11px 18px;gap:8px;}
+.tasks-thead-cell{font-size:11px;font-weight:700;color:rgba(255,255,255,.7);text-transform:uppercase;letter-spacing:.6px;}
 .tasks-thead-cell.rate{text-align:right;}
 
-.task-row{
-  display:grid;grid-template-columns:1fr auto;
-  border-bottom:1px solid var(--tb-border);
-  padding:14px 16px;gap:12px;align-items:start;
-  background:var(--tb-row-odd);
-  transition:background .15s;
-  animation:fadeUp .3s ease both;
-}
-.task-row:nth-child(even){background:var(--tb-row-even);}
+.task-row{display:grid;grid-template-columns:1fr auto;border-bottom:1px solid var(--border);padding:16px 18px;gap:14px;align-items:start;background:#fff;transition:background .15s;animation:fadeUp .3s ease both;}
+.task-row:nth-child(even){background:#fdfcfb;}
 .task-row:last-child{border-bottom:none;}
-.task-row:hover{background:#f0f4ff;}
-.task-row.done-row{opacity:.65;}
+.task-row:hover{background:var(--brand-pale);}
+.task-row.done-row{opacity:.6;}
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 
 /* left column */
-.tr-left{}
-.tr-title{font-size:14px;font-weight:700;color:var(--blue);margin-bottom:3px;line-height:1.3;}
+.tr-title{font-size:14px;font-weight:800;color:var(--dark);margin-bottom:4px;line-height:1.3;}
 .tr-title.done{color:var(--muted);}
-.tr-desc{font-size:12px;color:var(--muted);margin-bottom:8px;line-height:1.4;}
-.tr-meta{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}
-.tr-chip{display:inline-flex;align-items:center;gap:3px;font-size:11px;color:var(--muted);background:var(--bg);padding:3px 8px;border-radius:20px;font-weight:500;}
+.tr-desc{font-size:12px;color:var(--muted);margin-bottom:9px;line-height:1.45;}
+.tr-meta{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:11px;}
+.tr-chip{display:inline-flex;align-items:center;gap:3px;font-size:11px;color:var(--muted);background:var(--bg);padding:3px 9px;border-radius:20px;font-weight:600;}
 .tr-chip i{font-size:11px;}
-.tr-chip.green{background:#ecfdf5;color:#15803d;}
-.tr-chip.orange{background:#fff7ed;color:#c2410c;}
+.tr-chip.green{background:var(--green-bg);color:var(--green-dark);}
+.tr-chip.orange{background:var(--amber-bg);color:var(--amber);}
 .tr-manual{font-size:11px;font-weight:700;color:var(--amber);}
 .tr-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
 
-/* right column — rate */
+/* right column — REWARD with improved font */
 .tr-right{display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex-shrink:0;}
-.tr-rate{font-size:20px;font-weight:800;color:var(--tb-green);font-family:'Syne',sans-serif;line-height:1;}
-.tr-rate-lbl{font-size:10px;color:var(--muted);text-align:right;}
+.tr-rate-wrap{text-align:right;}
+.tr-rate{
+  font-family:'Playfair Display',serif;
+  font-size:26px;
+  font-weight:800;
+  color:var(--green);
+  line-height:1;
+  letter-spacing:-.5px;
+}
+.tr-rate-lbl{font-size:10px;color:var(--muted);text-align:right;margin-top:2px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;}
 
 /* task image thumbnail */
-.tr-thumb{
-  width:64px;height:64px;border-radius:10px;object-fit:cover;
-  border:1px solid var(--tb-border);flex-shrink:0;background:var(--bg);
-  display:flex;align-items:center;justify-content:center;overflow:hidden;
-}
-.tr-thumb img{width:100%;height:100%;object-fit:cover;border-radius:10px;}
-.tr-thumb-placeholder{width:48px;height:48px;border-radius:10px;background:var(--blue-pale);display:flex;align-items:center;justify-content:center;}
+.tr-thumb{width:62px;height:62px;border-radius:12px;border:1px solid var(--border);flex-shrink:0;background:var(--bg);display:flex;align-items:center;justify-content:center;overflow:hidden;}
+.tr-thumb img{width:100%;height:100%;object-fit:cover;border-radius:12px;}
 
 /* buttons */
-.btn-view{
-  background:var(--tb-green);color:#fff;border:none;border-radius:8px;
-  padding:7px 18px;font-size:12.5px;font-weight:700;cursor:pointer;
-  font-family:'DM Sans',sans-serif;transition:background .15s;
-}
-.btn-view:hover{background:var(--tb-green-dark);}
-.btn-instructions{
-  background:transparent;color:var(--blue);border:1.5px solid var(--blue);
-  border-radius:8px;padding:6px 14px;font-size:12px;font-weight:600;
-  cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;
-  text-decoration:none;display:inline-flex;align-items:center;gap:4px;
-}
-.btn-instructions:hover{background:var(--blue-pale);}
-.done-badge{display:inline-flex;align-items:center;gap:4px;background:#ecfdf5;color:#15803d;font-size:11px;font-weight:700;padding:5px 12px;border-radius:20px;border:1px solid #bbf7d0;}
+.btn-view{background:var(--brand);color:#fff;border:none;border-radius:9px;padding:8px 18px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:background .15s,transform .12s;}
+.btn-view:hover{background:var(--brand-dark);transform:translateY(-1px);}
+.btn-instructions{background:transparent;color:var(--dark);border:1.5px solid var(--border);border-radius:9px;padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all .15s;text-decoration:none;display:inline-flex;align-items:center;gap:4px;}
+.btn-instructions:hover{background:var(--brand-pale);border-color:var(--brand);color:var(--brand);}
+.done-badge{display:inline-flex;align-items:center;gap:4px;background:var(--green-bg);color:var(--green-dark);font-size:11px;font-weight:700;padding:5px 12px;border-radius:20px;border:1px solid #86efac;}
 
-/* ══ EMPTY / LOADER ══ */
+/* ── EMPTY / LOADER ── */
 .empty{text-align:center;padding:50px 20px;color:var(--muted);}
 .empty i{font-size:44px;opacity:.28;}
 .empty p{font-size:13px;margin-top:10px;}
@@ -159,197 +152,178 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .spin{animation:spin .7s linear infinite;display:inline-block;}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-/* ══ MODAL (TimeBucks style instruction view) ══ */
-.modal-backdrop{display:none;position:fixed;inset:0;background:rgba(15,23,42,.55);backdrop-filter:blur(5px);z-index:500;align-items:flex-end;justify-content:center;}
+/* ══════════════════════════════════════════════
+   TASK MODAL — Full Amulytask Redesign
+   ══════════════════════════════════════════════ */
+.modal-backdrop{display:none;position:fixed;inset:0;background:rgba(26,18,8,.58);backdrop-filter:blur(5px);z-index:500;align-items:flex-end;justify-content:center;}
 .modal-backdrop.open{display:flex;}
 @media(min-width:600px){.modal-backdrop{align-items:center;}}
 
-.modal-sheet{
-  background:var(--white);width:100%;max-width:520px;
-  border-radius:24px 24px 0 0;max-height:94vh;
-  overflow-y:auto;display:flex;flex-direction:column;
-  animation:sheetUp .3s cubic-bezier(.4,0,.2,1);
-  padding-bottom:env(safe-area-inset-bottom,12px);
-}
-@media(min-width:600px){.modal-sheet{border-radius:20px;max-height:90vh;}}
+.modal-sheet{background:var(--white);width:100%;max-width:540px;border-radius:26px 26px 0 0;max-height:94vh;overflow-y:auto;display:flex;flex-direction:column;animation:sheetUp .32s cubic-bezier(.4,0,.2,1);padding-bottom:env(safe-area-inset-bottom,12px);}
+@media(min-width:600px){.modal-sheet{border-radius:22px;max-height:90vh;}}
 @keyframes sheetUp{from{transform:translateY(40px);opacity:0}to{transform:translateY(0);opacity:1}}
 
-.sheet-handle{width:38px;height:4px;background:#e2e8f0;border-radius:2px;margin:12px auto 0;flex-shrink:0;}
+.sheet-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:13px auto 0;flex-shrink:0;}
 @media(min-width:600px){.sheet-handle{display:none;}}
 
-/* sticky header */
-.sheet-header{
-  position:sticky;top:0;z-index:5;background:var(--white);
-  padding:14px 18px 12px;border-bottom:2px solid var(--border);
-  display:flex;align-items:center;justify-content:space-between;gap:10px;
-}
-.sheet-header-left{display:flex;align-items:center;gap:10px;flex:1;min-width:0;}
-.sheet-ico{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
-.sheet-title{font-size:15px;font-weight:800;line-height:1.3;}
-.sheet-reward-large{font-size:22px;font-weight:800;color:var(--tb-green);font-family:'Syne',sans-serif;}
-.sheet-close{width:30px;height:30px;background:var(--bg);border:none;border-radius:8px;font-size:14px;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;}
+/* ── Modal Header ── */
+.sheet-header{position:sticky;top:0;z-index:5;background:var(--white);padding:15px 20px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.sheet-header-left{display:flex;align-items:center;gap:12px;flex:1;min-width:0;}
+.sheet-ico{width:46px;height:46px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:21px;flex-shrink:0;}
+.sheet-title{font-size:15px;font-weight:800;line-height:1.3;color:var(--text);}
 
-/* scrollable body */
+/* ── REWARD in modal header — LARGE & BOLD ── */
+.sheet-reward-wrap{text-align:right;flex-shrink:0;}
+.sheet-reward-large{
+  font-family:'Playfair Display',serif;
+  font-size:28px;
+  font-weight:800;
+  color:var(--green);
+  line-height:1;
+  letter-spacing:-.5px;
+  white-space:nowrap;
+}
+.sheet-reward-lbl{font-size:9.5px;color:var(--muted);text-align:right;margin-top:2px;text-transform:uppercase;letter-spacing:.5px;font-weight:600;}
+
+.sheet-close{width:32px;height:32px;background:var(--bg);border:none;border-radius:9px;font-size:14px;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.sheet-close:hover{background:var(--border);color:var(--text);}
+
+/* ── Timer bar ── */
+.tb-timer-bar{display:flex;align-items:center;justify-content:space-between;padding:10px 20px;background:#f8f5f1;border-bottom:1px solid var(--border);font-size:12.5px;font-weight:600;}
+.tb-timer-item{display:flex;flex-direction:column;align-items:center;gap:2px;}
+.tb-timer-item .t-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:600;}
+.tb-timer-item .t-val{font-size:13px;font-weight:800;color:var(--text);}
+
+/* ── Scrollable body ── */
 .sheet-scroll{padding:0;display:flex;flex-direction:column;}
 
-/* ── TB-style timer bar ── */
-.tb-timer-bar{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:10px 18px;background:#f8f9fa;border-bottom:1px solid var(--tb-border);
-  font-size:12.5px;font-weight:600;
-}
-.tb-timer-item{display:flex;flex-direction:column;align-items:center;gap:2px;}
-.tb-timer-item .t-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
-.tb-timer-item .t-val{font-size:13px;font-weight:700;color:var(--text);}
+/* ── PREVIEW BANNER (shown before Start) ── */
+.preview-banner{margin:16px 20px 0;background:linear-gradient(135deg,#fff3ee,#ffe8db);border:1.5px solid var(--brand-dim);border-radius:14px;padding:14px 16px;display:flex;align-items:flex-start;gap:11px;}
+.preview-banner i{font-size:20px;color:var(--brand);flex-shrink:0;margin-top:1px;}
+.preview-banner-text .pb-title{font-size:13px;font-weight:800;color:var(--brand-dark);}
+.preview-banner-text .pb-sub{font-size:12px;color:#7c3a15;margin-top:3px;line-height:1.5;}
 
-/* disclaimer */
-.tb-disclaimer{
-  margin:14px 18px;border:1px solid var(--tb-border);border-radius:10px;
-  padding:12px 14px;font-size:12px;color:var(--muted);line-height:1.6;
-  font-style:italic;
+/* ── START TASK BUTTON ── */
+.start-task-wrap{padding:16px 20px 4px;}
+.btn-start-task{
+  width:100%;padding:15px;border:none;border-radius:14px;
+  background:linear-gradient(135deg,var(--dark),var(--brand));
+  color:#fff;font-size:15px;font-weight:800;
+  font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:9px;
+  transition:opacity .15s,transform .12s;
+  box-shadow:0 5px 20px rgba(255,107,53,.3);
 }
-.tb-disclaimer strong{font-style:normal;color:var(--text);}
+.btn-start-task:hover{opacity:.93;transform:translateY(-2px);}
+.btn-start-task.started{background:linear-gradient(135deg,var(--green-dark),var(--green));box-shadow:0 5px 20px rgba(22,163,74,.25);cursor:default;transform:none;}
+.btn-start-task i{font-size:17px;}
 
-/* advertiser instructions */
-.tb-section{padding:0 18px 14px;}
-.tb-section-title{font-size:13px;font-weight:800;color:var(--text);margin-bottom:10px;padding-top:14px;border-top:1px solid var(--tb-border);}
+/* ── Disclaimer ── */
+.tb-disclaimer{margin:14px 20px 0;border:1px solid var(--border);border-radius:12px;padding:12px 15px;font-size:12px;color:var(--muted);line-height:1.6;font-style:italic;}
+.tb-disclaimer strong{font-style:normal;color:var(--text);font-weight:700;}
+
+/* ── Sections ── */
+.tb-section{padding:0 20px 16px;}
+.tb-section-title{font-size:12px;font-weight:800;color:var(--muted);margin-bottom:10px;padding-top:16px;border-top:1px solid var(--border);text-transform:uppercase;letter-spacing:.5px;}
 .tb-section-title:first-child{border-top:none;padding-top:0;}
+
+/* Instructions list */
 .tb-instr-list{display:flex;flex-direction:column;gap:10px;}
-.tb-instr-item{display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--text);line-height:1.6;}
-.tb-instr-num{width:22px;height:22px;border-radius:50%;background:var(--blue-pale);color:var(--blue);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
-.tb-instr-item a{color:var(--blue);font-weight:600;word-break:break-all;}
+.tb-instr-item{display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--text);line-height:1.65;}
+.tb-instr-num{width:24px;height:24px;border-radius:50%;background:var(--brand-pale);color:var(--brand);font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.tb-instr-item a{color:var(--brand);font-weight:700;word-break:break-all;}
 
-/* proof instructions */
-.tb-proof-instructions{
-  background:#fffbeb;border:1px solid #fde68a;border-radius:10px;
-  padding:12px 14px;font-size:12.5px;color:#92400e;line-height:1.6;margin-bottom:12px;
-}
-.tb-proof-instructions strong{color:#78350f;}
+/* Proof instructions box */
+.tb-proof-instructions{background:var(--amber-bg);border:1px solid #fde68a;border-radius:12px;padding:13px 15px;font-size:12.5px;color:#78350f;line-height:1.6;margin-bottom:12px;}
+.tb-proof-instructions strong{color:#7c2d12;font-weight:800;}
 
-/* attention box */
-.tb-attention{
-  background:#fff5f5;border:1.5px solid #fca5a5;border-radius:10px;
-  padding:12px 14px;font-size:12px;color:#991b1b;line-height:1.6;margin-bottom:14px;
-}
-.tb-attention strong{font-size:12.5px;}
+/* Attention box */
+.tb-attention{background:var(--red-bg);border:1.5px solid #fca5a5;border-radius:12px;padding:12px 15px;font-size:12px;color:#991b1b;line-height:1.6;margin-bottom:14px;}
+.tb-attention strong{font-size:12.5px;font-weight:800;}
 
-/* screenshot upload — TB Browse Image style */
+/* Proof form */
+.tb-or-divider{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);font-weight:600;margin-bottom:10px;}
+.tb-or-divider::before,.tb-or-divider::after{content:'';flex:1;height:1px;background:var(--border);}
+.proof-input{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:12px;font-size:13px;font-family:'Plus Jakarta Sans',sans-serif;color:var(--text);outline:none;transition:border-color .15s;background:var(--white);}
+.proof-input:focus{border-color:var(--brand);}
+.proof-input.filled{border-color:var(--green);}
+
+/* Dropzone */
 .tb-browse-wrap{display:flex;flex-direction:column;gap:10px;}
-.tb-screenshot-label{font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px;}
-.tb-dropzone{
-  position:relative;border:2px dashed var(--border);border-radius:12px;
-  min-height:120px;display:flex;flex-direction:column;align-items:center;
-  justify-content:center;gap:8px;cursor:pointer;background:var(--white);
-  transition:all .18s;text-align:center;overflow:hidden;padding:20px 16px;
-}
-.tb-dropzone:hover,.tb-dropzone.drag-over{border-color:var(--tb-green);background:#f0fdf4;}
-.tb-dropzone.has-file{border-color:var(--tb-green);border-style:solid;background:#f0fdf4;padding:12px;}
+.tb-screenshot-label{font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px;}
+.tb-dropzone{position:relative;border:2px dashed var(--border);border-radius:14px;min-height:120px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;cursor:pointer;background:var(--white);transition:all .18s;text-align:center;overflow:hidden;padding:20px 16px;}
+.tb-dropzone:hover,.tb-dropzone.drag-over{border-color:var(--brand);background:var(--brand-pale);}
+.tb-dropzone.has-file{border-color:var(--green);border-style:solid;background:#f0fdf4;padding:12px;}
 .tb-dropzone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
-.dz-icon{font-size:30px;color:var(--muted);opacity:.4;}
-.dz-title{font-size:13px;font-weight:600;color:var(--muted);}
+.dz-icon{font-size:30px;color:var(--muted);opacity:.35;}
+.dz-title{font-size:13px;font-weight:700;color:var(--muted);}
 .dz-types{font-size:10.5px;color:var(--muted);background:var(--bg);padding:3px 9px;border-radius:20px;font-weight:600;margin-top:2px;}
-/* browse button inside dropzone */
-.btn-browse{
-  background:var(--tb-green);color:#fff;border:none;border-radius:8px;
-  padding:10px 28px;font-size:13.5px;font-weight:700;cursor:pointer;
-  font-family:'DM Sans',sans-serif;margin-top:4px;transition:background .15s;
-}
-.btn-browse:hover{background:var(--tb-green-dark);}
-
+.btn-browse{background:var(--brand);color:#fff;border:none;border-radius:9px;padding:10px 28px;font-size:13.5px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;margin-top:4px;transition:background .15s;}
+.btn-browse:hover{background:var(--brand-dark);}
 .proof-preview{display:none;flex-direction:column;align-items:center;gap:8px;width:100%;}
 .proof-preview.show{display:flex;}
-.preview-img{width:100%;max-height:200px;object-fit:contain;border-radius:10px;border:1px solid var(--border);}
+.preview-img{width:100%;max-height:200px;object-fit:contain;border-radius:11px;border:1px solid var(--border);}
 .preview-name{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:5px;}
-.preview-name i{color:var(--tb-green);}
-.preview-remove{background:none;border:1px solid #fecaca;color:#b91c1c;border-radius:8px;padding:4px 10px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;}
+.preview-name i{color:var(--green);}
+.preview-remove{background:none;border:1px solid #fca5a5;color:#b91c1c;border-radius:8px;padding:4px 10px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;}
 
-/* or paste url */
-.tb-or-divider{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);}
-.tb-or-divider::before,.tb-or-divider::after{content:'';flex:1;height:1px;background:var(--border);}
-.proof-input{
-  width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;
-  font-size:13px;font-family:'DM Sans',sans-serif;color:var(--text);outline:none;
-  transition:border-color .15s;background:var(--white);
-}
-.proof-input:focus{border-color:var(--blue);}
-.proof-input.filled{border-color:var(--tb-green);}
-
-/* upload progress */
+/* Upload progress */
 .upload-progress{display:none;flex-direction:column;gap:5px;width:100%;}
 .upload-progress.show{display:flex;}
 .up-bar-wrap{height:6px;background:var(--border);border-radius:3px;overflow:hidden;}
-.up-bar{height:100%;background:var(--tb-green);border-radius:3px;width:0%;transition:width .25s;}
+.up-bar{height:100%;background:var(--green);border-radius:3px;width:0%;transition:width .25s;}
 .up-label{font-size:11.5px;color:var(--muted);text-align:center;}
 
-/* submit button */
-.btn-submit-main{
-  width:100%;padding:14px;border:none;border-radius:12px;
-  background:var(--tb-green);color:#fff;font-size:14px;font-weight:800;
-  font-family:'DM Sans',sans-serif;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;gap:7px;
-  transition:background .15s,transform .12s;
-  box-shadow:0 4px 14px rgba(22,163,74,.25);
-}
-.btn-submit-main:hover{background:var(--tb-green-dark);transform:translateY(-1px);}
-.btn-submit-main:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none;}
+/* Submit button */
+.btn-submit-main{width:100%;padding:14px;border:none;border-radius:13px;background:linear-gradient(135deg,var(--dark),var(--brand));color:#fff;font-size:14px;font-weight:800;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .15s,transform .12s;box-shadow:0 4px 14px rgba(255,107,53,.22);}
+.btn-submit-main:hover{opacity:.92;transform:translateY(-1px);}
+.btn-submit-main:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none;}
 
-/* submitted state */
-.submitted-strip{
-  display:flex;align-items:flex-start;gap:11px;
-  background:#fffbeb;border:1px solid #fde68a;
-  border-radius:12px;padding:14px 15px;
-}
+/* Submitted strip */
+.submitted-strip{display:flex;align-items:flex-start;gap:12px;background:var(--amber-bg);border:1px solid #fde68a;border-radius:14px;padding:15px 16px;}
 .submitted-strip i{font-size:22px;color:var(--amber);}
-.submitted-title{font-size:13.5px;font-weight:700;color:#92400e;margin-bottom:3px;}
+.submitted-title{font-size:13.5px;font-weight:800;color:#92400e;margin-bottom:3px;}
 .submitted-sub{font-size:12px;color:#b45309;line-height:1.5;}
 
-/* bottom actions */
-.sheet-bottom-actions{
-  display:flex;gap:8px;padding:14px 18px 18px;
-  border-top:1px solid var(--border);margin-top:4px;
-}
-.bact-btn{
-  flex:1;padding:11px 8px;border-radius:11px;font-size:12.5px;font-weight:700;
-  cursor:pointer;font-family:'DM Sans',sans-serif;
-  display:flex;align-items:center;justify-content:center;gap:6px;
-  transition:background .15s;border:1.5px solid;
-}
-.bact-close{background:#f8fafc;color:var(--muted);border-color:var(--border);}
+/* Bottom actions */
+.sheet-bottom-actions{display:flex;gap:8px;padding:14px 20px 18px;border-top:1px solid var(--border);margin-top:4px;}
+.bact-btn{flex:1;padding:11px 8px;border-radius:12px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;display:flex;align-items:center;justify-content:center;gap:6px;transition:background .15s;border:1.5px solid;}
+.bact-close{background:#f8f5f0;color:var(--muted);border-color:var(--border);}
 .bact-close:hover{background:var(--border);}
-.bact-cancel{background:#fff5f5;color:#b91c1c;border-color:#fecaca;}
-.bact-cancel:hover{background:#fee2e2;}
-.bact-report{background:#fffbeb;color:#92400e;border-color:#fde68a;}
+.bact-cancel{background:var(--red-bg);color:#b91c1c;border-color:#fca5a5;}
+.bact-cancel:hover{background:#fecaca;}
+.bact-report{background:var(--amber-bg);color:#92400e;border-color:#fde68a;}
 .bact-report:hover{background:#fef3c7;}
 
-/* ══ NOTIF MODAL ══ */
-.nm-backdrop{display:none;position:fixed;inset:0;background:rgba(15,23,42,.45);backdrop-filter:blur(3px);z-index:500;align-items:flex-start;justify-content:flex-end;padding:62px 12px 0;}
+/* ── NOTIF MODAL ── */
+.nm-backdrop{display:none;position:fixed;inset:0;background:rgba(26,18,8,.45);backdrop-filter:blur(3px);z-index:500;align-items:flex-start;justify-content:flex-end;padding:62px 12px 0;}
 .nm-backdrop.open{display:flex;}
-.notif-modal{width:100%;max-width:360px;background:var(--white);border-radius:16px;box-shadow:0 8px 40px rgba(0,0,0,.15);display:flex;flex-direction:column;max-height:calc(100vh - 80px);animation:slideDown .25s ease;overflow:hidden;}
+.notif-modal{width:100%;max-width:360px;background:var(--white);border-radius:18px;box-shadow:0 8px 40px rgba(0,0,0,.15);display:flex;flex-direction:column;max-height:calc(100vh - 80px);animation:slideDown .25s ease;overflow:hidden;}
 @keyframes slideDown{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:translateY(0)}}
 .nm-head{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
-.nm-head h4{font-size:14px;font-weight:700;display:flex;align-items:center;gap:7px;}
-.nm-head h4 i{color:var(--blue);}
+.nm-head h4{font-size:14px;font-weight:800;display:flex;align-items:center;gap:7px;}
+.nm-head h4 i{color:var(--brand);}
 .nm-close{background:none;border:none;font-size:17px;cursor:pointer;color:var(--muted);}
 .nm-list{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:6px;}
-.nitem{padding:11px 12px;border-radius:10px;background:var(--bg);border-left:3px solid var(--blue);cursor:pointer;transition:background .15s;}
-.nitem.unread{background:var(--blue-pale);}
-.nitem:hover{background:#dbeafe;}
-.nitem-title{font-size:13px;font-weight:600;margin-bottom:2px;}
+.nitem{padding:11px 12px;border-radius:11px;background:var(--bg);border-left:3px solid var(--brand);cursor:pointer;transition:background .15s;}
+.nitem.unread{background:var(--brand-pale);}
+.nitem:hover{background:var(--brand-dim);}
+.nitem-title{font-size:13px;font-weight:700;margin-bottom:2px;}
 .nitem-body{font-size:12px;color:var(--muted);line-height:1.45;}
 .nitem-time{font-size:10.5px;color:var(--muted);margin-top:5px;display:flex;align-items:center;gap:4px;}
 .nm-empty{text-align:center;padding:28px;color:var(--muted);}
 .nm-empty i{font-size:30px;opacity:.3;}
 .nm-empty p{font-size:12px;margin-top:6px;}
 
-/* ══ BOTTOM NAV ══ */
-.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:700px;background:var(--white);border-top:1px solid var(--border);display:flex;justify-content:space-around;align-items:center;height:var(--nav-h);padding:0 4px;padding-bottom:env(safe-area-inset-bottom,0);z-index:150;box-shadow:0 -4px 20px rgba(29,78,216,.08);}
+/* ── BOTTOM NAV ── */
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:700px;background:var(--white);border-top:1px solid var(--border);display:flex;justify-content:space-around;align-items:center;height:var(--nav-h);padding:0 4px;padding-bottom:env(safe-area-inset-bottom,0);z-index:150;box-shadow:0 -4px 20px rgba(26,18,8,.07);}
 .bnav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 4px;cursor:pointer;text-decoration:none;transition:opacity .15s;}
 .bnav-item i{font-size:20px;color:var(--muted);}
-.bnav-item span{font-size:10px;color:var(--muted);font-weight:500;}
-.bnav-item.active i,.bnav-item.active span{color:var(--blue);font-weight:700;}
+.bnav-item span{font-size:10px;color:var(--muted);font-weight:600;}
+.bnav-item.active i,.bnav-item.active span{color:var(--brand);font-weight:800;}
 
-/* ══ TOAST ══ */
-.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(60px);background:#1e293b;color:#fff;padding:9px 18px;border-radius:10px;font-size:13px;font-weight:500;z-index:999;transition:transform .28s;pointer-events:none;white-space:nowrap;}
+/* ── TOAST ── */
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(60px);background:var(--dark);color:#fff;padding:10px 20px;border-radius:12px;font-size:13px;font-weight:600;z-index:999;transition:transform .28s;pointer-events:none;white-space:nowrap;}
 .toast.show{transform:translateX(-50%) translateY(0);}
 </style>
 </head>
@@ -370,7 +344,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   </div>
 </div>
 
-<!-- TASK DETAIL MODAL (TimeBucks style) -->
+<!-- ══════════════════════════════════════════
+     TASK MODAL — Amulytask Style
+     ══════════════════════════════════════════ -->
 <div class="modal-backdrop" id="taskModal" onclick="closeModal(event)">
   <div class="modal-sheet" onclick="event.stopPropagation()">
     <div class="sheet-handle"></div>
@@ -381,15 +357,16 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
         <div class="sheet-ico" id="mIcon"></div>
         <div style="flex:1;min-width:0;">
           <div class="sheet-title" id="mTitle">Task</div>
-          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:3px;">
-            <span class="sheet-cat-badge" id="mCatBadge" style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:8px;"></span>
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:4px;">
+            <span id="mCatBadge" style="font-size:10px;font-weight:700;padding:2px 9px;border-radius:8px;"></span>
           </div>
         </div>
       </div>
-      <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
-        <div>
-          <div class="sheet-reward-large" id="mReward">$0.00</div>
-          <div style="font-size:10px;color:var(--muted);text-align:right;">reward</div>
+      <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
+        <!-- REWARD — large Playfair font -->
+        <div class="sheet-reward-wrap">
+          <div class="sheet-reward-large" id="mReward">$0.000</div>
+          <div class="sheet-reward-lbl">reward</div>
         </div>
         <button class="sheet-close" onclick="closeModal()"><i class="bi bi-x-lg"></i></button>
       </div>
@@ -418,9 +395,25 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     <!-- Scrollable Body -->
     <div class="sheet-scroll" id="sheetScroll">
 
+      <!-- ── PREVIEW BANNER (shown before Start) ── -->
+      <div class="preview-banner" id="mPreviewBanner">
+        <i class="bi bi-eye"></i>
+        <div class="preview-banner-text">
+          <div class="pb-title">THIS IS ONLY A PREVIEW</div>
+          <div class="pb-sub">Only complete this task after clicking the <strong>Start Task</strong> button below. Do not submit proof before starting.</div>
+        </div>
+      </div>
+
+      <!-- ── START TASK BUTTON ── -->
+      <div class="start-task-wrap" id="mStartSection">
+        <button class="btn-start-task" id="startTaskBtn" onclick="startTaskNow()">
+          <i class="bi bi-play-circle-fill"></i> Start Task Now
+        </button>
+      </div>
+
       <!-- Disclaimer -->
       <div class="tb-disclaimer" id="mDisclaimer">
-        <strong>Disclaimer:</strong> This campaign is presented to you by OneTasks on behalf of a third-party merchant or sponsor. OneTasks does not endorse or is responsible for the views, policies, products or services of the Merchant. If you encounter any campaign that appears to violate our rules, please report it.
+        <strong>Disclaimer:</strong> This campaign is presented by Amulytask on behalf of a third-party merchant or sponsor. Amulytask does not endorse or is responsible for the views, policies, products or services of the Merchant. If you encounter any campaign that appears to violate our rules, please report it.
       </div>
 
       <!-- Advertiser Instructions -->
@@ -435,11 +428,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
         <div style="font-size:13px;color:var(--muted);line-height:1.7;" id="mDesc"></div>
       </div>
 
-      <!-- Divider -->
-      <div style="height:1px;background:var(--tb-border);margin:0 18px;" id="mProofDivider"></div>
+      <div style="height:1px;background:var(--border);margin:0 20px;" id="mProofDivider"></div>
 
-      <!-- Proof Instructions -->
-      <div class="tb-section" id="mProofSection">
+      <!-- Proof Section (hidden until Start clicked) -->
+      <div class="tb-section" id="mProofSection" style="display:none;">
         <div class="tb-section-title">Proof Instructions:</div>
         <div class="tb-proof-instructions" id="mProofInstr">
           Please provide a screenshot as proof of completing this task.
@@ -449,20 +441,20 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
         <div class="tb-attention">
           <strong>⚠️ ATTENTION:</strong> DO NOT submit a screenshot of this instruction page. Make sure you submit a full screenshot of the exact proof the advertiser asks for. Submitting incorrect proof may result in rejection.
         </div>
-         <!-- paste proof text -->
-<div class="tb-or-divider"> write your proof</div>
 
-<textarea class="proof-input" id="proofInput"
-  placeholder="Describe your proof here (e.g. username used, actions completed, steps followed...)"
-  oninput="onProofInput(this)"
-  rows="3"
-  style="resize:vertical;"></textarea>
+        <!-- Proof text -->
+        <div class="tb-or-divider">Write your proof</div>
+        <textarea class="proof-input" id="proofInput"
+          placeholder="Describe your proof here (e.g. username used, actions completed, steps followed...)"
+          oninput="onProofInput(this)"
+          rows="3"
+          style="resize:vertical;margin-bottom:10px;"></textarea>
+        <div style="font-size:11px;color:var(--muted);display:flex;align-items:flex-start;gap:4px;margin-bottom:14px;">
+          <i class="bi bi-info-circle" style="margin-top:1px;flex-shrink:0;"></i>
+          Enter a clear description if you are not uploading a screenshot.
+        </div>
 
-<div style="font-size:11px;color:var(--muted);display:flex;align-items:flex-start;gap:4px;">
-  <i class="bi bi-info-circle" style="margin-top:1px;flex-shrink:0;"></i>
-  Enter a clear description of the task you completed if you are not uploading a screenshot.
-</div>
-        <!-- Screenshot upload zone -->
+        <!-- Screenshot upload -->
         <div class="tb-browse-wrap">
           <div class="tb-screenshot-label">Screenshot: <span style="color:var(--red);font-size:11px;">*required</span></div>
           <div class="tb-dropzone" id="proofDropzone"
@@ -482,12 +474,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
               <button class="preview-remove" onclick="removeProofFile(event)"><i class="bi bi-x"></i> Remove</button>
             </div>
           </div>
-          <!-- upload progress -->
           <div class="upload-progress" id="uploadProgress">
             <div class="up-bar-wrap"><div class="up-bar" id="upBar"></div></div>
             <div class="up-label" id="upLabel">Uploading…</div>
           </div>
-
           <div style="margin-top:6px;">
             <button class="btn-submit-main" id="submitBtn" onclick="submitTask()">
               <i class="bi bi-send-fill"></i> Submit Task
@@ -522,8 +512,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 <div class="sidebar" id="sidebar">
   <div class="sb-head">
     <div class="sb-brand">
-      <div class="dot"><i class="bi bi-lightning-charge-fill"></i></div>
-      <span>OneTasks</span>
+      <div class="logo-mark">A</div>
+      <span>Amulytask</span>
     </div>
     <button class="sb-close-btn" onclick="closeSidebar()"><i class="bi bi-x-lg"></i></button>
   </div>
@@ -546,7 +536,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     <a class="nav-item" href="profile.html"><i class="bi bi-person-circle"></i> Profile</a>
     <a class="nav-item" href="#" onclick="logout()"><i class="bi bi-box-arrow-right"></i> Logout</a>
   </nav>
-  <div class="sb-foot">OneTasks v2.0</div>
+  <div class="sb-foot">Amulytask v3.0 — All rights reserved</div>
 </div>
 
 <!-- TOPBAR -->
@@ -572,7 +562,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
       <strong id="mainBal">$0</strong>
     </div>
     <div class="bell-btn" onclick="toggleNotif()" title="Notifications">
-      <i class="bi bi-bell"></i>
+      <i class="bi bi-bell-fill"></i>
       <div class="notif-badge gone" id="notifBadge">0</div>
     </div>
     <a href="profile.html" class="profile-link" title="My Profile"><i class="bi bi-person-fill"></i></a>
@@ -650,6 +640,7 @@ let doneTasks   = new Set();
 let currentTask = null;
 let currentUser = null;
 let activeCat   = "all";
+let taskStarted = false; // tracks whether Start was clicked
 
 /* ── SIDEBAR ── */
 function openSidebar()  { document.getElementById("sidebar").classList.add("open");    document.getElementById("overlay").classList.add("show"); }
@@ -685,15 +676,15 @@ const ago = ts => {
 
 /* category config */
 const CATS = {
-  streak: { label:"Daily Streak",  icon:"bi-fire",                bg:"#fff7ed", color:"#f59e0b", cssVar:"#f59e0b" },
-  signup: { label:"Sign Up",       icon:"bi-person-plus-fill",    bg:"#ecfdf5", color:"#10b981", cssVar:"#10b981" },
-  apps:   { label:"Apps",          icon:"bi-phone-fill",          bg:"#eff6ff", color:"#2563eb", cssVar:"#2563eb" },
-  survey: { label:"Survey",        icon:"bi-clipboard-check-fill",bg:"#f5f3ff", color:"#8b5cf6", cssVar:"#8b5cf6" },
-  clicks: { label:"Clicks",        icon:"bi-cursor-fill",         bg:"#fff1f2", color:"#ef4444", cssVar:"#ef4444" },
+  streak: { label:"Daily Streak",  icon:"bi-fire",                bg:"#fef3c7", color:"#d97706" },
+  signup: { label:"Sign Up",       icon:"bi-person-plus-fill",    bg:"#dcfce7", color:"#16a34a" },
+  apps:   { label:"Apps",          icon:"bi-phone-fill",          bg:"#fff3ee", color:"#ff6b35" },
+  survey: { label:"Survey",        icon:"bi-clipboard-check-fill",bg:"#ede9fe", color:"#7c3aed" },
+  clicks: { label:"Clicks",        icon:"bi-cursor-fill",         bg:"#fee2e2", color:"#dc2626" },
 };
-const catConf = c => CATS[c] || { label:c||"General", icon:"bi-briefcase-fill", bg:"#f8fafc", color:"#334155", cssVar:"#334155" };
+const catConf = c => CATS[c] || { label:c||"General", icon:"bi-briefcase-fill", bg:"#f1ede8", color:"#5a4a35" };
 
-/* ── RENDER TASKS (TimeBucks table style) ── */
+/* ── RENDER TASKS ── */
 function renderTasks(tasks) {
   const grid = document.getElementById("taskGrid");
   document.getElementById("resultCount").textContent =
@@ -705,20 +696,19 @@ function renderTasks(tasks) {
   }
 
   const rows = tasks.map((t, i) => {
-    const cf   = catConf(t.category);
+    const cf = catConf(t.category);
     const done = doneTasks.has(t.id);
     const slotsLeft = t.max_submissions
       ? Math.max(0, t.max_submissions - (t.submission_count || 0))
       : null;
     const slotsText = slotsLeft !== null ? `${slotsLeft} slots left` : "Unlimited";
-    const completionPct = t.completion_rate ? `${t.completion_rate}%` : (slotsLeft !== null ? `${Math.round(((t.submission_count||0)/t.max_submissions)*100)}%` : "–");
     const takes = t.estimated_time || "2-3 mins";
 
     return `
     <div class="task-row ${done?'done-row':''}" style="animation-delay:${i*.04}s">
       <div class="tr-left">
         <div class="tr-title ${done?'done':''}">
-          <i class="bi ${cf.icon}" style="color:${cf.color};margin-right:4px;"></i>${t.title || "Task"}
+          <i class="bi ${cf.icon}" style="color:${cf.color};margin-right:5px;"></i>${t.title || "Task"}
         </div>
         <div class="tr-desc">${t.description || cf.label}</div>
         <div class="tr-meta">
@@ -726,19 +716,19 @@ function renderTasks(tasks) {
           <span class="tr-chip orange"><i class="bi bi-hourglass-split"></i> Credits in: ${t.credit_delay || "24 hrs"}</span>
           <span class="tr-chip green"><i class="bi bi-people"></i> ${slotsText}</span>
         </div>
-        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+        <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;">
           <span class="tr-manual">Manual Credit</span>
           ${done
             ? `<span class="done-badge"><i class="bi bi-check-lg"></i> Submitted</span>`
             : `
-              <button class="btn-view" onclick="openTask('${t.id}')">View</button>
+              <button class="btn-view" onclick="openTask('${t.id}')"><i class="bi bi-play-circle-fill"></i> View & Start</button>
               <button class="btn-instructions" onclick="openTask('${t.id}')"><i class="bi bi-list-ul"></i> Instructions</button>
             `
           }
         </div>
       </div>
       <div class="tr-right">
-        <div>
+        <div class="tr-rate-wrap">
           <div class="tr-rate">${fmt(t.reward)}</div>
           <div class="tr-rate-lbl">per task</div>
         </div>
@@ -779,17 +769,18 @@ function openTask(id) {
   const t = allTasks.find(x => x.id == id);
   if (!t) return;
   currentTask = t;
+  taskStarted = false;
   const cf = catConf(t.category);
 
   /* header */
   const ico = document.getElementById("mIcon");
   ico.style.background = cf.bg;
-  ico.innerHTML = `<i class="bi ${cf.icon}" style="color:${cf.color};font-size:20px"></i>`;
+  ico.innerHTML = `<i class="bi ${cf.icon}" style="color:${cf.color};font-size:21px"></i>`;
   document.getElementById("mTitle").textContent  = t.title || "Task";
   document.getElementById("mReward").textContent = fmt(t.reward);
 
   const catBadge = document.getElementById("mCatBadge");
-  catBadge.style.cssText = `background:${cf.bg};color:${cf.color}`;
+  catBadge.style.cssText = `background:${cf.bg};color:${cf.color};`;
   catBadge.innerHTML = `<i class="bi ${cf.icon}" style="margin-right:3px"></i>${cf.label}`;
 
   /* timer bar */
@@ -798,29 +789,21 @@ function openTask(id) {
     : "∞";
   document.getElementById("mSlots").textContent = slotsLeft === "∞" ? "Unlimited" : slotsLeft;
   document.getElementById("mCompletion").textContent = t.completion_rate ? t.completion_rate + "%" : "100%";
-  /* countdown: if task has expiry use it, otherwise show dashes */
-  if (t.expires_at) {
-    startCountdown(t.expires_at);
-  } else {
-    document.getElementById("mTimeRemaining").textContent = "–";
-  }
+  if (t.expires_at) { startCountdown(t.expires_at); }
+  else { document.getElementById("mTimeRemaining").textContent = "–"; }
 
-  /* instructions — parse numbered steps if present */
+  /* instructions */
   const instrSection = document.getElementById("mInstrSection");
   const instrList    = document.getElementById("mInstrList");
   if (t.instructions) {
     const urlRe = /(https?:\/\/[^\s<>"]+)/g;
     const safe  = t.instructions.replace(/[<>]/g, c => c==='<'?'&lt;':'&gt;');
-    // split on newlines or numbered patterns
     const lines = safe.split(/\n|(?=\d+\.\s)/).map(l=>l.trim()).filter(Boolean);
     if (lines.length > 1) {
       instrList.innerHTML = lines.map((ln, i) => {
         const content = ln.replace(/^\d+\.\s*/, "").replace(urlRe,
           url => `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`);
-        return `<div class="tb-instr-item">
-          <div class="tb-instr-num">${i+1}</div>
-          <div>${content}</div>
-        </div>`;
+        return `<div class="tb-instr-item"><div class="tb-instr-num">${i+1}</div><div>${content}</div></div>`;
       }).join("");
     } else {
       instrList.innerHTML = `<div class="tb-instr-item">
@@ -842,18 +825,36 @@ function openTask(id) {
     descSection.style.display = "none";
   }
 
-  /* proof instructions custom text */
-  if (t.proof_instructions) {
-    document.getElementById("mProofInstr").textContent = t.proof_instructions;
+  /* proof instructions */
+  document.getElementById("mProofInstr").textContent =
+    t.proof_instructions || "Please provide a screenshot as proof of completing this task.";
+
+  /* ── Start / Proof / Submitted state ── */
+  const alreadyDone = doneTasks.has(t.id);
+  const startSection   = document.getElementById("mStartSection");
+  const previewBanner  = document.getElementById("mPreviewBanner");
+  const proofSection   = document.getElementById("mProofSection");
+  const submittedSection = document.getElementById("mSubmittedSection");
+  const startBtn       = document.getElementById("startTaskBtn");
+
+  if (alreadyDone) {
+    /* already submitted — hide start & proof, show submitted */
+    previewBanner.style.display    = "none";
+    startSection.style.display     = "none";
+    proofSection.style.display     = "none";
+    submittedSection.style.display = "";
   } else {
-    document.getElementById("mProofInstr").textContent = "Please provide a screenshot as proof of completing this task.";
+    /* fresh task — show preview banner + Start button, hide proof */
+    previewBanner.style.display    = "";
+    startSection.style.display     = "";
+    proofSection.style.display     = "none";
+    submittedSection.style.display = "none";
+    startBtn.classList.remove("started");
+    startBtn.innerHTML = `<i class="bi bi-play-circle-fill"></i> Start Task Now`;
+    startBtn.disabled  = false;
   }
 
-  /* proof / submitted state */
-  const alreadyDone = doneTasks.has(t.id);
-  document.getElementById("mProofSection").style.display     = alreadyDone ? "none" : "";
-  document.getElementById("mSubmittedSection").style.display = alreadyDone ? "" : "none";
-  document.getElementById("mActionsRow").style.display       = "";
+  document.getElementById("mActionsRow").style.display = "";
 
   /* reset proof UI */
   resetProofUI();
@@ -866,7 +867,29 @@ function openTask(id) {
   document.getElementById("sheetScroll").scrollTop = 0;
 }
 
-/* countdown timer for modal */
+/* ── START TASK NOW ── */
+function startTaskNow() {
+  if (taskStarted) return;
+  taskStarted = true;
+
+  const startBtn = document.getElementById("startTaskBtn");
+  startBtn.classList.add("started");
+  startBtn.innerHTML = `<i class="bi bi-check-circle-fill"></i> Task Started — Now Complete It!`;
+  startBtn.disabled  = true;
+
+  /* hide preview banner, show proof section */
+  document.getElementById("mPreviewBanner").style.display = "none";
+  document.getElementById("mProofSection").style.display  = "";
+
+  /* scroll down to proof */
+  setTimeout(() => {
+    document.getElementById("mProofSection").scrollIntoView({ behavior: "smooth", block: "start" });
+  }, 200);
+
+  showToast("🚀 Task started! Complete it and submit your proof below.");
+}
+
+/* countdown timer */
 let _countdownTimer = null;
 function startCountdown(expiresAt) {
   if (_countdownTimer) clearInterval(_countdownTimer);
@@ -876,8 +899,7 @@ function startCountdown(expiresAt) {
     const h = Math.floor(diff/3600000);
     const m = Math.floor((diff%3600000)/60000);
     const s = Math.floor((diff%60000)/1000);
-    document.getElementById("mTimeRemaining").textContent =
-      `${h} hrs ${m} mins ${s} secs`;
+    document.getElementById("mTimeRemaining").textContent = `${h}h ${m}m ${s}s`;
   }
   tick();
   _countdownTimer = setInterval(tick, 1000);
@@ -888,6 +910,7 @@ function closeModal(e) {
   document.getElementById("taskModal").classList.remove("open");
   document.body.style.overflow = "";
   if (_countdownTimer) { clearInterval(_countdownTimer); _countdownTimer = null; }
+  taskStarted = false;
 }
 
 /* ── PROOF UI STATE ── */
@@ -899,14 +922,13 @@ function resetProofUI() {
   proofUploadedUrl = "";
   document.getElementById("dzEmpty").style.display = "";
   document.getElementById("proofPreview").classList.remove("show");
-  document.getElementById("proofDropzone").classList.remove("has-file");
+  document.getElementById("proofDropzone").classList.remove("has-file","drag-over");
   document.getElementById("uploadProgress").classList.remove("show");
   document.getElementById("proofFileInput").value = "";
   const inp = document.getElementById("proofInput");
   if (inp) { inp.value = ""; inp.classList.remove("filled"); }
 }
 
-/* drag-and-drop */
 function dzDragOver(e)  { e.preventDefault(); document.getElementById("proofDropzone").classList.add("drag-over"); }
 function dzDragLeave(e) { document.getElementById("proofDropzone").classList.remove("drag-over"); }
 function dzDrop(e) {
@@ -915,10 +937,7 @@ function dzDrop(e) {
   const file = e.dataTransfer?.files?.[0];
   if (file) handleProofFile(file);
 }
-function onFileSelected(input) {
-  const file = input.files?.[0];
-  if (file) handleProofFile(file);
-}
+function onFileSelected(input) { const file = input.files?.[0]; if (file) handleProofFile(file); }
 function handleProofFile(file) {
   if (!["image/png","image/jpeg","image/jpg","image/webp"].includes(file.type)) {
     showToast("⚠️ Only PNG, JPG or WEBP images are allowed."); return;
@@ -927,9 +946,9 @@ function handleProofFile(file) {
   proofFile = file;
   const reader = new FileReader();
   reader.onload = e => {
-    document.getElementById("previewImg").src = e.target.result;
+    document.getElementById("previewImg").src   = e.target.result;
     document.getElementById("previewName").textContent = file.name;
-    document.getElementById("dzEmpty").style.display = "none";
+    document.getElementById("dzEmpty").style.display   = "none";
     document.getElementById("proofPreview").classList.add("show");
     document.getElementById("proofDropzone").classList.add("has-file");
   };
@@ -945,11 +964,11 @@ function removeProofFile(e) {
 }
 function onProofInput(el) { el.classList.toggle("filled", el.value.trim().length > 0); }
 
-/* ── PROGRESS HELPERS ── */
+/* ── PROGRESS ── */
 function showProgress(label) {
   const el = document.getElementById("uploadProgress");
   el.classList.add("show");
-  document.getElementById("upBar").style.width = "0%";
+  document.getElementById("upBar").style.width  = "0%";
   document.getElementById("upLabel").textContent = label || "Uploading…";
 }
 function setProgress(pct, label) {
@@ -989,23 +1008,19 @@ function compressImage(file, maxKB = 800) {
   });
 }
 
-/* ── SUPABASE STORAGE UPLOAD ── */
+/* ── STORAGE UPLOAD ── */
 async function tryStorageUpload(file, taskId, userId) {
   const BUCKET   = "proof-uploads";
   const ext      = (file.name || "proof").split(".").pop().replace(/[^a-z0-9]/gi,"") || "jpg";
   const filename = `${userId}/${taskId}_${Date.now()}.${ext}`;
-  const { error } = await db.storage
-    .from(BUCKET)
-    .upload(filename, file, { cacheControl:"3600", upsert:true, contentType: file.type||"image/jpeg" });
+  const { error } = await db.storage.from(BUCKET).upload(filename, file, { cacheControl:"3600", upsert:true, contentType: file.type||"image/jpeg" });
   if (error) throw error;
   const { data: urlData } = db.storage.from(BUCKET).getPublicUrl(filename);
   return urlData?.publicUrl || "";
 }
 
-/* ── RESOLVE PROOF IMAGE (Storage → base64 fallback) ── */
 async function resolveProofImage(file, taskId, userId) {
-  showProgress("Preparing image…");
-  setProgress(10);
+  showProgress("Preparing image…"); setProgress(10);
   const compressed = await compressImage(file, 800);
   setProgress(30, "Uploading screenshot…");
   try {
@@ -1013,15 +1028,10 @@ async function resolveProofImage(file, taskId, userId) {
     setProgress(100, "Upload complete ✓");
     return { proofUrl: publicUrl, proofImage: null };
   } catch (storageErr) {
-    const msg = (storageErr.message||"").toLowerCase();
-    const isBucketIssue = msg.includes("bucket") || msg.includes("not found");
-    setProgress(50, isBucketIssue ? "Saving screenshot…" : "Saving screenshot…");
     console.warn("Storage fallback:", storageErr.message);
+    setProgress(50, "Saving screenshot…");
   }
-  /* base64 fallback — always works */
-  const asFile  = compressed instanceof File
-    ? compressed
-    : new File([compressed], file.name||"proof.jpg", { type: compressed.type||file.type||"image/jpeg" });
+  const asFile  = compressed instanceof File ? compressed : new File([compressed], file.name||"proof.jpg", { type: compressed.type||file.type||"image/jpeg" });
   const dataUrl = await fileToBase64(asFile);
   setProgress(100, "Screenshot saved ✓");
   return { proofUrl: "base64_image", proofImage: dataUrl };
@@ -1030,13 +1040,13 @@ async function resolveProofImage(file, taskId, userId) {
 /* ── SUBMIT TASK ── */
 async function submitTask() {
   if (!currentUser) { showToast("⚠️ Please log in first"); return; }
+  if (!taskStarted) { showToast("⚠️ Please click Start Task before submitting."); return; }
 
   const btn      = document.getElementById("submitBtn");
   const urlInput = document.getElementById("proofInput").value.trim();
 
-  /* determine mode: if file selected use upload, else check URL */
   if (!proofFile && !urlInput) {
-    showToast("⚠️ Please upload a screenshot or paste a proof URL.");
+    showToast("⚠️ Please upload a screenshot or write your proof description.");
     return;
   }
 
@@ -1047,7 +1057,6 @@ async function submitTask() {
   let proofImage = null;
 
   if (proofFile) {
-    /* ── image upload path ── */
     btn.innerHTML = '<i class="bi bi-arrow-repeat spin"></i> Processing image…';
     try {
       const result = await resolveProofImage(proofFile, currentTask.id, currentUser.id);
@@ -1062,30 +1071,19 @@ async function submitTask() {
     }
     btn.innerHTML = '<i class="bi bi-arrow-repeat spin"></i> Submitting…';
   } else {
-    /* ── URL path ── */
-    if (!/^https?:\/\/.+/.test(urlInput)) {
-      showToast("⚠️ Please enter a valid URL starting with https://");
-      btn.disabled  = false;
-      btn.innerHTML = '<i class="bi bi-send-fill"></i> Submit Task';
-      return;
-    }
     proofUrl = urlInput;
   }
 
-  /* ── INSERT into task_submissions (matches Supabase schema exactly) ── */
   const record = {
     user_id:      currentUser.id,
     task_id:      currentTask.id,
     status:       "pending",
-    // proof_data: plain-text URL or "base64_image" marker
     proof_data:   proofImage ? "base64_image" : proofUrl,
-    // screenshot_url: public URL when storage worked, null when base64 fallback used
     screenshot_url: proofImage ? null : (proofUrl !== "base64_image" ? proofUrl : null),
     submitted_at: new Date().toISOString(),
     started_at:   new Date().toISOString(),
     time_spent_seconds: 0
   };
-  // base64 image — store in proof_data (it IS the data column, text type, big enough)
   if (proofImage) record.proof_data = proofImage;
 
   const { error } = await db.from("task_submissions").insert([record]);
@@ -1098,9 +1096,10 @@ async function submitTask() {
     return;
   }
 
-  /* ── SUCCESS ── */
+  /* success */
   doneTasks.add(currentTask.id);
   document.getElementById("mProofSection").style.display     = "none";
+  document.getElementById("mStartSection").style.display     = "none";
   document.getElementById("mSubmittedSection").style.display = "";
   showToast("✅ Task submitted! Pending admin review.");
   applyFilter();
@@ -1112,10 +1111,7 @@ async function cancelTaskAction() {
   if (!confirm("Cancel this task? Your submission will be removed.")) return;
   if (doneTasks.has(currentTask.id)) {
     try {
-      await db.from("task_submissions")
-        .delete()
-        .eq("user_id", currentUser.id)
-        .eq("task_id", currentTask.id);
+      await db.from("task_submissions").delete().eq("user_id", currentUser.id).eq("task_id", currentTask.id);
       doneTasks.delete(currentTask.id);
       document.getElementById("taskModal").classList.remove("open");
       document.body.style.overflow = "";
@@ -1135,11 +1131,7 @@ async function reportTaskAction() {
   const reason = prompt("Describe the problem with this task (e.g. broken link, wrong reward):");
   if (!reason?.trim()) return;
   try {
-    await db.from("task_reports").insert([{
-      user_id: currentUser.id,
-      task_id: currentTask.id,
-      reason:  reason.trim()
-    }]);
+    await db.from("task_reports").insert([{ user_id: currentUser.id, task_id: currentTask.id, reason: reason.trim() }]);
     showToast("🚩 Problem reported. Thank you!");
   } catch {
     showToast("🚩 Report noted. Our team will review it.");
@@ -1191,7 +1183,6 @@ async function load() {
   if (!session) { location.href = "index.html"; return; }
   currentUser = session.user;
 
-  /* profile */
   const { data: p } = await db.from("users").select("*").eq("id", currentUser.id).single();
   if (p) {
     const name = p.full_name || session.user.email.split("@")[0];
@@ -1202,11 +1193,9 @@ async function load() {
     document.getElementById("mainBal").textContent    = fmt(p.balance);
   }
 
-  /* already submitted tasks — query task_submissions */
   const { data: done } = await db.from("task_submissions").select("task_id").eq("user_id", currentUser.id);
   if (done) done.forEach(r => doneTasks.add(r.task_id));
 
-  /* tasks */
   const { data: tasks, error } = await db.from("tasks").select("*").eq("status","active").order("created_at",{ascending:false});
   if (error) {
     document.getElementById("taskGrid").innerHTML = `<div class="empty"><i class="bi bi-exclamation-circle"></i><p>${error.message}</p></div>`;
@@ -1215,15 +1204,11 @@ async function load() {
   allTasks = tasks || [];
   applyFilter();
 
-  /* notifications */
   loadNotifs(currentUser.id);
   subscribeNotifs(currentUser.id);
 }
 
-async function logout() {
-  await db.auth.signOut();
-  location.href = "index.html";
-}
+async function logout() { await db.auth.signOut(); location.href = "index.html"; }
 
 load();
 </script>
