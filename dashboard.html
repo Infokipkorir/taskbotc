@@ -606,13 +606,31 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
       <a href="referrals.html">Details <i class="bi bi-arrow-right-short"></i></a>
     </div>
     <div class="ref-card">
-      <div>
+      <div style="flex:1;min-width:0;">
         <div class="ref-title">Friends Referred</div>
         <div class="ref-count" id="refCount">0</div>
-        <div class="ref-sub">people joined via your code</div>
+        <div class="ref-sub">people joined via your link</div>
+
+        <!-- Referral link display -->
+        <div style="margin-top:14px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);border-radius:12px;padding:10px 14px;">
+          <div style="font-size:9.5px;opacity:.55;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Your Referral Link</div>
+          <div style="font-size:11.5px;font-weight:600;color:#fff;word-break:break-all;opacity:.85;" id="refLink">Loading…</div>
+        </div>
+
+        <!-- Action buttons -->
+        <div style="display:flex;gap:8px;margin-top:10px;">
+          <button onclick="copyCode()" style="flex:1;padding:9px 10px;background:var(--brand);color:#fff;border:none;border-radius:11px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:5px;transition:opacity .15s;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+            <i class="bi bi-copy"></i> Copy Link
+          </button>
+          <button onclick="shareReferral()" style="padding:9px 12px;background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:11px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:5px;transition:background .15s;" onmouseover="this.style.background='rgba(255,255,255,.2)'" onmouseout="this.style.background='rgba(255,255,255,.12)'">
+            <i class="bi bi-share-fill"></i> Share
+          </button>
+        </div>
       </div>
-      <div class="ref-code-box" onclick="copyCode()" title="Tap to copy">
-        <div class="ref-code-label">Your Referral Code</div>
+
+      <!-- Code box (tap to copy code only) -->
+      <div class="ref-code-box" onclick="copyRawCode()" title="Tap to copy code">
+        <div class="ref-code-label">Referral Code</div>
         <div class="ref-code-val" id="refCode">———</div>
         <div class="ref-copy"><i class="bi bi-copy"></i> tap to copy</div>
       </div>
@@ -799,8 +817,34 @@ function showToast(msg) {
 
 function copyCode() {
   const code = document.getElementById("refCode").textContent;
-  if (code === "———") return;
+  if (!code || code === "———") return;
+  const link = `https://taskbotc.vercel.app/${code}`;
+  navigator.clipboard.writeText(link).then(() => showToast("✅ Referral link copied!"));
+}
+
+function copyRawCode() {
+  const code = document.getElementById("refCode").textContent;
+  if (!code || code === "———") return;
   navigator.clipboard.writeText(code).then(() => showToast("✅ Code copied: " + code));
+}
+
+function copyLink() {
+  copyCode();
+}
+
+function shareReferral() {
+  const code = document.getElementById("refCode").textContent;
+  if (!code || code === "———") return;
+  const link = `https://taskbotc.vercel.app/${code}`;
+  if (navigator.share) {
+    navigator.share({
+      title: "Join Amulytask",
+      text: "Sign up using my referral link and start earning!",
+      url: link
+    }).catch(() => {});
+  } else {
+    navigator.clipboard.writeText(link).then(() => showToast("✅ Link copied — share it anywhere!"));
+  }
 }
 
 const fmt      = n => "$" + parseFloat(n || 0).toFixed(2);
@@ -813,7 +857,6 @@ const ago      = ts => {
   return new Date(ts).toLocaleDateString();
 };
 const fmtDate  = ts => ts ? new Date(ts).toLocaleDateString("en-GB", { day:"2-digit", month:"short", year:"numeric" }) : "—";
-const weekAgo  = () => { const d = new Date(); d.setDate(d.getDate()-7); return d.toISOString(); };
 const taskIcon = t => ({ video:"bi-play-btn-fill", survey:"bi-clipboard-check-fill", follow:"bi-person-plus-fill", review:"bi-star-fill", social:"bi-share-fill", writing:"bi-pencil-fill" }[t] || "bi-briefcase-fill");
 const iconColor= s => ({ approved:"#16a34a", completed:"#16a34a", pending:"#d97706", rejected:"#dc2626", disputed:"#7c3aed" }[s] || "#ff6b35");
 const iconBg   = s => ({ approved:"#dcfce7", completed:"#dcfce7", pending:"#fef3c7", rejected:"#fee2e2", disputed:"#ede9fe" }[s] || "#fff3ee");
@@ -1388,9 +1431,21 @@ async function load(isRefresh = false) {
       document.getElementById("balDdTotal").textContent = fmt(p.balance);
       document.getElementById("payableBal").textContent = fmt(p.balance);
       document.getElementById("statEarnings").textContent = fmt(p.total_earned ?? p.balance);
-      document.getElementById("refCode").textContent  = p.referral_code || "———";
       document.getElementById("statReferrals").textContent = p.referral_count || 0;
       document.getElementById("refCount").textContent = p.referral_count || 0;
+
+      /* ── Referral code: use existing or auto-generate ── */
+      let refCode = p.referral_code;
+      if (!refCode) {
+        /* generate a short unique code from uid + timestamp */
+        refCode = (uid.replace(/-/g, "").slice(0, 6) + Math.random().toString(36).slice(2, 5)).toUpperCase();
+        await db.from("users").update({ referral_code: refCode }).eq("id", uid).catch(() => {});
+      }
+      document.getElementById("refCode").textContent = refCode;
+      const refLink = `https://taskbotc.vercel.app/${refCode}`;
+      const refLinkEl = document.getElementById("refLink");
+      if (refLinkEl) refLinkEl.textContent = refLink;
+
     } else {
       const name = session.user.email.split("@")[0];
       document.getElementById("sbName").textContent = name;
@@ -1421,8 +1476,6 @@ document.getElementById("statWeek").textContent  = arr.filter(t => t.created_at 
 // Dashboard shows latest 10 non-pending tasks only
 const visibleTasks = arr.filter(t => t.status !== "pending").slice(0, 10);
 renderTasks(visibleTasks);
-    /* Render only non-pending tasks on dashboard front-end */
-    renderTasks(arr.filter(t => t.status !== "pending").slice(0, 10));
 
     /* insights */
     renderInsights(arr);
