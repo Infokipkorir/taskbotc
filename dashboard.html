@@ -841,7 +841,7 @@ function shareReferral() {
       title: "Join Amulytask",
       text: "Sign up using my referral link and start earning!",
       url: link
-    }).catch(() => {});
+    });
   } else {
     navigator.clipboard.writeText(link).then(() => showToast("✅ Link copied — share it anywhere!"));
   }
@@ -1060,7 +1060,7 @@ async function startTask() {
         task_id:    currentTask.id,
         event_type: "started",
         created_at: new Date().toISOString()
-      }).catch(() => {});
+      });
     }
   } catch {}
 }
@@ -1103,7 +1103,7 @@ async function submitTaskProof() {
       status:       "pending",
       proof_url:    proofUrl,
       submitted_at: new Date().toISOString()
-    }, { onConflict: "user_id,task_id" }).catch(() => {});
+    }, { onConflict: "user_id,task_id" });
 
     /* log activity */
     logActivity("task_submit", { task_id: currentTask.id, proof_url: proofUrl });
@@ -1111,7 +1111,7 @@ async function submitTaskProof() {
       user_id: session.user.id, task_id: currentTask.id,
       event_type: "submitted", proof_url: proofUrl,
       created_at: new Date().toISOString()
-    }).catch(() => {});
+    });
 
     /* update local + REMOVE from front-end list (task disappears after submit) */
     currentTask.status   = "pending";
@@ -1188,7 +1188,7 @@ async function logActivity(eventType, meta = {}) {
       meta:       JSON.stringify(meta),
       created_at: new Date().toISOString(),
       page:       "dashboard"
-    }).catch(() => {});
+    });
   } catch {}
 }
 
@@ -1272,17 +1272,20 @@ async function claimStreak() {
     }, { onConflict: "user_id" });
 
     /* Add bonus to user balance */
-    await db.rpc("add_streak_bonus", { uid, amount: bonus }).catch(async () => {
-      const { data: u } = await db.from("users").select("balance").eq("id", uid).maybeSingle();
-      if (u) await db.from("users").update({ balance: (parseFloat(u.balance)||0) + bonus }).eq("id", uid).catch(() => {});
-    });
+    const { error: rpcErr } = await db.rpc("add_streak_bonus", { uid, amount: bonus });
+    if (rpcErr) {
+      try {
+        const { data: u } = await db.from("users").select("balance").eq("id", uid).maybeSingle();
+        if (u) await db.from("users").update({ balance: (parseFloat(u.balance)||0) + bonus }).eq("id", uid);
+      } catch {}
+    }
 
     /* Log streak activity */
     await db.from("user_activity").insert({
       user_id: uid, event_type: "streak_claim",
       meta: JSON.stringify({ streak_count: newCount, bonus_earned: bonus }),
       created_at: new Date().toISOString(), page: "dashboard"
-    }).catch(() => {});
+    });
 
     document.getElementById("streakCount").textContent = newCount;
     document.getElementById("streakNext").textContent  = "Come back tomorrow to continue your streak 🔥";
@@ -1341,12 +1344,19 @@ async function readOne(id, el) {
   if (!currentUserId) return;
   el.classList.remove("unread");
   el.querySelector('div[style*="border-radius:50%"]')?.remove();
-  await db.rpc("mark_notification_read", { notif_id: id, uid: currentUserId }).catch(async () => {
-    const n = cachedNotifs.find(x => x.id === id);
-    if (!n) return;
-    const arr = Array.isArray(n.is_read_by) ? n.is_read_by : [];
-    if (!arr.includes(currentUserId)) { arr.push(currentUserId); await db.from("notifications").update({ is_read_by: arr }).eq("id", id).catch(()=>{}); }
-  });
+  const { error: rpcErr } = await db.rpc("mark_notification_read", { notif_id: id, uid: currentUserId });
+  if (rpcErr) {
+    try {
+      const n = cachedNotifs.find(x => x.id === id);
+      if (n) {
+        const arr = Array.isArray(n.is_read_by) ? n.is_read_by : [];
+        if (!arr.includes(currentUserId)) {
+          arr.push(currentUserId);
+          await db.from("notifications").update({ is_read_by: arr }).eq("id", id);
+        }
+      }
+    } catch {}
+  }
   const unread = document.querySelectorAll(".nitem.unread").length;
   const badge  = document.getElementById("notifBadge");
   if (unread > 0) { badge.textContent = unread > 9 ? "9+" : unread; badge.classList.remove("gone"); }
@@ -1362,7 +1372,7 @@ async function markAllRead() {
     const n = cachedNotifs.find(x => x.id === id);
     const arr = Array.isArray(n.is_read_by) ? [...n.is_read_by] : [];
     if (!arr.includes(currentUserId)) arr.push(currentUserId);
-    await db.from("notifications").update({ is_read_by: arr }).eq("id", id).catch(()=>{});
+    await db.from("notifications").update({ is_read_by: arr }).eq("id", id);
   }
 }
 
@@ -1439,7 +1449,7 @@ async function load(isRefresh = false) {
       if (!refCode) {
         /* generate a short unique code from uid + timestamp */
         refCode = (uid.replace(/-/g, "").slice(0, 6) + Math.random().toString(36).slice(2, 5)).toUpperCase();
-        await db.from("users").update({ referral_code: refCode }).eq("id", uid).catch(() => {});
+        await db.from("users").update({ referral_code: refCode }).eq("id", uid);
       }
       document.getElementById("refCode").textContent = refCode;
       const refLink = `https://taskbotc.vercel.app/${refCode}`;
