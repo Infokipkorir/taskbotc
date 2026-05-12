@@ -1532,8 +1532,15 @@ async function submitPost(){
   }
 
   try {
-    const { data, error } = await db.from('community_posts').insert(newPost).select('*').single();
-    if(error) throw error;
+  const { data, error } = await db
+    .from('community_posts')
+    .insert(payload);
+
+  if (error) throw error;
+  // use data
+} catch (err) {
+  console.error(err);
+  }
 
     // Success — close modal and reset AFTER successful save
     closeCreateModal();
