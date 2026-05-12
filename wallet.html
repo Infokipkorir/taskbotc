@@ -32,11 +32,12 @@
       --r:            14px;
       --r-sm:         10px;
       --shadow:       0 2px 20px rgba(99,102,241,0.10);
+      --nav-h:        64px;
     }
 
     html { scroll-behavior: smooth; }
     body {
-      background: var(--at-bg);
+      background: #ffffff;
       color: var(--at-text);
       font-family: var(--ff);
       min-height: 100vh;
@@ -48,15 +49,15 @@
       content: '';
       position: fixed; inset: 0; z-index: 0; pointer-events: none;
       background-image:
-        linear-gradient(rgba(99,102,241,0.04) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(99,102,241,0.04) 1px, transparent 1px);
+        linear-gradient(rgba(99,102,241,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(99,102,241,0.03) 1px, transparent 1px);
       background-size: 28px 28px;
     }
 
     /* ═══ SPLASH ═══ */
     #splash {
       position: fixed; inset: 0; z-index: 200;
-      background: var(--at-bg);
+      background: #fff;
       display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.4rem;
       transition: opacity .4s ease;
     }
@@ -96,62 +97,78 @@
       position: relative; z-index: 1;
       width: 100%; max-width: 460px;
       min-height: 100vh;
-      background: var(--at-surface);
+      background: #ffffff;
       border-left: 1px solid var(--at-border);
       border-right: 1px solid var(--at-border);
       display: flex; flex-direction: column;
       animation: slideUp .5s cubic-bezier(.22,1,.36,1) both;
       box-shadow: 0 0 60px rgba(99,102,241,0.07);
+      padding-bottom: var(--nav-h);
     }
 
     /* ═══ TOPBAR ═══ */
     .topbar {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 1rem 1.3rem;
+      padding: .85rem 1.1rem;
       border-bottom: 1px solid var(--at-border);
       position: sticky; top: 0; z-index: 10;
-      background: rgba(255,255,255,.92);
+      background: rgba(255,255,255,.96);
       backdrop-filter: blur(16px);
+      gap: .6rem;
     }
-    .back-btn {
-      width: 34px; height: 34px; border-radius: 10px;
-      background: var(--at-surface2); border: 1px solid var(--at-border);
-      display: grid; place-items: center; cursor: pointer;
-      color: var(--at-sub); font-size: 1rem; text-decoration: none;
-      transition: all .18s;
-    }
-    .back-btn:hover { background: var(--at-surface3); color: var(--at-primary); }
-    .brand { display: flex; align-items: center; gap: .6rem; }
+    .topbar-left { display: flex; align-items: center; gap: .55rem; flex-shrink: 0; }
+    .topbar-center { display: flex; align-items: center; gap: .55rem; flex: 1; justify-content: center; }
+    .topbar-right { display: flex; align-items: center; gap: .45rem; flex-shrink: 0; }
+
     .brand-icon {
-      width: 34px; height: 34px; background: var(--at-primary-g);
-      border-radius: 10px; display: grid; place-items: center;
-      font-size: 1.05rem; box-shadow: 0 2px 12px rgba(99,102,241,.25);
+      width: 32px; height: 32px; background: var(--at-primary-g);
+      border-radius: 9px; display: grid; place-items: center;
+      font-size: 1rem; box-shadow: 0 2px 10px rgba(99,102,241,.22);
+      flex-shrink: 0;
     }
     .brand-col { display: flex; flex-direction: column; }
     .brand-name {
-      font-size: .92rem; font-weight: 800;
+      font-size: .88rem; font-weight: 800;
       background: var(--at-primary-g);
       -webkit-background-clip: text; -webkit-text-fill-color: transparent;
       background-clip: text; line-height: 1.1;
     }
-    .brand-sub { font-size: .65rem; color: var(--at-muted); font-weight: 500; }
-    .user-pill {
-      display: flex; align-items: center; gap: .5rem;
-      background: var(--at-surface2); border: 1px solid var(--at-border2);
-      border-radius: 99px; padding: .24rem .7rem .24rem .24rem;
+    .brand-sub { font-size: .6rem; color: var(--at-muted); font-weight: 500; }
+
+    /* Notification bell */
+    .notif-btn {
+      position: relative; width: 36px; height: 36px; border-radius: 10px;
+      background: var(--at-surface2); border: 1px solid var(--at-border);
+      display: grid; place-items: center; cursor: pointer;
+      color: var(--at-sub); font-size: 1rem; text-decoration: none;
+      transition: all .18s; flex-shrink: 0;
     }
-    .user-avatar {
-      width: 28px; height: 28px; border-radius: 50%;
+    .notif-btn:hover { background: var(--at-surface3); color: var(--at-primary); }
+    .notif-badge {
+      position: absolute; top: -4px; right: -4px;
+      min-width: 16px; height: 16px;
+      background: var(--at-warn); color: #fff;
+      border-radius: 99px; font-size: .58rem; font-weight: 700;
+      display: none; align-items: center; justify-content: center;
+      padding: 0 3px; border: 2px solid #fff;
+    }
+    .notif-badge.visible { display: flex; }
+
+    /* Profile icon */
+    .profile-btn {
+      width: 36px; height: 36px; border-radius: 50%;
       background: var(--at-primary-g);
       display: grid; place-items: center;
-      font-size: .72rem; font-weight: 700; color: #fff; flex-shrink: 0;
+      cursor: pointer; color: #fff; font-size: .78rem; font-weight: 700;
+      text-decoration: none; border: 2px solid rgba(99,102,241,.25); flex-shrink: 0;
+      transition: transform .2s, box-shadow .2s;
     }
-    .user-name { font-size: .76rem; font-weight: 600; max-width: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .profile-btn:hover { transform: scale(1.06); box-shadow: 0 2px 12px rgba(99,102,241,.3); }
 
     /* ═══ BALANCE HERO ═══ */
     .balance-hero {
       background: linear-gradient(135deg, #6366f1 0%, #818cf8 60%, #a78bfa 100%);
-      padding: 1.6rem 1.5rem 1.4rem;
+      padding: 1.5rem 1.4rem 1.3rem;
       position: relative; overflow: hidden;
     }
     .balance-hero::before {
@@ -164,26 +181,26 @@
       width: 140px; height: 140px; border-radius: 50%;
       background: rgba(255,255,255,0.04); pointer-events: none;
     }
-    .bal-label { font-size: .67rem; font-family: var(--ff-mono); letter-spacing: .12em; text-transform: uppercase; color: rgba(255,255,255,0.7); margin-bottom: .45rem; }
-    .bal-amount { font-family: var(--ff-mono); font-size: 2.6rem; font-weight: 700; color: #fff; line-height: 1; letter-spacing: -.03em; margin-bottom: .3rem; }
-    .bal-amount sup { font-size: 1.1rem; vertical-align: super; font-weight: 500; margin-right: .15rem; }
-    .bal-currency { font-size: .68rem; font-family: var(--ff-mono); color: rgba(255,255,255,.55); letter-spacing: .06em; }
+    .bal-label { font-size: .67rem; font-family: var(--ff-mono); letter-spacing: .12em; text-transform: uppercase; color: rgba(255,255,255,0.7); margin-bottom: .4rem; }
+    .bal-amount { font-family: var(--ff-mono); font-size: 2.5rem; font-weight: 700; color: #fff; line-height: 1; letter-spacing: -.03em; margin-bottom: .25rem; }
+    .bal-amount sup { font-size: 1.05rem; vertical-align: super; font-weight: 500; margin-right: .12rem; }
+    .bal-currency { font-size: .66rem; font-family: var(--ff-mono); color: rgba(255,255,255,.55); letter-spacing: .06em; }
     .bal-withdraw-btn {
-      margin-top: 1.1rem;
+      margin-top: 1rem;
       background: rgba(255,255,255,0.18); border: 1.5px solid rgba(255,255,255,0.4);
-      border-radius: 99px; color: #fff; font-family: var(--ff); font-size: .8rem; font-weight: 700;
-      padding: .55rem 1.4rem; cursor: pointer; backdrop-filter: blur(6px);
+      border-radius: 99px; color: #fff; font-family: var(--ff); font-size: .78rem; font-weight: 700;
+      padding: .5rem 1.3rem; cursor: pointer; backdrop-filter: blur(6px);
       transition: all .2s; letter-spacing: .02em;
     }
     .bal-withdraw-btn:hover { background: rgba(255,255,255,0.28); }
-    .bal-stats { display: flex; align-items: center; gap: 1.2rem; margin-top: 1.1rem; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.15); }
-    .bal-stat { display: flex; flex-direction: column; gap: .15rem; }
-    .bal-stat-val { font-size: .82rem; font-weight: 700; font-family: var(--ff-mono); color: #fff; }
-    .bal-stat-key { font-size: .6rem; color: rgba(255,255,255,.55); font-family: var(--ff-mono); letter-spacing: .06em; }
-    .bal-stat-div { width: 1px; height: 26px; background: rgba(255,255,255,.2); }
+    .bal-stats { display: flex; align-items: center; gap: 1.1rem; margin-top: 1rem; padding-top: .9rem; border-top: 1px solid rgba(255,255,255,0.15); }
+    .bal-stat { display: flex; flex-direction: column; gap: .12rem; }
+    .bal-stat-val { font-size: .8rem; font-weight: 700; font-family: var(--ff-mono); color: #fff; }
+    .bal-stat-key { font-size: .58rem; color: rgba(255,255,255,.55); font-family: var(--ff-mono); letter-spacing: .06em; }
+    .bal-stat-div { width: 1px; height: 24px; background: rgba(255,255,255,.2); }
 
     /* ═══ TABS ═══ */
-    .tabs { display: grid; grid-template-columns: 1fr 1fr; border-bottom: 1px solid var(--at-border); background: var(--at-surface); }
+    .tabs { display: grid; grid-template-columns: 1fr 1fr; border-bottom: 1px solid var(--at-border); background: #fff; }
     .tab-btn {
       background: none; border: none; border-bottom: 2px solid transparent;
       color: var(--at-sub); font-family: var(--ff); font-size: .8rem; font-weight: 600;
@@ -195,7 +212,7 @@
     .tab-badge { background: var(--at-primary); color: #fff; border-radius: 99px; font-size: .58rem; font-weight: 700; padding: .1rem .4rem; line-height: 1.5; }
 
     /* ═══ PANELS ═══ */
-    .panel { padding: 1.3rem; flex: 1; }
+    .panel { padding: 1.3rem; flex: 1; background: #fff; }
     .panel.hidden { display: none; }
 
     /* ═══ FORM ELEMENTS ═══ */
@@ -211,7 +228,7 @@
     .field-err  { font-family: var(--ff-mono); font-size: .65rem; color: var(--at-warn); display: none; }
     .at-input {
       width: 100%; height: 46px;
-      background: var(--at-surface2); border: 1.5px solid var(--at-border);
+      background: #f8f9ff; border: 1.5px solid var(--at-border);
       border-radius: var(--r-sm); color: var(--at-text);
       font-family: var(--ff-mono); font-size: .87rem;
       padding: 0 .9rem; outline: none;
@@ -222,17 +239,65 @@
     .at-input[type=number]::-webkit-inner-spin-button,
     .at-input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
     .at-input.err { border-color: var(--at-warn); }
+    .at-input[readonly] { background: #f0f2fa; color: var(--at-sub); cursor: default; }
     .input-wrap { position: relative; display: flex; align-items: center; }
     .input-sym { position: absolute; left: .9rem; font-family: var(--ff-mono); font-size: .9rem; color: var(--at-sub); pointer-events: none; }
     .input-wrap .at-input { padding-left: 1.7rem; }
     .input-addon {
-      background: var(--at-surface3); border: 1.5px solid var(--at-border); border-right: none;
+      background: #f0f2fa; border: 1.5px solid var(--at-border); border-right: none;
       border-radius: var(--r-sm) 0 0 var(--r-sm);
       height: 46px; padding: 0 .75rem;
       display: flex; align-items: center; white-space: nowrap;
       font-family: var(--ff-mono); font-size: .72rem; color: var(--at-sub);
     }
     .input-addon + .at-input { border-radius: 0 var(--r-sm) var(--r-sm) 0; }
+
+    /* ═══ BALANCE QUICK-FILL ═══ */
+    .bal-quick {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-top: .4rem; gap: .5rem;
+    }
+    .bal-quick-info {
+      font-family: var(--ff-mono); font-size: .66rem; color: var(--at-sub);
+      display: flex; flex-direction: column; gap: .1rem;
+    }
+    .bal-quick-info span { color: var(--at-primary); font-weight: 600; }
+    .bal-quick-info .after-fee { color: var(--at-accent); }
+    .withdraw-all-btn {
+      background: var(--at-primary); color: #fff;
+      border: none; border-radius: 99px;
+      font-family: var(--ff); font-size: .72rem; font-weight: 700;
+      padding: .38rem .9rem; cursor: pointer;
+      transition: all .2s; white-space: nowrap;
+      box-shadow: 0 2px 8px rgba(99,102,241,.25);
+    }
+    .withdraw-all-btn:hover { background: var(--at-primary-d); transform: translateY(-1px); box-shadow: 0 4px 14px rgba(99,102,241,.35); }
+
+    /* ═══ PHONE MISSING ALERT ═══ */
+    .phone-alert {
+      background: #fef3cd; border: 1.5px solid #f59e0b;
+      border-radius: var(--r-sm); padding: .7rem .85rem;
+      display: none; align-items: center; gap: .6rem;
+      margin-bottom: .85rem; animation: fadeIn .25s ease;
+    }
+    .phone-alert.visible { display: flex; }
+    .phone-alert-text { font-family: var(--ff-mono); font-size: .68rem; color: #92400e; line-height: 1.45; flex: 1; }
+    .phone-alert-btn {
+      background: #f59e0b; color: #fff; border: none; border-radius: 8px;
+      font-family: var(--ff); font-size: .7rem; font-weight: 700;
+      padding: .35rem .75rem; cursor: pointer; white-space: nowrap;
+      text-decoration: none; display: inline-block;
+      transition: background .2s;
+    }
+    .phone-alert-btn:hover { background: #d97706; }
+
+    /* Auto-filled badge */
+    .field-row { display: flex; align-items: center; gap: .5rem; }
+    .auto-badge {
+      background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0;
+      border-radius: 99px; font-size: .6rem; font-weight: 700;
+      padding: .15rem .5rem; white-space: nowrap; font-family: var(--ff-mono);
+    }
 
     /* ═══ PAYMENT METHOD LOGOS ═══ */
     .pm-logo {
@@ -246,7 +311,7 @@
 
     /* ═══ PAYMENT METHOD SELECTOR ═══ */
     .pm-selector {
-      background: var(--at-surface); border: 1.5px solid var(--at-border2);
+      background: #fff; border: 1.5px solid var(--at-border2);
       border-radius: var(--r); margin-bottom: 1.1rem; overflow: hidden; transition: border-color .2s;
     }
     .pm-selected-row {
@@ -284,7 +349,7 @@
 
     /* ═══ FEE BOX ═══ */
     .fee-box {
-      background: var(--at-surface2); border: 1px solid rgba(99,102,241,.15);
+      background: #f8f9ff; border: 1px solid rgba(99,102,241,.15);
       border-radius: var(--r); padding: 1rem 1.1rem; margin-bottom: 1rem;
       animation: fadeIn .2s ease;
     }
@@ -297,6 +362,21 @@
     .fee-row.net .fee-k { color: var(--at-accent); font-weight: 700; }
     .fee-row.net .fee-v { color: var(--at-accent); font-size: .9rem; font-weight: 700; }
 
+    /* ═══ REF ROW ═══ */
+    .ref-row {
+      display: flex; align-items: center; justify-content: space-between;
+      background: #f8f9ff; border: 1px solid var(--at-border);
+      border-radius: var(--r-sm); padding: .6rem .85rem; margin-bottom: 1rem;
+    }
+    .ref-label { font-family: var(--ff-mono); font-size: .63rem; color: var(--at-muted); }
+    .ref-val { font-family: var(--ff-mono); font-size: .78rem; font-weight: 700; color: var(--at-primary); letter-spacing: .04em; }
+    .ref-copy {
+      background: none; border: 1px solid var(--at-border); border-radius: 6px;
+      font-family: var(--ff-mono); font-size: .62rem; color: var(--at-sub);
+      padding: .18rem .5rem; cursor: pointer; transition: all .18s;
+    }
+    .ref-copy:hover { background: var(--at-surface2); color: var(--at-primary); }
+
     /* ═══ METHOD FIELDS ═══ */
     .method-fields { animation: fadeIn .2s ease; }
     .or-sep {
@@ -305,7 +385,7 @@
     }
     .or-sep::before, .or-sep::after { content: ''; flex: 1; height: 1px; background: var(--at-border); }
     .hint-box {
-      background: var(--at-surface2); border: 1px solid var(--at-border);
+      background: #f8f9ff; border: 1px solid var(--at-border);
       border-radius: var(--r-sm); padding: .6rem .85rem;
       font-family: var(--ff-mono); font-size: .7rem; color: var(--at-sub);
       margin-bottom: .85rem; line-height: 1.5;
@@ -319,7 +399,7 @@
     }
     #otpOverlay.open { display: flex; }
     .otp-sheet {
-      background: var(--at-surface); width: 100%; max-width: 460px;
+      background: #fff; width: 100%; max-width: 460px;
       border-radius: 24px 24px 0 0; padding: 1.8rem 1.5rem 2.5rem;
       animation: slideUp .3s cubic-bezier(.22,1,.36,1) both;
     }
@@ -331,7 +411,7 @@
     .otp-row { display: flex; gap: .6rem; justify-content: center; margin-bottom: 1.2rem; }
     .otp-box {
       width: 48px; height: 56px; border-radius: var(--r-sm);
-      background: var(--at-surface2); border: 1.5px solid var(--at-border);
+      background: #f8f9ff; border: 1.5px solid var(--at-border);
       font-family: var(--ff-mono); font-size: 1.3rem; font-weight: 700;
       text-align: center; outline: none; color: var(--at-text);
       transition: border-color .2s, box-shadow .2s;
@@ -342,53 +422,100 @@
     .otp-resend a:hover { text-decoration: underline; }
     .otp-verify-btn {
       width: 100%; height: 52px; border: none; border-radius: var(--r);
-      background: var(--at-primary-g);
+      background: var(--at-primary);
       color: #fff; font-family: var(--ff); font-size: .92rem; font-weight: 700;
       cursor: pointer; transition: all .2s;
-      box-shadow: 0 4px 20px rgba(99,102,241,.2);
+      box-shadow: 0 4px 16px rgba(99,102,241,.3);
     }
-    .otp-verify-btn:hover:not(:disabled) { box-shadow: 0 8px 30px rgba(99,102,241,.3); transform: translateY(-1px); }
+    .otp-verify-btn:hover:not(:disabled) { background: var(--at-primary-d); box-shadow: 0 8px 24px rgba(99,102,241,.4); transform: translateY(-1px); }
     .otp-verify-btn:disabled { opacity: .4; cursor: not-allowed; transform: none; box-shadow: none; }
 
     /* ═══ SUCCESS SHEET ═══ */
     #successSheet { display: none; position: fixed; inset: 0; z-index: 160; background: rgba(15,23,42,.55); backdrop-filter: blur(6px); align-items: flex-end; justify-content: center; }
     #successSheet.open { display: flex; }
-    .success-inner { background: var(--at-surface); width: 100%; max-width: 460px; border-radius: 24px 24px 0 0; padding: 2rem 1.5rem 2.5rem; text-align: center; animation: slideUp .3s cubic-bezier(.22,1,.36,1) both; }
+    .success-inner { background: #fff; width: 100%; max-width: 460px; border-radius: 24px 24px 0 0; padding: 2rem 1.5rem 2.5rem; text-align: center; animation: slideUp .3s cubic-bezier(.22,1,.36,1) both; }
     .success-ring { width: 72px; height: 72px; border-radius: 50%; background: linear-gradient(135deg,#ecfdf5,#d1fae5); border: 2px solid #a7f3d0; display: grid; place-items: center; margin: 0 auto 1rem; font-size: 2rem; }
     .success-title { font-size: 1.2rem; font-weight: 800; margin-bottom: .4rem; }
-    .success-sub { font-size: .82rem; color: var(--at-sub); line-height: 1.65; margin-bottom: 1.5rem; }
-    .success-ref { font-family: var(--ff-mono); font-size: .76rem; color: var(--at-muted); margin-bottom: 1.4rem; }
+    .success-sub { font-size: .82rem; color: var(--at-sub); line-height: 1.65; margin-bottom: .8rem; }
+    .success-ref { font-family: var(--ff-mono); font-size: .76rem; color: var(--at-muted); margin-bottom: .5rem; }
+    .success-status-row {
+      display: flex; align-items: center; justify-content: center; gap: .5rem;
+      background: #fef9ec; border: 1px solid #f59e0b; border-radius: 99px;
+      padding: .35rem 1rem; margin: 0 auto .75rem; width: fit-content;
+    }
+    .success-status-dot { width: 7px; height: 7px; border-radius: 50%; background: #f59e0b; animation: breathe 1.5s ease-in-out infinite; }
+    .success-status-text { font-family: var(--ff-mono); font-size: .72rem; font-weight: 700; color: #92400e; }
+    .success-notif-note { font-family: var(--ff-mono); font-size: .65rem; color: var(--at-muted); margin-bottom: 1.2rem; line-height: 1.5; }
+
+    /* ═══ NOTIFICATION PANEL ═══ */
+    #notifPanel {
+      display: none; position: fixed; inset: 0; z-index: 140;
+      background: rgba(15,23,42,.55); backdrop-filter: blur(6px);
+      align-items: flex-end; justify-content: center;
+    }
+    #notifPanel.open { display: flex; }
+    .notif-sheet {
+      background: #fff; width: 100%; max-width: 460px;
+      border-radius: 24px 24px 0 0; padding: 1.5rem 1.3rem 2rem;
+      max-height: 70vh; display: flex; flex-direction: column;
+      animation: slideUp .3s cubic-bezier(.22,1,.36,1) both;
+    }
+    .notif-hdr { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-shrink: 0; }
+    .notif-hdr-title { font-size: 1rem; font-weight: 800; }
+    .notif-close { width: 30px; height: 30px; border-radius: 50%; background: var(--at-surface2); border: 1px solid var(--at-border); display: grid; place-items: center; cursor: pointer; font-size: .9rem; }
+    .notif-close:hover { background: var(--at-surface3); }
+    .notif-list { overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: .55rem; }
+    .notif-item {
+      background: #f8f9ff; border: 1.5px solid var(--at-border);
+      border-radius: var(--r); padding: .85rem 1rem;
+      display: flex; gap: .7rem; align-items: flex-start;
+      transition: border-color .2s;
+    }
+    .notif-item.unread { border-color: rgba(99,102,241,.3); background: #eef2ff; }
+    .notif-icon { font-size: 1.3rem; flex-shrink: 0; margin-top: .05rem; }
+    .notif-body { flex: 1; }
+    .notif-title-text { font-size: .83rem; font-weight: 700; margin-bottom: .2rem; }
+    .notif-msg { font-family: var(--ff-mono); font-size: .68rem; color: var(--at-sub); line-height: 1.45; }
+    .notif-time { font-family: var(--ff-mono); font-size: .6rem; color: var(--at-muted); margin-top: .3rem; }
+    .notif-empty { display: flex; flex-direction: column; align-items: center; padding: 2.5rem 0; gap: .7rem; color: var(--at-muted); font-family: var(--ff-mono); font-size: .78rem; }
+    .notif-empty .ne-icon { font-size: 2rem; opacity: .3; }
+    .mark-read-btn {
+      background: none; border: 1px solid var(--at-border); border-radius: 99px;
+      font-family: var(--ff); font-size: .72rem; font-weight: 600; color: var(--at-primary);
+      padding: .3rem .9rem; cursor: pointer; transition: all .18s; flex-shrink: 0;
+    }
+    .mark-read-btn:hover { background: rgba(99,102,241,.06); }
 
     /* ═══ SUBMIT BUTTON ═══ */
     .at-btn {
       width: 100%; height: 52px; border: none; border-radius: var(--r);
-      background: var(--at-primary-g);
+      background: var(--at-primary);
       color: #fff; font-family: var(--ff); font-size: .92rem; font-weight: 700;
       cursor: pointer; transition: all .2s; position: relative; overflow: hidden;
       display: flex; align-items: center; justify-content: center; gap: .5rem;
-      box-shadow: 0 4px 20px rgba(99,102,241,.2);
+      box-shadow: 0 4px 16px rgba(99,102,241,.28);
     }
     .at-btn::before { content: ''; position: absolute; inset: 0; background: rgba(255,255,255,.1); transform: translateX(-100%) skewX(-15deg); transition: transform .4s; }
     .at-btn:hover:not(:disabled)::before { transform: translateX(220%) skewX(-15deg); }
-    .at-btn:hover:not(:disabled) { box-shadow: 0 8px 28px rgba(99,102,241,.35); transform: translateY(-1px); }
+    .at-btn:hover:not(:disabled) { background: var(--at-primary-d); box-shadow: 0 8px 24px rgba(99,102,241,.4); transform: translateY(-1px); }
     .at-btn:disabled { opacity: .3; cursor: not-allowed; transform: none; box-shadow: none; }
     .at-btn .spin { display: inline-block; animation: spin .6s linear infinite; }
-    .at-btn.secondary { background: var(--at-surface2); color: var(--at-text); border: 1.5px solid var(--at-border2); box-shadow: none; }
-    .at-btn.secondary:hover:not(:disabled) { background: var(--at-surface3); box-shadow: none; }
+    .at-btn.secondary { background: #fff; color: var(--at-text); border: 1.5px solid var(--at-border2); box-shadow: none; }
+    .at-btn.secondary:hover:not(:disabled) { background: var(--at-surface2); box-shadow: none; }
 
     .disclaimer { font-family: var(--ff-mono); font-size: .65rem; color: var(--at-muted); text-align: center; line-height: 1.7; margin-top: .85rem; }
 
     /* ═══ HISTORY ═══ */
     .txn-list { display: flex; flex-direction: column; gap: .55rem; }
     .txn-item {
-      background: var(--at-surface2); border: 1.5px solid var(--at-border);
+      background: #f8f9ff; border: 1.5px solid var(--at-border);
       border-radius: var(--r); padding: .9rem 1rem;
       display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem;
       transition: border-color .2s, background .2s;
     }
-    .txn-item:hover { border-color: var(--at-border2); background: var(--at-surface3); }
+    .txn-item:hover { border-color: var(--at-border2); background: #f0f2fa; }
     .txn-left { display: flex; gap: .65rem; align-items: flex-start; }
-    .txn-icon { width: 38px; height: 38px; border-radius: 11px; background: var(--at-surface); border: 1px solid var(--at-border); display: grid; place-items: center; font-size: 1.1rem; flex-shrink: 0; overflow: hidden; }
+    .txn-icon { width: 38px; height: 38px; border-radius: 11px; background: #fff; border: 1px solid var(--at-border); display: grid; place-items: center; font-size: 1.1rem; flex-shrink: 0; overflow: hidden; }
     .txn-icon svg { width: 20px; height: 20px; }
     .txn-method { font-size: .84rem; font-weight: 700; }
     .txn-ref  { font-family: var(--ff-mono); font-size: .63rem; color: var(--at-muted); margin: .18rem 0; }
@@ -410,6 +537,34 @@
     #noSession .ns-icon { font-size: 2.5rem; opacity: .2; animation: breathe 2s ease-in-out infinite; }
     #noSession .ns-title { font-size: 1rem; font-weight: 700; }
     #noSession .ns-sub { font-family: var(--ff-mono); font-size: .73rem; color: var(--at-sub); line-height: 1.7; max-width: 260px; }
+
+    /* ═══ BOTTOM NAV ═══ */
+    .bottom-nav {
+      position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+      width: 100%; max-width: 460px;
+      background: #fff;
+      border-top: 1px solid var(--at-border);
+      display: flex; z-index: 20;
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+      box-shadow: 0 -4px 20px rgba(99,102,241,0.07);
+    }
+    .nav-item {
+      flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px;
+      padding: .6rem .4rem .55rem;
+      cursor: pointer; border: none; background: none;
+      color: var(--at-muted); font-size: .6rem; font-weight: 600;
+      font-family: var(--ff); text-decoration: none;
+      transition: color .2s; position: relative;
+    }
+    .nav-item:hover { color: var(--at-sub); }
+    .nav-item.active { color: var(--at-primary); }
+    .nav-item.active::before {
+      content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+      width: 28px; height: 3px; background: var(--at-primary);
+      border-radius: 0 0 4px 4px;
+    }
+    .nav-icon { font-size: 1.3rem; line-height: 1; }
+    .nav-label { line-height: 1; }
 
     /* ═══ KEYFRAMES ═══ */
     @keyframes spin    { to { transform: rotate(360deg); } }
@@ -471,7 +626,28 @@
     <div class="success-title">Withdrawal Submitted!</div>
     <div class="success-sub" id="successMsg"></div>
     <div class="success-ref" id="successRef"></div>
+    <div class="success-status-row">
+      <div class="success-status-dot"></div>
+      <div class="success-status-text">Status: Pending</div>
+    </div>
+    <div class="success-notif-note" id="successNotifNote">🔔 You'll receive a notification when your status updates</div>
     <button class="at-btn" onclick="closeSuccess()">Done</button>
+  </div>
+</div>
+
+<!-- NOTIFICATION PANEL -->
+<div id="notifPanel">
+  <div class="notif-sheet">
+    <div class="notif-hdr">
+      <div class="notif-hdr-title">🔔 Notifications</div>
+      <div style="display:flex;gap:.5rem;align-items:center;">
+        <button class="mark-read-btn" onclick="markAllRead()">Mark all read</button>
+        <div class="notif-close" onclick="closeNotifPanel()">✕</div>
+      </div>
+    </div>
+    <div class="notif-list" id="notifList">
+      <div class="notif-empty"><div class="ne-icon">🔕</div>No notifications yet</div>
+    </div>
   </div>
 </div>
 
@@ -480,17 +656,19 @@
 
   <!-- TOPBAR -->
   <div class="topbar">
-    <a class="back-btn" href="profile.html" title="Back to Profile">←</a>
-    <div class="brand">
+    <div class="topbar-left">
       <div class="brand-icon">💳</div>
       <div class="brand-col">
         <div class="brand-name">AmulyTask</div>
         <div class="brand-sub">My Wallet</div>
       </div>
     </div>
-    <div class="user-pill">
-      <div class="user-avatar" id="userAvatar">U</div>
-      <span class="user-name" id="userName">Loading…</span>
+    <div class="topbar-right">
+      <div class="notif-btn" onclick="openNotifPanel()" title="Notifications">
+        🔔
+        <span class="notif-badge" id="notifBadge">0</span>
+      </div>
+      <a class="profile-btn" href="profile.html" id="profileBtn" title="My Profile">U</a>
     </div>
   </div>
 
@@ -499,7 +677,7 @@
     <div class="bal-label">Available Balance</div>
     <div class="bal-amount"><sup>$</sup><span id="balAmt">0.00</span></div>
     <div class="bal-currency">United States Dollar · USD</div>
-    <button class="bal-withdraw-btn" onclick="switchTab('send')">↗ WITHDRAW FULL AMOUNT</button>
+    <button class="bal-withdraw-btn" onclick="fillAllBalance()">↗ WITHDRAW FULL AMOUNT</button>
     <div class="bal-stats">
       <div class="bal-stat">
         <div class="bal-stat-val" id="statTotal">$0.00</div>
@@ -536,14 +714,21 @@
   <!-- SEND PANEL -->
   <div class="panel" id="panelSend">
 
+    <!-- Transaction Reference -->
+    <div class="ref-row">
+      <div>
+        <div class="ref-label">Transaction Reference</div>
+        <div class="ref-val" id="txRefDisplay">—</div>
+      </div>
+      <button class="ref-copy" onclick="copyRef()">Copy</button>
+    </div>
+
     <div class="section-title">Payment Method</div>
 
-    <!-- PAYMENT METHOD SELECTOR with real logos -->
+    <!-- PAYMENT METHOD SELECTOR -->
     <div class="pm-selector" id="pmSelector">
       <div class="pm-selected-row" onclick="togglePmDropdown()">
-        <!-- Selected logo injected by JS -->
         <div id="pmBadge" class="pm-logo mpesa">
-          <!-- M-Pesa logo -->
           <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
             <text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-weight="900" font-size="22" fill="#fff">M</text>
           </svg>
@@ -556,13 +741,10 @@
       </div>
 
       <div class="pm-dropdown" id="pmDropdown">
-
         <!-- M-Pesa -->
         <div class="pm-option active" id="opt-mpesa" onclick="choosePm('mpesa')">
           <div class="pm-logo mpesa">
-            <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-weight="900" font-size="22" fill="#fff">M</text>
-            </svg>
+            <svg viewBox="0 0 60 60" fill="none"><text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-weight="900" font-size="22" fill="#fff">M</text></svg>
           </div>
           <div class="pm-option-info">
             <div class="pm-option-name">M-Pesa</div>
@@ -570,12 +752,10 @@
           </div>
           <span class="pm-option-check">✓</span>
         </div>
-
         <!-- PayPal -->
         <div class="pm-option" id="opt-paypal" onclick="choosePm('paypal')">
           <div class="pm-logo paypal">
-            <!-- PayPal "P" logo -->
-            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg viewBox="0 0 24 24" fill="none">
               <path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944.901C5.026.382 5.474 0 5.998 0h7.46c2.57 0 4.578.543 5.69 1.81 1.01 1.15 1.304 2.42 1.012 4.287-.023.143-.047.288-.077.437-.983 5.05-4.349 6.797-8.647 6.797h-2.19c-.524 0-.968.382-1.05.9l-1.12 7.106zm14.146-14.42a3.35 3.35 0 0 0-.607-.541c-.013.076-.026.175-.041.254-.93 4.778-4.005 7.201-9.138 7.201h-2.19a.563.563 0 0 0-.556.479l-1.187 7.527h-.506l-.24 1.516a.56.56 0 0 0 .554.647h3.882c.46 0 .85-.334.922-.788.06-.26.76-4.852.816-5.09a.932.932 0 0 1 .923-.788h.58c3.76 0 6.705-1.528 7.565-5.946.36-1.847.174-3.388-.777-4.47z" fill="#fff"/>
             </svg>
           </div>
@@ -585,12 +765,10 @@
           </div>
           <span class="pm-option-check">✓</span>
         </div>
-
         <!-- Binance -->
         <div class="pm-option" id="opt-binance" onclick="choosePm('binance')">
           <div class="pm-logo binance">
-            <!-- Binance diamond logo -->
-            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg viewBox="0 0 24 24" fill="none">
               <path d="M12 0L9.36 2.64 12 5.28l2.64-2.64L12 0zM6.72 5.28L4.08 7.92l2.64 2.64 2.64-2.64-2.64-2.64zm10.56 0l-2.64 2.64 2.64 2.64 2.64-2.64-2.64-2.64zM12 8.04L7.92 12 12 16.08 16.08 12 12 8.04zM6.72 13.08l-2.64 2.64 2.64 2.64 2.64-2.64-2.64-2.64zm10.56 0l-2.64 2.64 2.64 2.64 2.64-2.64-2.64-2.64zM12 18.72L9.36 21.36 12 24l2.64-2.64L12 18.72z" fill="#1a1a1a"/>
             </svg>
           </div>
@@ -616,6 +794,14 @@
                placeholder="0.00" oninput="calcFees()" />
       </div>
       <div class="field-err" id="amtErr">Minimum withdrawal is $1.00</div>
+      <!-- Balance quick info + Withdraw All -->
+      <div class="bal-quick" id="balQuick" style="display:none">
+        <div class="bal-quick-info">
+          <div>Available: <span id="quickBal">$0.00</span></div>
+          <div class="after-fee">After fees: <span id="quickNet">$0.00</span></div>
+        </div>
+        <button class="withdraw-all-btn" onclick="fillAllBalance()">↗ Withdraw All</button>
+      </div>
     </div>
 
     <!-- Fee box -->
@@ -631,8 +817,17 @@
 
     <!-- M-Pesa fields -->
     <div class="method-fields" id="fields-mpesa">
+      <!-- Phone missing alert -->
+      <div class="phone-alert" id="mpesaPhoneAlert">
+        <span style="font-size:1.1rem">⚠️</span>
+        <div class="phone-alert-text">No phone number on your profile. Add it to auto-fill M-Pesa withdrawals.</div>
+        <a class="phone-alert-btn" href="profile.html">Set Phone</a>
+      </div>
       <div class="field">
-        <div class="field-label">M-Pesa Phone</div>
+        <div class="field-row">
+          <div class="field-label">M-Pesa Phone</div>
+          <span class="auto-badge" id="mpesaPhoneAutoBadge" style="display:none">✓ Auto-filled</span>
+        </div>
         <div style="display:flex">
           <div class="input-addon">🇰🇪 +254</div>
           <input class="at-input" type="tel" id="mpesaPhone"
@@ -652,7 +847,10 @@
     <!-- PayPal fields -->
     <div class="method-fields" id="fields-paypal" style="display:none">
       <div class="field">
-        <div class="field-label">PayPal Email</div>
+        <div class="field-row">
+          <div class="field-label">PayPal Email</div>
+          <span class="auto-badge" id="ppEmailAutoBadge" style="display:none">✓ Auto-filled</span>
+        </div>
         <input class="at-input" type="email" id="ppEmail"
                placeholder="paypal@email.com" oninput="validate()" />
         <div class="field-err" id="ppEmailErr">Enter a valid PayPal email</div>
@@ -663,7 +861,10 @@
     <div class="method-fields" id="fields-binance" style="display:none">
       <div class="hint-box">Fill <strong>either</strong> your Binance Email <strong>or</strong> Binance UID.</div>
       <div class="field">
-        <div class="field-label">Binance Email</div>
+        <div class="field-row">
+          <div class="field-label">Binance Email</div>
+          <span class="auto-badge" id="binEmailAutoBadge" style="display:none">✓ Auto-filled</span>
+        </div>
         <input class="at-input" type="email" id="binEmail"
                placeholder="user@email.com" oninput="onBinInput('email')" />
         <div class="field-err" id="binEmailErr">Enter a valid email</div>
@@ -701,9 +902,33 @@
 
 </div><!-- /app -->
 
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <a class="nav-item" href="dashboard.html" title="Dashboard">
+    <span class="nav-icon">🏠</span>
+    <span class="nav-label">Dashboard</span>
+  </a>
+  <a class="nav-item" href="tasks.html" title="Tasks">
+    <span class="nav-icon">📋</span>
+    <span class="nav-label">Tasks</span>
+  </a>
+  <a class="nav-item active" href="wallet.html" title="Wallet">
+    <span class="nav-icon">💳</span>
+    <span class="nav-label">Wallet</span>
+  </a>
+  <a class="nav-item" href="my-tasks.html" title="My Tasks">
+    <span class="nav-icon">✅</span>
+    <span class="nav-label">My Tasks</span>
+  </a>
+  <a class="nav-item" href="support.html" title="Support">
+    <span class="nav-icon">💬</span>
+    <span class="nav-label">Support</span>
+  </a>
+</nav>
+
 <script>
 /* ═══════════════════════════════════════════
-   CONFIG — matches profile.html exactly
+   CONFIG
 ═══════════════════════════════════════════ */
 const SB_URL = 'https://lwnbfjjsstxkyexeojcl.supabase.co';
 const SB_KEY = 'sb_publishable_Pj9ocGkssu5Gh6qZXFnZQQ_LdghnZt9';
@@ -717,50 +942,63 @@ let sb, user, userData, txns = [];
 let selectedMethod = 'mpesa';
 let pendingWithdrawal = null;
 let otpSentTo = '';
+let currentRef = '';
+let userNotifications = [];
 
 /* ═══════════════════════════════════════════
-   LOGO SVGs for payment method badges (inline)
+   LOGO SVGs
 ═══════════════════════════════════════════ */
 const PM_CONFIG = {
   mpesa: {
     label: 'M-Pesa Mobile',
     badgeClass: 'mpesa',
-    badgeSvg: `<svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-weight="900" font-size="22" fill="#fff">M</text>
-    </svg>`,
-    txnSvg: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect width="24" height="24" rx="6" fill="#00a651"/>
-      <text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-weight="900" font-size="11" fill="#fff">M</text>
-    </svg>`,
+    badgeSvg: `<svg viewBox="0 0 60 60" fill="none"><text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-weight="900" font-size="22" fill="#fff">M</text></svg>`,
+    txnSvg: `<svg viewBox="0 0 24 24" fill="none"><rect width="24" height="24" rx="6" fill="#00a651"/><text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-weight="900" font-size="11" fill="#fff">M</text></svg>`,
   },
   paypal: {
     label: 'PayPal Online',
     badgeClass: 'paypal',
-    badgeSvg: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944.901C5.026.382 5.474 0 5.998 0h7.46c2.57 0 4.578.543 5.69 1.81 1.01 1.15 1.304 2.42 1.012 4.287-.023.143-.047.288-.077.437-.983 5.05-4.349 6.797-8.647 6.797h-2.19c-.524 0-.968.382-1.05.9l-1.12 7.106zm14.146-14.42a3.35 3.35 0 0 0-.607-.541c-.013.076-.026.175-.041.254-.93 4.778-4.005 7.201-9.138 7.201h-2.19a.563.563 0 0 0-.556.479l-1.187 7.527h-.506l-.24 1.516a.56.56 0 0 0 .554.647h3.882c.46 0 .85-.334.922-.788.06-.26.76-4.852.816-5.09a.932.932 0 0 1 .923-.788h.58c3.76 0 6.705-1.528 7.565-5.946.36-1.847.174-3.388-.777-4.47z" fill="#fff"/>
-    </svg>`,
-    txnSvg: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect width="24" height="24" rx="6" fill="#003087"/>
-      <path d="M7.5 17H5.5l1.5-9h3c1.5 0 2.5.7 2.3 2.2-.2 1.5-1.4 2.3-2.8 2.3H8l-.5 4.5zm1-5.5h1c.6 0 1-.3 1.1-.9.1-.5-.2-.8-.8-.8h-1l-.3 1.7z" fill="#fff"/>
-    </svg>`,
+    badgeSvg: `<svg viewBox="0 0 24 24" fill="none"><path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944.901C5.026.382 5.474 0 5.998 0h7.46c2.57 0 4.578.543 5.69 1.81 1.01 1.15 1.304 2.42 1.012 4.287-.023.143-.047.288-.077.437-.983 5.05-4.349 6.797-8.647 6.797h-2.19c-.524 0-.968.382-1.05.9l-1.12 7.106zm14.146-14.42a3.35 3.35 0 0 0-.607-.541c-.013.076-.026.175-.041.254-.93 4.778-4.005 7.201-9.138 7.201h-2.19a.563.563 0 0 0-.556.479l-1.187 7.527h-.506l-.24 1.516a.56.56 0 0 0 .554.647h3.882c.46 0 .85-.334.922-.788.06-.26.76-4.852.816-5.09a.932.932 0 0 1 .923-.788h.58c3.76 0 6.705-1.528 7.565-5.946.36-1.847.174-3.388-.777-4.47z" fill="#fff"/></svg>`,
+    txnSvg: `<svg viewBox="0 0 24 24" fill="none"><rect width="24" height="24" rx="6" fill="#003087"/><path d="M7.5 17H5.5l1.5-9h3c1.5 0 2.5.7 2.3 2.2-.2 1.5-1.4 2.3-2.8 2.3H8l-.5 4.5zm1-5.5h1c.6 0 1-.3 1.1-.9.1-.5-.2-.8-.8-.8h-1l-.3 1.7z" fill="#fff"/></svg>`,
   },
   binance: {
     label: 'Binance Pay Crypto',
     badgeClass: 'binance',
-    badgeSvg: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M12 0L9.36 2.64 12 5.28l2.64-2.64L12 0zM6.72 5.28L4.08 7.92l2.64 2.64 2.64-2.64-2.64-2.64zm10.56 0l-2.64 2.64 2.64 2.64 2.64-2.64-2.64-2.64zM12 8.04L7.92 12 12 16.08 16.08 12 12 8.04zM6.72 13.08l-2.64 2.64 2.64 2.64 2.64-2.64-2.64-2.64zm10.56 0l-2.64 2.64 2.64 2.64 2.64-2.64-2.64-2.64zM12 18.72L9.36 21.36 12 24l2.64-2.64L12 18.72z" fill="#1a1a1a"/>
-    </svg>`,
-    txnSvg: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect width="24" height="24" rx="6" fill="#f3ba2f"/>
-      <path d="M12 5l-1.5 1.5L12 8l1.5-1.5L12 5zM8.5 8.5L7 10l1.5 1.5L10 10 8.5 8.5zm7 0L14 10l1.5 1.5L17 10l-1.5-1.5zM12 11l-2 2 2 2 2-2-2-2zM8.5 13.5L7 15l1.5 1.5L10 15l-1.5-1.5zm7 0L14 15l1.5 1.5L17 15l-1.5-1.5zM12 16.5L10.5 18l1.5 1.5 1.5-1.5L12 16.5z" fill="#1a1a1a"/>
-    </svg>`,
+    badgeSvg: `<svg viewBox="0 0 24 24" fill="none"><path d="M12 0L9.36 2.64 12 5.28l2.64-2.64L12 0zM6.72 5.28L4.08 7.92l2.64 2.64 2.64-2.64-2.64-2.64zm10.56 0l-2.64 2.64 2.64 2.64 2.64-2.64-2.64-2.64zM12 8.04L7.92 12 12 16.08 16.08 12 12 8.04zM6.72 13.08l-2.64 2.64 2.64 2.64 2.64-2.64-2.64-2.64zm10.56 0l-2.64 2.64 2.64 2.64 2.64-2.64-2.64-2.64zM12 18.72L9.36 21.36 12 24l2.64-2.64L12 18.72z" fill="#1a1a1a"/></svg>`,
+    txnSvg: `<svg viewBox="0 0 24 24" fill="none"><rect width="24" height="24" rx="6" fill="#f3ba2f"/><path d="M12 5l-1.5 1.5L12 8l1.5-1.5L12 5zM8.5 8.5L7 10l1.5 1.5L10 10 8.5 8.5zm7 0L14 10l1.5 1.5L17 10l-1.5-1.5zM12 11l-2 2 2 2 2-2-2-2zM8.5 13.5L7 15l1.5 1.5L10 15l-1.5-1.5zm7 0L14 15l1.5 1.5L17 15l-1.5-1.5zM12 16.5L10.5 18l1.5 1.5 1.5-1.5L12 16.5z" fill="#1a1a1a"/></svg>`,
   },
 };
+
+/* ═══════════════════════════════════════════
+   REFERENCE GENERATOR
+   Format: AWT-YYYYMMDD-XXXXXX (6 alphanumeric)
+═══════════════════════════════════════════ */
+function generateRef() {
+  const now = new Date();
+  const d = now.toISOString().slice(0,10).replace(/-/g,'');
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let rand = '';
+  for (let i = 0; i < 6; i++) rand += chars[Math.floor(Math.random() * chars.length)];
+  return `AWT-${d}-${rand}`;
+}
+
+function refreshRef() {
+  currentRef = generateRef();
+  const el = document.getElementById('txRefDisplay');
+  if (el) el.textContent = currentRef;
+}
+
+function copyRef() {
+  if (!currentRef) return;
+  navigator.clipboard.writeText(currentRef).then(() => showToast('Reference copied!', 'success'));
+}
 
 /* ═══════════════════════════════════════════
    INIT
 ═══════════════════════════════════════════ */
 window.addEventListener('DOMContentLoaded', async () => {
+  refreshRef();
+
   const safeguard = setTimeout(() => { hideSplash(); showNoSession(); }, 8000);
 
   try {
@@ -774,7 +1012,6 @@ window.addEventListener('DOMContentLoaded', async () => {
       await loadUser();
       populateUI();
     } else {
-      // Try getUser as fallback (same as profile.html)
       const { data: ud } = await sb.auth.getUser();
       if (ud?.user) {
         user = ud.user;
@@ -793,6 +1030,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   hideSplash();
 
   if (!sb) return;
+
   sb.auth.onAuthStateChange(async (event, session) => {
     if (event === 'SIGNED_IN' && session?.user) {
       user = session.user;
@@ -817,14 +1055,10 @@ window.addEventListener('DOMContentLoaded', async () => {
 });
 
 /* ═══════════════════════════════════════════
-   DATA LOADING — same pattern as profile.html
-   Reads balance from profiles table, plus
-   calculates total earned from user_tasks +
-   community_earnings (like profile.html does)
+   DATA LOADING
 ═══════════════════════════════════════════ */
 async function loadUser() {
   try {
-    // Load profile (same query as profile.html)
     const { data: profile } = await sb
       .from('profiles')
       .select('*')
@@ -833,7 +1067,6 @@ async function loadUser() {
 
     userData = profile;
 
-    // Load task earnings (same as profile.html loadStats)
     const { data: tasks } = await sb
       .from('user_tasks')
       .select('id, reward, status')
@@ -843,7 +1076,6 @@ async function loadUser() {
       .filter(t => ['completed', 'done', 'approved'].includes(t.status))
       .reduce((sum, t) => sum + (parseFloat(t.reward) || 0), 0);
 
-    // Load community earnings (same as profile.html loadStats)
     const { data: commRows } = await sb
       .from('community_earnings')
       .select('amount')
@@ -852,13 +1084,11 @@ async function loadUser() {
     const commEarned = (commRows || [])
       .reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0);
 
-    // Attach computed totals to userData
     if (!userData) userData = {};
     userData._taskEarned  = taskEarned;
     userData._commEarned  = commEarned;
     userData._totalEarned = taskEarned + commEarned;
 
-    // Pending tasks (submitted but not yet approved)
     const pendingEarned = (tasks || [])
       .filter(t => ['pending', 'submitted', 'under_review'].includes(t.status))
       .reduce((sum, t) => sum + (parseFloat(t.reward) || 0), 0);
@@ -870,11 +1100,11 @@ async function loadUser() {
   }
 
   await loadWithdrawals();
+  await loadUserNotifications();
 }
 
 async function loadWithdrawals() {
   try {
-    // Try withdrawals table first
     let { data } = await sb
       .from('withdrawals')
       .select('*')
@@ -882,7 +1112,6 @@ async function loadWithdrawals() {
       .order('created_at', { ascending: false })
       .limit(50);
 
-    // Fallback to withdrawal_requests table (used in profile.html)
     if (!data || data.length === 0) {
       const res = await sb
         .from('withdrawal_requests')
@@ -890,19 +1119,11 @@ async function loadWithdrawals() {
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(50);
-      data = res.data || [];
-      // Normalize field names from withdrawal_requests → withdrawals format
-      data = data.map(r => ({
+      data = (res.data || []).map(r => ({
         ...r,
-        amount:       r.amount,
-        gross_amount: r.amount,
-        fee_amount:   0,
-        method:       r.method,
-        wallet_address: r.destination || '',
-        reference:    r.id,
-        status:       r.status,
-        verified:     true,
-        created_at:   r.created_at,
+        amount: r.amount, gross_amount: r.amount, fee_amount: 0,
+        method: r.method, wallet_address: r.destination || '',
+        reference: r.id, status: r.status, verified: true, created_at: r.created_at,
       }));
     }
 
@@ -914,21 +1135,165 @@ async function loadWithdrawals() {
   renderHistory();
 }
 
+async function loadUserNotifications() {
+  if (!user) return;
+  try {
+    const { data } = await sb
+      .from('notifications')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(30);
+    userNotifications = data || [];
+  } catch (e) {
+    userNotifications = [];
+  }
+  updateNotifBadge();
+}
+
+function updateNotifBadge() {
+  const unread = userNotifications.filter(n => !n.read).length;
+  const badge = document.getElementById('notifBadge');
+  if (badge) {
+    badge.textContent = unread > 9 ? '9+' : unread;
+    badge.classList.toggle('visible', unread > 0);
+  }
+}
+
+/* ═══════════════════════════════════════════
+   NOTIFICATION PANEL
+═══════════════════════════════════════════ */
+function openNotifPanel() {
+  renderNotifications();
+  document.getElementById('notifPanel').classList.add('open');
+}
+function closeNotifPanel() {
+  document.getElementById('notifPanel').classList.remove('open');
+}
+
+function renderNotifications() {
+  const list = document.getElementById('notifList');
+  if (!userNotifications.length) {
+    list.innerHTML = '<div class="notif-empty"><div class="ne-icon">🔕</div>No notifications yet</div>';
+    return;
+  }
+  const statusIcons = { pending: '⏳', processing: '🔄', 'in_progress': '🔄', completed: '✅', approved: '✅', cancelled: '❌', failed: '❌' };
+  list.innerHTML = userNotifications.map(n => `
+    <div class="notif-item ${n.read ? '' : 'unread'}">
+      <div class="notif-icon">${statusIcons[n.meta ? tryParseStatus(n.meta) : ''] || '🔔'}</div>
+      <div class="notif-body">
+        <div class="notif-title-text">${escHtml(n.title || 'Notification')}</div>
+        <div class="notif-msg">${escHtml(n.body || '')}</div>
+        <div class="notif-time">${fmtDate(n.created_at)}</div>
+      </div>
+    </div>`).join('');
+}
+
+function tryParseStatus(meta) {
+  try { return JSON.parse(meta).status || ''; } catch { return ''; }
+}
+
+async function markAllRead() {
+  if (!user || !userNotifications.length) return;
+  const ids = userNotifications.filter(n => !n.read).map(n => n.id);
+  if (!ids.length) return;
+  try {
+    await sb.from('notifications').update({ read: true }).in('id', ids);
+    userNotifications.forEach(n => n.read = true);
+    updateNotifBadge();
+    renderNotifications();
+    showToast('All notifications marked read', 'success');
+  } catch(e) {}
+}
+
+/* ═══════════════════════════════════════════
+   USER NOTIFICATION SENDER
+═══════════════════════════════════════════ */
+async function sendUserNotification({ title, body, status, method, amount, reference, withdrawalId }) {
+  if (!user) return;
+  const meta = JSON.stringify({ status, method, amount, reference, withdrawal_id: withdrawalId });
+  try {
+    const { data: inserted } = await sb.from('notifications').insert({
+      user_id:       user.id,
+      type:          'withdrawal',
+      title,
+      body,
+      meta,
+      is_admin_alert: false,
+      read:          false,
+      created_at:    new Date().toISOString(),
+    }).select().single();
+    if (inserted) {
+      userNotifications.unshift(inserted);
+      updateNotifBadge();
+    }
+  } catch(e) {
+    console.warn('sendUserNotification failed:', e);
+  }
+}
+
+/* Subscribe to realtime withdrawal status changes */
+function subscribeToWithdrawalUpdates(withdrawalId) {
+  if (!sb || !user) return;
+  try {
+    sb.channel('withdrawal-status-' + withdrawalId)
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'withdrawals',
+        filter: `id=eq.${withdrawalId}`,
+      }, payload => {
+        const newStatus = payload.new?.status;
+        const amt       = payload.new?.amount || payload.new?.gross_amount || 0;
+        const ref       = payload.new?.reference || withdrawalId;
+        const method    = payload.new?.method || selectedMethod;
+        const methodLabel = PM_CONFIG[method]?.label || method;
+        const statusLabels = {
+          pending:    'Pending',
+          processing: 'In Progress',
+          in_progress:'In Progress',
+          completed:  'Completed',
+          approved:   'Completed',
+          cancelled:  'Cancelled',
+          failed:     'Cancelled',
+        };
+        const label = statusLabels[newStatus] || cap(newStatus);
+        const icons = { Pending:'⏳', 'In Progress':'🔄', Completed:'✅', Cancelled:'❌' };
+        const icon  = icons[label] || '🔔';
+
+        sendUserNotification({
+          title: `${icon} Withdrawal ${label}`,
+          body:  `Your $${parseFloat(amt).toFixed(2)} withdrawal via ${methodLabel} is now ${label}. Ref: ${ref}`,
+          status: newStatus,
+          method, amount: amt, reference: ref, withdrawalId,
+        });
+
+        // Update local txn list
+        const txn = txns.find(t => t.id === withdrawalId);
+        if (txn) { txn.status = newStatus; renderHistory(); }
+        showToast(`${icon} Withdrawal status: ${label}`, newStatus === 'completed' ? 'success' : 'info');
+      })
+      .subscribe();
+  } catch(e) {
+    console.warn('realtime subscribe failed', e);
+  }
+}
+
 /* ═══════════════════════════════════════════
    POPULATE UI
 ═══════════════════════════════════════════ */
 function populateUI() {
   const name = userData?.display_name || userData?.full_name || userData?.username
                || user.email?.split('@')[0] || 'User';
-  document.getElementById('userAvatar').textContent = name[0].toUpperCase();
-  document.getElementById('userName').textContent   = name;
 
-  // Balance: prefer explicit balance field, fall back to computed total earned
+  // Profile button
+  const profileBtn = document.getElementById('profileBtn');
+  if (profileBtn) profileBtn.textContent = name[0].toUpperCase();
+
   const bal     = parseFloat(userData?.balance ?? userData?._totalEarned ?? 0);
   const earned  = parseFloat(userData?._totalEarned ?? userData?.total_earned ?? userData?.earnings ?? 0);
   const pending = parseFloat(userData?._pendingEarned ?? userData?.pending_balance ?? 0);
 
-  // Sum withdrawn from confirmed txns
   const withdrawn = txns
     .filter(t => ['completed', 'approved'].includes(t.status))
     .reduce((s, t) => s + (parseFloat(t.amount) || 0), 0);
@@ -942,14 +1307,81 @@ function populateUI() {
   document.getElementById('rService').textContent  = `(${(RATE_SERVICE*100).toFixed(2)}%)`;
   document.getElementById('rTotal').textContent    = `(${(RATE_TOTAL*100).toFixed(2)}%)`;
 
+  // Show balance quick info
+  const balQuick = document.getElementById('balQuick');
+  if (balQuick && bal > 0) {
+    balQuick.style.display = 'flex';
+    document.getElementById('quickBal').textContent = '$' + bal.toFixed(2);
+    const netAfterFee = bal - (bal * RATE_TOTAL);
+    document.getElementById('quickNet').textContent = '$' + netAfterFee.toFixed(2);
+  }
+
   document.getElementById('panelSend').classList.remove('hidden');
   document.getElementById('noSession').style.display = 'none';
   document.getElementById('submitBtn').disabled = true;
+
+  // Auto-fill M-Pesa phone from profile
+  prefillMpesaPhone();
+
+  // Auto-fill email for PayPal & Binance
+  prefillEmails();
+
+  // Generate fresh reference
+  refreshRef();
+}
+
+function prefillMpesaPhone() {
+  const phoneAlert = document.getElementById('mpesaPhoneAlert');
+  const phoneInput = document.getElementById('mpesaPhone');
+  const autoBadge  = document.getElementById('mpesaPhoneAutoBadge');
+
+  // Try multiple common field names for phone
+  let phone = userData?.phone_number || userData?.phone || userData?.mpesa_phone
+           || userData?.mobile || userData?.mobile_number || '';
+
+  if (phone) {
+    // Normalize: strip +254 prefix, ensure starts with 07 or 01
+    phone = phone.replace(/\D/g, '');
+    if (phone.startsWith('254')) phone = '0' + phone.slice(3);
+    phoneInput.value = phone;
+    if (autoBadge) autoBadge.style.display = 'inline';
+    if (phoneAlert) phoneAlert.classList.remove('visible');
+  } else {
+    phoneInput.value = '';
+    if (autoBadge) autoBadge.style.display = 'none';
+    if (phoneAlert) phoneAlert.classList.add('visible');
+  }
+
+  // Auto-fill name if available
+  const nameInput = document.getElementById('mpesaName');
+  const fullName = userData?.full_name || userData?.display_name || userData?.username || '';
+  if (nameInput && fullName) nameInput.value = fullName;
+}
+
+function prefillEmails() {
+  const email = user?.email || '';
+  if (!email) return;
+
+  // PayPal
+  const ppEl = document.getElementById('ppEmail');
+  if (ppEl && !ppEl.value) {
+    ppEl.value = email;
+    const badge = document.getElementById('ppEmailAutoBadge');
+    if (badge) badge.style.display = 'inline';
+  }
+
+  // Binance
+  const binEl = document.getElementById('binEmail');
+  if (binEl && !binEl.value) {
+    binEl.value = email;
+    const badge = document.getElementById('binEmailAutoBadge');
+    if (badge) badge.style.display = 'inline';
+  }
 }
 
 function showNoSession(msg) {
-  document.getElementById('userAvatar').textContent  = '?';
-  document.getElementById('userName').textContent    = 'Not signed in';
+  const profileBtn = document.getElementById('profileBtn');
+  if (profileBtn) profileBtn.textContent = '?';
   document.getElementById('balAmt').textContent      = '—';
   document.getElementById('noSession').style.display = 'flex';
   if (msg) document.getElementById('nsMsg').textContent = msg;
@@ -958,7 +1390,19 @@ function showNoSession(msg) {
 }
 
 /* ═══════════════════════════════════════════
-   PAYMENT METHOD DROPDOWN — with real logos
+   FILL ALL BALANCE
+═══════════════════════════════════════════ */
+function fillAllBalance() {
+  const bal = parseFloat(userData?.balance ?? userData?._totalEarned ?? 0);
+  if (bal <= 0) { showToast('No balance to withdraw', 'error'); return; }
+  document.getElementById('amount').value = bal.toFixed(2);
+  switchTab('send');
+  calcFees();
+  document.getElementById('amount').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+/* ═══════════════════════════════════════════
+   PAYMENT METHOD DROPDOWN
 ═══════════════════════════════════════════ */
 function togglePmDropdown() {
   const dd = document.getElementById('pmDropdown');
@@ -971,25 +1415,22 @@ function choosePm(m) {
   selectedMethod = m;
   const cfg = PM_CONFIG[m];
 
-  // Update selected badge with real logo
   const badge = document.getElementById('pmBadge');
   badge.className = 'pm-logo ' + cfg.badgeClass;
   badge.innerHTML = cfg.badgeSvg;
   document.getElementById('pmSelectedVal').textContent = cfg.label;
 
-  // Toggle checkmarks
   ['mpesa', 'paypal', 'binance'].forEach(id => {
     document.getElementById('opt-' + id).classList.toggle('active', id === m);
-  });
-
-  // Toggle fields
-  ['mpesa', 'paypal', 'binance'].forEach(id => {
     document.getElementById('fields-' + id).style.display = id === m ? 'block' : 'none';
   });
 
-  // Close dropdown
   document.getElementById('pmDropdown').classList.remove('open');
   document.getElementById('pmChevron').classList.remove('open');
+
+  // Re-prefill based on method
+  if (m === 'mpesa') prefillMpesaPhone();
+  if (m === 'paypal' || m === 'binance') prefillEmails();
 
   clearFields();
   validate();
@@ -1011,10 +1452,15 @@ function switchTab(tab) {
    BINANCE MUTUAL EXCLUSION
 ═══════════════════════════════════════════ */
 function onBinInput(which) {
-  if (which === 'email' && document.getElementById('binEmail').value)
+  const binEmailBadge = document.getElementById('binEmailAutoBadge');
+  if (which === 'email' && document.getElementById('binEmail').value) {
     document.getElementById('binUid').value = '';
-  if (which === 'uid' && document.getElementById('binUid').value)
+    if (binEmailBadge) binEmailBadge.style.display = 'none';
+  }
+  if (which === 'uid' && document.getElementById('binUid').value) {
     document.getElementById('binEmail').value = '';
+    if (binEmailBadge) binEmailBadge.style.display = 'none';
+  }
   validate();
 }
 
@@ -1094,7 +1540,10 @@ async function initiateWithdrawal() {
   const fto = amt * RATE_TOTAL;
   const net = amt - fto;
   const walletAddr = buildWalletAddress();
-  const ref = 'AT-' + Date.now().toString(36).toUpperCase();
+
+  // Use existing ref or regenerate
+  if (!currentRef) refreshRef();
+  const ref = currentRef;
 
   pendingWithdrawal = { amt, net, fto, walletAddr, ref };
 
@@ -1110,7 +1559,7 @@ async function initiateWithdrawal() {
   } catch(e) {
     showToast('Failed to send OTP. Try again.', 'error');
     btn.disabled = false;
-    btn.textContent = 'Withdraw Money';
+    validate();
     return;
   }
 
@@ -1170,7 +1619,7 @@ async function commitWithdrawal() {
   const bal    = parseFloat(userData?.balance ?? userData?._totalEarned ?? 0);
   const newBal = Math.max(0, bal - amt);
 
-  // 1. Update balance in profiles table
+  // 1. Update balance
   const { error: balErr } = await sb
     .from('profiles')
     .update({ balance: parseFloat(newBal.toFixed(6)) })
@@ -1196,16 +1645,27 @@ async function commitWithdrawal() {
     .single();
   if (wErr) throw new Error('Withdrawal record failed: ' + wErr.message);
 
-  // 3. Notify admin
-  const userName = userData?.display_name || userData?.full_name || userData?.username || user.email;
   const methodLabel = PM_CONFIG[selectedMethod]?.label || selectedMethod;
+  const userName    = userData?.display_name || userData?.full_name || userData?.username || user.email;
 
+  // 3. Notify USER — initial Pending notification
+  await sendUserNotification({
+    title:       '⏳ Withdrawal Submitted',
+    body:        `Your withdrawal of $${net.toFixed(2)} via ${methodLabel} is Pending review. Ref: ${ref}`,
+    status:      'pending',
+    method:      selectedMethod,
+    amount:      net.toFixed(2),
+    reference:   ref,
+    withdrawalId: wd?.id,
+  });
+
+  // 4. Notify ADMIN
   await sb.from('notifications').insert({
-    user_id: null,
-    type: 'admin',
-    title: '💸 New Withdrawal Request',
-    body: `${userName} requested $${net.toFixed(2)} via ${methodLabel} (ref: ${ref})`,
-    meta: JSON.stringify({
+    user_id:       null,
+    type:          'admin',
+    title:         '💸 New Withdrawal Request',
+    body:          `${userName} requested $${net.toFixed(2)} via ${methodLabel} (ref: ${ref})`,
+    meta:          JSON.stringify({
       withdrawal_id: wd?.id, user_id: user.id, user_name: userName, user_email: user.email,
       method: selectedMethod, wallet: walletAddr,
       net_amount: net.toFixed(4), gross_amount: amt.toFixed(4), fee_amount: fto.toFixed(4),
@@ -1221,21 +1681,27 @@ async function commitWithdrawal() {
     }).catch(() => {});
   });
 
-  // 4. Update local state
+  // 5. Subscribe to status updates for real-time notifications
+  if (wd?.id) subscribeToWithdrawalUpdates(wd.id);
+
+  // 6. Update local state
   if (userData) {
     userData.balance = newBal;
     if (userData._totalEarned !== undefined) userData._totalEarned = newBal;
   }
   document.getElementById('balAmt').textContent = newBal.toFixed(2);
 
-  // 5. Close OTP, show success
+  // 7. Close OTP, show success
   closeOtp();
   document.getElementById('successMsg').textContent =
-    `$${net.toFixed(2)} will be sent to your ${PM_CONFIG[selectedMethod]?.label} within 1–24 hours.`;
-  document.getElementById('successRef').textContent = 'Reference: ' + ref;
+    `$${net.toFixed(2)} will be sent to your ${methodLabel} within 1–24 hours.`;
+  document.getElementById('successRef').textContent = `Reference: ${ref}`;
   document.getElementById('successSheet').classList.add('open');
 
   showToast('✓ Withdrawal submitted!', 'success');
+
+  // Refresh ref for next transaction
+  refreshRef();
   resetForm();
   await loadUser();
   populateUI();
@@ -1266,9 +1732,6 @@ function buildWalletAddress() {
 }
 
 function clearFields() {
-  ['mpesaPhone','mpesaName','binEmail','binUid','ppEmail'].forEach(id => {
-    const el = document.getElementById(id); if(el) el.value = '';
-  });
   document.getElementById('feeBox').style.display  = 'none';
   document.getElementById('amtErr').style.display  = 'none';
 }
@@ -1278,6 +1741,7 @@ function resetForm() {
   clearFields();
   document.getElementById('submitBtn').disabled   = true;
   document.getElementById('submitBtn').textContent = 'Withdraw Money';
+  pendingWithdrawal = null;
 }
 
 function maskEmail(e) {
@@ -1290,8 +1754,12 @@ function maskPhone(p) {
   return s.slice(0,3) + '****' + s.slice(-2);
 }
 
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
 /* ═══════════════════════════════════════════
-   RENDER HISTORY — with real logos in icons
+   RENDER HISTORY
 ═══════════════════════════════════════════ */
 function renderHistory() {
   const badge = document.getElementById('txnBadge');
@@ -1310,20 +1778,26 @@ function renderHistory() {
   }
 
   const statusCol = {
-    pending:    '#f59e0b', processing: '#6366f1',
+    pending:    '#f59e0b', processing: '#6366f1', in_progress: '#6366f1',
     completed:  '#10b981', approved: '#10b981',
     failed:     '#ef4444', cancelled: '#94a3b8'
   };
 
+  const statusLabel = {
+    pending: 'Pending', processing: 'In Progress', in_progress: 'In Progress',
+    completed: 'Completed', approved: 'Completed',
+    failed: 'Cancelled', cancelled: 'Cancelled',
+  };
+
   el.innerHTML = '<div class="txn-list">' + txns.map(t => {
-    // Detect method from field or wallet address prefix
     const m = t.method || (
       t.wallet_address?.startsWith('MPESA')   ? 'mpesa'   :
       t.wallet_address?.startsWith('BIN')     ? 'binance' :
       t.wallet_address?.startsWith('PAYPAL')  ? 'paypal'  : 'mpesa'
     );
-    const cfg = PM_CONFIG[m] || PM_CONFIG.mpesa;
+    const cfg  = PM_CONFIG[m] || PM_CONFIG.mpesa;
     const col  = statusCol[t.status] || '#94a3b8';
+    const lbl  = statusLabel[t.status] || cap(t.status);
     const addr = (t.wallet_address || t.destination || '').split(':').slice(1).join(' · ').substring(0, 32);
     const net  = t.amount;
     const gross = t.gross_amount || t.amount;
@@ -1336,7 +1810,7 @@ function renderHistory() {
         <div>
           <div class="txn-method">${cfg.label}</div>
           <div class="txn-ref">${addr}</div>
-          <div class="txn-ref" style="color:var(--at-muted);font-size:.58rem;">${ref}</div>
+          <div class="txn-ref" style="color:var(--at-primary);font-size:.6rem;letter-spacing:.04em;">${ref}</div>
           <div class="txn-date">${fmtDate(t.created_at)}</div>
         </div>
       </div>
@@ -1344,7 +1818,7 @@ function renderHistory() {
         <div class="txn-amt">−$${f4(gross)}</div>
         <div class="txn-net">net $${f4(net)}</div>
         <div class="txn-status" style="color:${col}">
-          <span class="status-dot" style="background:${col}"></span>${t.status}
+          <span class="status-dot" style="background:${col}"></span>${lbl}
         </div>
         ${t.verified ? `<div style="font-family:var(--ff-mono);font-size:.58rem;color:var(--at-accent);margin-top:.1rem;">✓ verified</div>` : ''}
       </div>
