@@ -1538,23 +1538,16 @@ async function submitPost(){
     // Success — close modal and reset AFTER successful save
     closeCreateModal();
 
-    // Prepend to feed immediately
-    const feedEl = document.getElementById('feedContent');
-    const np = {
-      ...newPost,
-      id:          data.id,
-      author_id:   currentUser.id,
-      time:        'just now',
-      is_verified: currentUser.is_verified || false,
-    };
-    feedEl.insertAdjacentHTML('afterbegin', buildPostCard(np));
-
     // Fire-and-forget: activity log + post count
     db.from('user_activity').insert({user_id:currentUser.id, type:'post', post_id:data.id}).catch(()=>{});
     db.from('users').update({posts: (currentUser.posts||0)+1}).eq('id', currentUser.id)
       .then(()=>{ currentUser.posts = (currentUser.posts||0)+1; }).catch(()=>{});
 
     showToast('✅ Post published to Amulytask!');
+
+    // FIX: Reload feed from DB so posts persist after refresh
+    // (in-memory prepend alone causes posts to vanish on page reload)
+    await loadFeed();
   } catch(e) {
     console.error('submitPost error:', e);
     errEl.textContent = '❌ Could not publish: ' + (e.message || 'Unknown error. Check RLS policies.');
@@ -1582,6 +1575,99 @@ function closeCreateModal(){
 
 /* ══════════ BOOT ══════════ */
 initAuth();
+
+/* ══════════════════════════════════════════════════
+   ADMIN DASHBOARD HOOK
+   Lets the admin dashboard communicate with this page.
+
+   Usage from admin dashboard (same origin or via postMessage):
+   1. postMessage:  communityWindow.postMessage({ type: 'ADMIN_POST_CREATED' }, '*')
+   2. Direct call:  await window.fetchAdminPosts()
+                    await window.publishAdminPost({ content, type, ... })
+                    await window.refreshFeedFromAdmin()
+══════════════════════════════════════════════════ */
+
+/**
+ * Fetch all admin posts from Supabase (is_admin = true).
+ * Called by the admin dashboard to preview / manage posts.
+ */
+window.fetchAdminPosts = async function() {
+  try {
+    const { data, error } = await db
+      .from('community_posts')
+      .select('*, users(display_name, is_admin, is_verified)')
+      .eq('is_admin', true)
+      .order('created_at', { ascending: false })
+      .limit(50);
+    if (error) throw error;
+    return (data || []).map(normalizePost);
+  } catch (e) {
+    console.error('[fetchAdminPosts]', e);
+    return [];
+  }
+};
+
+/**
+ * Publish a post as admin from the dashboard.
+ * @param {Object} postData  - { content, type, article_title, article_url, video_url, image_url }
+ */
+window.publishAdminPost = async function(postData) {
+  if (!currentUser) { console.warn('[publishAdminPost] Not authenticated'); return null; }
+  try {
+    const record = {
+      user_id:       currentUser.id,
+      author:        currentUser.display_name || 'Admin',
+      is_admin:      true,
+      type:          postData.type || 'text',
+      content:       postData.content || '',
+      likes:         0,
+      comments:      0,
+      video_url:     postData.video_url     || null,
+      image_url:     postData.image_url     || null,
+      article_title: postData.article_title || null,
+      article_url:   postData.article_url   || null,
+    };
+    const { data, error } = await db
+      .from('community_posts')
+      .insert(record)
+      .select('*')
+      .single();
+    if (error) throw error;
+    await loadFeed();   // refresh community feed immediately
+    return data;
+  } catch (e) {
+    console.error('[publishAdminPost]', e);
+    return null;
+  }
+};
+
+/**
+ * Force-reload the community feed from the database.
+ */
+window.refreshFeedFromAdmin = async function() {
+  await loadFeed();
+};
+
+/* postMessage listener — admin dashboard in another tab/iframe
+   can send { type: 'ADMIN_POST_CREATED' } to trigger a reload  */
+window.addEventListener('message', async (event) => {
+  const msg = event.data;
+  if (!msg || typeof msg !== 'object') return;
+  switch (msg.type) {
+    case 'ADMIN_POST_CREATED':
+      await loadFeed();
+      showToast('📢 New admin post loaded!');
+      break;
+    case 'ADMIN_POST_DELETED':
+      await loadFeed();
+      showToast('🗑️ Post removed by admin.');
+      break;
+    case 'ADMIN_FETCH_POSTS':
+      const posts = await window.fetchAdminPosts();
+      event.source && event.source.postMessage({ type: 'ADMIN_POSTS_DATA', posts }, event.origin || '*');
+      break;
+  }
+});
 
 /*
 ╔══════════════════════════════════════════════════════════════╗
