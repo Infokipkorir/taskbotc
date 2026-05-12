@@ -987,10 +987,15 @@ function copyRef() {
 ══════════════════════════════════════════ */
 window.addEventListener('DOMContentLoaded', async () => {
   refreshRef();
-  const safeguard = setTimeout(() => { hideSplash(); showNoSession(); }, 8000);
+
+  const safeguard = setTimeout(() => {
+    hideSplash();
+    showNoSession();
+  }, 8000);
 
   try {
     sb = supabase.createClient(SB_URL, SB_KEY);
+
     const { data, error } = await sb.auth.getSession();
     clearTimeout(safeguard);
     if (error) throw error;
@@ -1000,19 +1005,12 @@ window.addEventListener('DOMContentLoaded', async () => {
       await loadUser();
       populateUI();
     } else {
-      const { data: ud } = await sb.auth.getUser();
-      if (ud?.user) {
-        user = ud.user;
-        await loadUser();
-        populateUI();
-      } else {
-        showNoSession();
-      }
+      showNoSession();
     }
   } catch (err) {
     clearTimeout(safeguard);
     console.error('Wallet init:', err);
-    showNoSession('Connection error — please try again.');
+    showNoSession('Authentication error — please try again.');
   }
 
   hideSplash();
@@ -1020,9 +1018,14 @@ window.addEventListener('DOMContentLoaded', async () => {
   if (!sb) return;
   sb.auth.onAuthStateChange(async (event, session) => {
     if (event === 'SIGNED_IN' && session?.user) {
-      user = session.user; await loadUser(); populateUI();
+      user = session.user;
+      await loadUser();
+      populateUI();
     } else if (event === 'SIGNED_OUT') {
-      user = null; userData = null; txns = []; showNoSession();
+      user = null;
+      userData = null;
+      txns = [];
+      showNoSession();
     }
   });
 });
@@ -1030,29 +1033,61 @@ window.addEventListener('DOMContentLoaded', async () => {
 /* ══════════════════════════════════════════
    DATA LOADING
 ══════════════════════════════════════════ */
-async function loadUser() {
+
+    async function loadUser() {
+  // Guard + defaults
+  const currentUserId = user?.id;
+  if (!currentUserId) return;
+
+  userData = userData || {};
+  userData._taskEarned = 0;
+  userData._commEarned = 0;
+  userData._totalEarned = 0;
+  userData._pendingEarned = 0;
+
   try {
-    const { data: profile } = await sb.from('profiles').select('*').eq('id', user.id).maybeSingle();
-    userData = profile;
+    // profiles table: id (uuid) matches auth.users.id
+    const { data: profile } = await sb
+      .from('profiles')
+      .select('*')
+      .eq('id', currentUserId)
+      .maybeSingle();
 
-    const { data: tasks } = await sb.from('user_tasks').select('id, reward, status').eq('user_id', user.id);
-    const taskEarned = (tasks || []).filter(t => ['completed','done','approved'].includes(t.status)).reduce((s,t) => s + (parseFloat(t.reward)||0), 0);
+    if (profile) userData = profile;
 
-    const { data: commRows } = await sb.from('community_earnings').select('amount').eq('user_id', user.id);
-    const commEarned = (commRows || []).reduce((s,r) => s + (parseFloat(r.amount)||0), 0);
+    // user_tasks: status + reward
+    const { data: tasks } = await sb
+      .from('user_tasks')
+      .select('status,reward')
+      .eq('user_id', currentUserId);
 
-    if (!userData) userData = {};
-    userData._taskEarned  = taskEarned;
-    userData._commEarned  = commEarned;
-    userData._totalEarned = taskEarned + commEarned;
+    const taskRows = tasks || [];
 
-    const pendingEarned = (tasks || [])
-      .filter(t => ['pending','submitted','under_review'].includes(t.status))
-      .reduce((s,t) => s + (parseFloat(t.reward)||0), 0);
-    userData._pendingEarned = pendingEarned;
-  } catch(err) {
+    const earnedTaskStatuses = ['completed', 'done', 'approved'];
+    const pendingTaskStatuses = ['pending', 'submitted', 'under_review'];
+
+    userData._taskEarned = taskRows
+      .filter(t => earnedTaskStatuses.includes(t.status))
+      .reduce((s, t) => s + Number(t.reward || 0), 0);
+
+    userData._pendingEarned = taskRows
+      .filter(t => pendingTaskStatuses.includes(t.status))
+      .reduce((s, t) => s + Number(t.reward || 0), 0);
+
+    // community_earnings: amount
+    const { data: commRows } = await sb
+      .from('community_earnings')
+      .select('amount')
+      .eq('user_id', currentUserId);
+
+    const comm = commRows || [];
+    userData._commEarned = comm.reduce((s, r) => s + Number(r.amount || 0), 0);
+
+    userData._totalEarned = userData._taskEarned + userData._commEarned;
+  } catch (err) {
     console.error('loadUser:', err);
-    if (!userData) userData = {};
+    userData = userData || {};
+    // keep defaults so UI doesn’t explode
   }
 
   await loadWithdrawals();
@@ -1061,41 +1096,65 @@ async function loadUser() {
 
 async function loadWithdrawals() {
   try {
-    let { data } = await sb.from('withdrawals').select('*').eq('user_id', user.id)
-      .order('created_at', { ascending: false }).limit(50);
+    // withdrawals table only (no withdrawal_requests table exists in your schema)
+    const { data } = await sb
+      .from('withdrawals')
+      .select('*')
+      .eq('user_id', user?.id)
+      .order('created_at', { ascending: false })
+      .limit(50);
 
-    if (!data || !data.length) {
-      const res = await sb.from('withdrawal_requests').select('*').eq('user_id', user.id)
-        .order('created_at', { ascending: false }).limit(50);
-      data = (res.data || []).map(r => ({
-        ...r, amount: r.amount, gross_amount: r.amount, fee_amount: 0,
-        method: r.method, wallet_address: r.destination || '',
-        reference: r.id, status: r.status, verified: true, created_at: r.created_at,
-      }));
-    }
-    txns = data || [];
-  } catch(err) {
+    txns = (data || []).map(r => ({
+      ...r,
+      // normalize fields to what your UI expects
+      gross_amount: r.amount,
+      fee_amount: 0,
+      wallet_address: r.wallet_address || '',
+      reference: r.reference_code || r.id,
+    }));
+  } catch (err) {
     console.error('loadWithdrawals:', err);
     txns = [];
   }
+
   renderHistory();
 }
 
 async function loadUserNotifications() {
-  if (!user) return;
+  if (!user?.id) return;
+
   try {
-    const { data } = await sb.from('notifications').select('*').eq('user_id', user.id)
-      .order('created_at', { ascending: false }).limit(30);
+    const { data } = await sb
+      .from('notifications')
+      .select('*')
+      .eq('target_user_id', user.id) // if your system uses per-user notifications
+      .or(`target_user_id.eq.null,is_global.eq.true`)
+      .order('created_at', { ascending: false })
+      .limit(30);
+
     userNotifications = data || [];
-  } catch(e) { userNotifications = []; }
+  } catch (e) {
+    console.error('loadUserNotifications:', e);
+    userNotifications = [];
+  }
+
   updateNotifBadge();
 }
 
 function updateNotifBadge() {
-  const unread = userNotifications.filter(n => !n.read).length;
-  const badge  = document.getElementById('notifBadge');
+  const currentUserId = user?.id;
+  if (!currentUserId) return;
+
+  // notifications table uses: is_read_by (jsonb)
+  // We'll treat unread as "NOT included in is_read_by"
+  const unread = (userNotifications || []).filter(n => {
+    const list = Array.isArray(n.is_read_by) ? n.is_read_by : [];
+    return !list.includes(currentUserId);
+  }).length;
+
+  const badge = document.getElementById('notifBadge');
   if (badge) {
-    badge.textContent = unread > 9 ? '9+' : unread;
+    badge.textContent = unread > 9 ? '9+' : String(unread);
     badge.classList.toggle('visible', unread > 0);
   }
 }
@@ -1103,64 +1162,73 @@ function updateNotifBadge() {
 /* ══════════════════════════════════════════
    NOTIFICATION PANEL
 ══════════════════════════════════════════ */
-function openNotifPanel() {
-  renderNotifications();
-  document.getElementById('notifPanel').classList.add('open');
-}
-function closeNotifPanel() {
-  document.getElementById('notifPanel').classList.remove('open');
-}
-function renderNotifications() {
-  const list = document.getElementById('notifList');
-  if (!userNotifications.length) {
-    list.innerHTML = '<div class="notif-empty"><i class="bi bi-bell-slash"></i>No notifications yet</div>';
-    return;
-  }
-  const icons = { pending:'⏳', processing:'🔄', in_progress:'🔄', completed:'✅', approved:'✅', cancelled:'❌', failed:'❌' };
-  list.innerHTML = userNotifications.map(n => `
-    <div class="notif-item ${n.read ? '' : 'unread'}">
-      <div class="notif-icon-wrap">${icons[tryStatus(n.meta)] || '🔔'}</div>
-      <div class="notif-body">
-        <div class="notif-title-txt">${esc(n.title || 'Notification')}</div>
-        <div class="notif-msg">${esc(n.body || '')}</div>
-        <div class="notif-time">${fmtDate(n.created_at)}</div>
-      </div>
-    </div>`).join('');
-}
-function tryStatus(meta) { try { return JSON.parse(meta).status || ''; } catch { return ''; } }
 async function markAllRead() {
-  if (!user || !userNotifications.length) return;
-  const ids = userNotifications.filter(n => !n.read).map(n => n.id);
-  if (!ids.length) return;
-  try {
-    await sb.from('notifications').update({ read: true }).in('id', ids);
-    userNotifications.forEach(n => n.read = true);
-    updateNotifBadge(); renderNotifications();
-    toast('All notifications marked read', 'success');
-  } catch(e) {}
-}
+  if (!user?.id || !userNotifications.length) return;
 
+  const ids = userNotifications
+    .filter(n => isNotifUnread(n))
+    .map(n => n.id);
+
+  if (!ids.length) return;
+
+  try {
+    // Append current user's id into the jsonb array
+    await sb
+      .from('notifications')
+      .update({
+        is_read_by: (coalesce(is_read_by, '[]'::jsonb) || jsonb_build_array(user.id))
+      })
+      .in('id', ids);
+
+    // Update local state for immediate UI feedback
+    userNotifications = userNotifications.map(n => {
+      if (ids.includes(n.id)) {
+        const prev = Array.isArray(n.is_read_by) ? n.is_read_by : [];
+        if (!prev.includes(user.id)) prev.push(user.id);
+        return { ...n, is_read_by: prev };
+      }
+      return n;
+    });
+
+    updateNotifBadge();
+    renderNotifications();
+    toast('All notifications marked read', 'success');
+  } catch (e) {
+    console.error('markAllRead:', e);
+  }
+}
 /* ══════════════════════════════════════════
    POPULATE UI
 ══════════════════════════════════════════ */
 function populateUI() {
-  const name = userData?.display_name || userData?.full_name || userData?.username || user.email?.split('@')[0] || 'U';
+  const name =
+    userData?.display_name ||
+    userData?.full_name ||
+    userData?.username ||
+    user?.email?.split('@')[0] ||
+    'U';
+
   const profileBtn = document.getElementById('profileBtn');
-  if (profileBtn) profileBtn.textContent = name[0].toUpperCase();
+  if (profileBtn && name) profileBtn.textContent = name[0].toUpperCase();
 
-  const bal     = parseFloat(userData?.balance ?? userData?._totalEarned ?? 0);
-  const earned  = parseFloat(userData?._totalEarned ?? userData?.total_earned ?? userData?.earnings ?? 0);
-  const pending = parseFloat(userData?._pendingEarned ?? userData?.pending_balance ?? 0);
-  const withdrawn = txns.filter(t => ['completed','approved'].includes(t.status)).reduce((s,t) => s + (parseFloat(t.amount)||0), 0);
+  // Match DB columns exactly: public.users.balance, total_earned, pending_balance
+  const bal = parseFloat(userData?.balance ?? 0);
+  const earned = parseFloat(userData?.total_earned ?? 0);
+  const pending = parseFloat(userData?.pending_balance ?? 0);
 
-  document.getElementById('balAmt').textContent        = bal.toFixed(2);
-  document.getElementById('statTotal').textContent     = '$' + earned.toFixed(2);
-  document.getElementById('statPending').textContent   = '$' + pending.toFixed(2);
+  // Assumes `txns` is withdrawals and has fields { status, amount }
+  const withdrawn = txns
+    .filter(t => ['completed', 'approved'].includes(t.status))
+    .reduce((s, t) => s + (parseFloat(t.amount) || 0), 0);
+
+  document.getElementById('balAmt').textContent = bal.toFixed(2);
+  document.getElementById('statTotal').textContent = '$' + earned.toFixed(2);
+  document.getElementById('statPending').textContent = '$' + pending.toFixed(2);
   document.getElementById('statWithdrawn').textContent = '$' + withdrawn.toFixed(2);
 
-  document.getElementById('rTransfer').textContent = `(${(RATE_TRANSFER*100).toFixed(2)}%)`;
-  document.getElementById('rService').textContent  = `(${(RATE_SERVICE*100).toFixed(2)}%)`;
-  document.getElementById('rTotal').textContent    = `(${(RATE_TOTAL*100).toFixed(2)}%)`;
+  document.getElementById('rTransfer').textContent = `(${(RATE_TRANSFER * 100).toFixed(2)}%)`;
+  document.getElementById('rService').textContent = `(${(RATE_SERVICE * 100).toFixed(2)}%)`;
+  document.getElementById('rTotal').textContent = `(${(RATE_TOTAL * 100).toFixed(2)}%)`;
 
   const balQuick = document.getElementById('balQuick');
   if (balQuick && bal > 0) {
@@ -1179,14 +1247,21 @@ function populateUI() {
 }
 
 function prefillMpesaPhone() {
-  let phone = userData?.phone_number || userData?.phone || userData?.mpesa_phone || userData?.mobile || '';
+  // Match DB column exactly: public.users.phone
+  let phone = userData?.phone || '';
+
   const inp = document.getElementById('mpesaPhone');
   const badge = document.getElementById('mpesaPhoneAutoBadge');
   const alert = document.getElementById('mpesaPhoneAlert');
+
   if (phone) {
-    phone = phone.replace(/\D/g,'');
+    phone = String(phone).replace(/\D/g, '');
+
+    // Keep your formatting rule
     if (phone.startsWith('254')) phone = '0' + phone.slice(3);
+
     inp.value = phone;
+
     if (badge) badge.style.display = 'inline';
     if (alert) alert.classList.remove('visible');
   } else {
@@ -1194,6 +1269,7 @@ function prefillMpesaPhone() {
     if (badge) badge.style.display = 'none';
     if (alert) alert.classList.add('visible');
   }
+
   const nameInp = document.getElementById('mpesaName');
   const fullName = userData?.full_name || userData?.display_name || userData?.username || '';
   if (nameInp && fullName) nameInp.value = fullName;
@@ -1202,21 +1278,35 @@ function prefillMpesaPhone() {
 function prefillEmails() {
   const email = user?.email || '';
   if (!email) return;
+
   const ppEl = document.getElementById('ppEmail');
-  if (ppEl && !ppEl.value) { ppEl.value = email; const b = document.getElementById('ppEmailAutoBadge'); if (b) b.style.display = 'inline'; }
+  if (ppEl && !ppEl.value) {
+    ppEl.value = email;
+    const b = document.getElementById('ppEmailAutoBadge');
+    if (b) b.style.display = 'inline';
+  }
+
   const binEl = document.getElementById('binEmail');
-  if (binEl && !binEl.value) { binEl.value = email; const b = document.getElementById('binEmailAutoBadge'); if (b) b.style.display = 'inline'; }
+  if (binEl && !binEl.value) {
+    binEl.value = email;
+    const b = document.getElementById('binEmailAutoBadge');
+    if (b) b.style.display = 'inline';
+  }
 }
 
 function showNoSession(msg) {
   const profileBtn = document.getElementById('profileBtn');
   if (profileBtn) profileBtn.textContent = '?';
+
   document.getElementById('balAmt').textContent = '—';
   document.getElementById('noSession').style.display = 'flex';
   if (msg) document.getElementById('nsMsg').textContent = msg;
+
   document.getElementById('panelSend').classList.add('hidden');
   document.getElementById('panelHistory').classList.add('hidden');
 }
+
+
 
 /* ══════════════════════════════════════════
    FILL ALL BALANCE
@@ -1345,22 +1435,142 @@ function isEmail(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
 /* ══════════════════════════════════════════
    SUBMIT WITHDRAWAL (direct — no OTP)
 ══════════════════════════════════════════ */
+/* ══════════════════════════════════════════
+   POPULATE UI
+══════════════════════════════════════════ */
+function populateUI() {
+  const name =
+    userData?.display_name ||
+    userData?.full_name ||
+    userData?.username ||
+    user?.email?.split('@')[0] ||
+    'U';
+
+  const profileBtn = document.getElementById('profileBtn');
+  if (profileBtn && name) profileBtn.textContent = name[0].toUpperCase();
+
+  // Match DB columns: public.users.balance, total_earned, pending_balance
+  const bal = parseFloat(userData?.balance ?? 0);
+  const earned = parseFloat(userData?.total_earned ?? 0);
+  const pending = parseFloat(userData?.pending_balance ?? 0);
+
+  // Your withdrawals currently only have status = 'pending'
+  // So show withdrawn as pending withdrawals for now.
+  const withdrawn = (txns || [])
+    .filter(t => t.status === 'pending')
+    .reduce((s, t) => s + (parseFloat(t.amount) || 0), 0);
+
+  document.getElementById('balAmt').textContent = bal.toFixed(2);
+  document.getElementById('statTotal').textContent = '$' + earned.toFixed(2);
+  document.getElementById('statPending').textContent = '$' + pending.toFixed(2);
+  document.getElementById('statWithdrawn').textContent = '$' + withdrawn.toFixed(2);
+
+  document.getElementById('rTransfer').textContent = `(${(RATE_TRANSFER * 100).toFixed(2)}%)`;
+  document.getElementById('rService').textContent = `(${(RATE_SERVICE * 100).toFixed(2)}%)`;
+  document.getElementById('rTotal').textContent = `(${(RATE_TOTAL * 100).toFixed(2)}%)`;
+
+  const balQuick = document.getElementById('balQuick');
+  if (balQuick && bal > 0) {
+    balQuick.style.display = 'flex';
+    document.getElementById('quickBal').textContent = '$' + bal.toFixed(2);
+    document.getElementById('quickNet').textContent = '$' + (bal - bal * RATE_TOTAL).toFixed(2);
+  }
+
+  document.getElementById('panelSend').classList.remove('hidden');
+  document.getElementById('noSession').style.display = 'none';
+  document.getElementById('submitBtn').disabled = true;
+
+  prefillMpesaPhone();
+  prefillEmails();
+  refreshRef();
+}
+
+function prefillMpesaPhone() {
+  // Match DB column: public.users.phone
+  let phone = userData?.phone || '';
+
+  const inp = document.getElementById('mpesaPhone');
+  const badge = document.getElementById('mpesaPhoneAutoBadge');
+  const alert = document.getElementById('mpesaPhoneAlert');
+
+  if (phone) {
+    phone = String(phone).replace(/\D/g, '');
+    if (phone.startsWith('254')) phone = '0' + phone.slice(3);
+    inp.value = phone;
+
+    if (badge) badge.style.display = 'inline';
+    if (alert) alert.classList.remove('visible');
+  } else {
+    inp.value = '';
+    if (badge) badge.style.display = 'none';
+    if (alert) alert.classList.add('visible');
+  }
+
+  const nameInp = document.getElementById('mpesaName');
+  const fullName = userData?.full_name || userData?.display_name || userData?.username || '';
+  if (nameInp && fullName) nameInp.value = fullName;
+}
+
+function prefillEmails() {
+  const email = user?.email || '';
+  if (!email) return;
+
+  const ppEl = document.getElementById('ppEmail');
+  if (ppEl && !ppEl.value) {
+    ppEl.value = email;
+    const b = document.getElementById('ppEmailAutoBadge');
+    if (b) b.style.display = 'inline';
+  }
+
+  const binEl = document.getElementById('binEmail');
+  if (binEl && !binEl.value) {
+    binEl.value = email;
+    const b = document.getElementById('binEmailAutoBadge');
+    if (b) b.style.display = 'inline';
+  }
+}
+
+function showNoSession(msg) {
+  const profileBtn = document.getElementById('profileBtn');
+  if (profileBtn) profileBtn.textContent = '?';
+
+  document.getElementById('balAmt').textContent = '—';
+  document.getElementById('noSession').style.display = 'flex';
+  if (msg) document.getElementById('nsMsg').textContent = msg;
+
+  document.getElementById('panelSend').classList.add('hidden');
+  document.getElementById('panelHistory').classList.add('hidden');
+}
+
+/* ══════════════════════════════════════════
+   SUBMIT WITHDRAWAL (direct — no OTP)
+══════════════════════════════════════════ */
 async function submitWithdrawal() {
   const btn = document.getElementById('submitBtn');
   if (btn.disabled) return;
 
   const amt = parseFloat(document.getElementById('amount').value);
-  const bal = parseFloat(userData?.balance ?? userData?._totalEarned ?? 0);
+  const bal = parseFloat(userData?.balance ?? 0);
 
-  if (amt > bal) { toast(`Insufficient balance. Available: $${bal.toFixed(2)}`, 'error'); return; }
+  if (amt > bal) {
+    toast(`Insufficient balance. Available: $${bal.toFixed(2)}`, 'error');
+    return;
+  }
+
   if (!currentRef) refreshRef();
 
-  const fto = amt * RATE_TOTAL;
-  const net = amt - fto;
+  const fee = amt * RATE_TOTAL;     // fee amount
+  const net = amt - fee;           // amount stored in withdrawals.amount
   const ref = currentRef;
+
   const walletAddr = buildWalletAddress();
   const methodLabel = PM_CONFIG[selectedMethod]?.label || selectedMethod;
-  const userName    = userData?.display_name || userData?.full_name || userData?.username || user.email;
+
+  const userName =
+    userData?.display_name ||
+    userData?.full_name ||
+    userData?.username ||
+    user?.email;
 
   btn.disabled = true;
   btn.innerHTML = '<span class="spin"><i class="bi bi-arrow-repeat"></i></span> Submitting…';
@@ -1368,58 +1578,80 @@ async function submitWithdrawal() {
   try {
     const newBal = Math.max(0, bal - amt);
 
-    // 1. Update balance
-    const { error: balErr } = await sb.from('profiles')
+    // 1) Update balance in public.users (NOT profiles)
+    const { error: balErr } = await sb
+      .from('users')
       .update({ balance: parseFloat(newBal.toFixed(6)) })
       .eq('id', user.id);
+
     if (balErr) throw new Error('Balance update failed: ' + balErr.message);
 
-    // 2. Insert withdrawal record
-    const { data: wd, error: wErr } = await sb.from('withdrawals').insert({
-      user_id:        user.id,
-      amount:         parseFloat(net.toFixed(6)),
-      gross_amount:   parseFloat(amt.toFixed(6)),
-      fee_amount:     parseFloat(fto.toFixed(6)),
-      method:         selectedMethod,
-      wallet_address: walletAddr,
-      reference:      ref,
-      status:         'pending',
-      verified:       true,
-      created_at:     new Date().toISOString(),
-    }).select().single();
+    // 2) Insert withdrawal record into public.withdrawals
+    // Match your schema: status, wallet_address, reference_code, created_at, etc.
+    const { data: wd, error: wErr } = await sb
+      .from('withdrawals')
+      .insert({
+        user_id: user.id,
+        amount: parseFloat(net.toFixed(6)),
+        method: selectedMethod,
+        wallet_address: walletAddr,
+        status: 'pending',
+        reference_code: ref,
+        created_at: new Date().toISOString(),
+      })
+      .select()
+      .single();
+
     if (wErr) throw new Error('Withdrawal record failed: ' + wErr.message);
 
-    // 3. Notify user
+    // 3) Notify user (keep your existing helper)
     await sendUserNotification({
       title: '⏳ Withdrawal Submitted',
       body: `Your withdrawal of $${net.toFixed(2)} via ${methodLabel} is Pending review. Ref: ${ref}`,
-      status: 'pending', method: selectedMethod, amount: net.toFixed(2),
-      reference: ref, withdrawalId: wd?.id,
+      status: 'pending',
+      method: selectedMethod,
+      amount: net.toFixed(2),
+      reference: ref,
+      withdrawalId: wd?.id,
     });
 
-    // 4. Notify admin
-    await sb.from('notifications').insert({
-      user_id: null, type: 'admin',
-      title: `💸 New Withdrawal Request`,
-      body:  `${userName} requested $${net.toFixed(2)} via ${methodLabel} (ref: ${ref})`,
-      meta: JSON.stringify({
-        withdrawal_id: wd?.id, user_id: user.id, user_name: userName, user_email: user.email,
-        method: selectedMethod, wallet: walletAddr,
-        net_amount: net.toFixed(4), gross_amount: amt.toFixed(4), fee_amount: fto.toFixed(4),
-        reference: ref, status: 'pending',
-      }),
-      is_admin_alert: true, read: false, created_at: new Date().toISOString(),
-    }).catch(() => {});
+    // 4) Notify admin (only if your notifications table supports these columns)
+    await sb
+      .from('notifications')
+      .insert({
+        user_id: null,
+        type: 'admin',
+        title: `💸 New Withdrawal Request`,
+        body: `${userName} requested $${net.toFixed(2)} via ${methodLabel} (ref: ${ref})`,
+        meta: JSON.stringify({
+          withdrawal_id: wd?.id,
+          user_id: user.id,
+          user_name: userName,
+          user_email: user?.email,
+          method: selectedMethod,
+          wallet: walletAddr,
+          net_amount: net.toFixed(4),
+          gross_amount: amt.toFixed(4),
+          fee_amount: fee.toFixed(4),
+          reference: ref,
+          status: 'pending',
+        }),
+        is_admin_alert: true,
+        read: false,
+        created_at: new Date().toISOString(),
+      })
+      .catch(() => {});
 
-    // 5. Subscribe to real-time updates
+    // 5) Subscribe to real-time updates
     if (wd?.id) subscribeToWithdrawalUpdates(wd.id);
 
-    // 6. Update local state
-    if (userData) { userData.balance = newBal; }
+    // 6) Update local state + UI
+    if (userData) userData.balance = newBal;
+
     document.getElementById('balAmt').textContent = newBal.toFixed(2);
 
-    // 7. Show success
-    document.getElementById('successMsg').textContent = `$${net.toFixed(2)} will be sent to your ${methodLabel} within 1–24 hours.`;
+    document.getElementById('successMsg').textContent =
+      `$${net.toFixed(2)} will be sent to your ${methodLabel} within 1–24 hours.`;
     document.getElementById('successRef').textContent = ref;
     document.getElementById('successSheet').classList.add('open');
 
@@ -1428,8 +1660,7 @@ async function submitWithdrawal() {
     resetForm();
     await loadUser();
     populateUI();
-
-  } catch(e) {
+  } catch (e) {
     toast('Error: ' + e.message, 'error');
     btn.disabled = false;
     validate();
@@ -1438,7 +1669,7 @@ async function submitWithdrawal() {
 
 function closeSuccess() {
   document.getElementById('successSheet').classList.remove('open');
-}
+                          }
 
 /* ══════════════════════════════════════════
    USER NOTIFICATION SENDER
