@@ -346,6 +346,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     <div class="up-loading" id="authLoading">
       <div class="up-spinner"></div>
       Checking your session…
+      <span id="authLoadingSub" style="font-size:11px;opacity:.5;margin-top:-4px;">This usually takes 1–2 seconds</span>
     </div>
     <div id="authError" style="display:none;" class="auth-error"></div>
   </div>
@@ -633,16 +634,24 @@ function verifiedBadge(){
   </svg></span>`;
 }
 
-/* ══════════ SESSION AUTH ══════════ */
-async function initAuth(){
+/* ══════════ SESSION AUTH ══════════
+   FIX: The old code called getSession() once and gave up immediately if
+   the token hadn't arrived yet (OAuth redirect, token refresh, slow network).
+   This caused the loading spinner to spin forever or flash an error.
+
+   Solution: use onAuthStateChange as the primary trigger so we catch the
+   session whenever it actually becomes available, with a 10-second fallback
+   timeout that redirects to login if nothing arrives.
+══════════════════════════════════ */
+let _authResolved = false;
+let _authTimeout  = null;
+
+async function _bootstrapUser(authUser){
+  if(_authResolved) return;   // guard against double-fire
+  _authResolved = true;
+  clearTimeout(_authTimeout);
+
   try {
-    const { data:{ session }, error:se } = await db.auth.getSession();
-    if(se) throw se;
-    if(!session?.user){
-      showAuthError('No active session. Please <a onclick="window.location.href=\'login.html\'">sign in</a>.');
-      return;
-    }
-    const authUser = session.user;
     const { data: profile, error: pe } = await db.from('users').select('*').eq('id', authUser.id).single();
     if(pe && pe.code !== 'PGRST116') throw pe;
 
@@ -666,6 +675,32 @@ async function initAuth(){
     console.error('Auth error:', e);
     showAuthError(`Could not load session.<br><small style="opacity:.7">${e.message||'Check your connection.'}</small>`);
   }
+}
+
+function initAuth(){
+  // 1. Primary: listen for auth state — fires for existing sessions,
+  //    OAuth redirects, token refreshes and new sign-ins alike.
+  db.auth.onAuthStateChange(async (event, session) => {
+    if(session?.user){
+      await _bootstrapUser(session.user);
+    } else if(event === 'SIGNED_OUT'){
+      _authResolved = false;
+      location.href = 'login.html';
+    }
+    // INITIAL_SESSION with no user → wait for timeout below
+  });
+
+  // 2. Eagerly try getSession() so we don't wait for the listener on fast loads
+  db.auth.getSession().then(({ data:{ session } }) => {
+    if(session?.user) _bootstrapUser(session.user);
+  }).catch(()=>{});
+
+  // 3. Timeout safety-net — if no session after 10 s, redirect to login
+  _authTimeout = setTimeout(()=>{
+    if(!_authResolved){
+      showAuthError('Session timed out. Please <a onclick="window.location.href=\'login.html\'">sign in</a>.');
+    }
+  }, 10000);
 }
 function showAuthError(msg){
   document.getElementById('authLoading').style.display = 'none';
