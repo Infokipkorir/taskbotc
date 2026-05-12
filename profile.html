@@ -673,6 +673,7 @@ input.locked-field:disabled {
 .wd-status.rejected { background:#fef2f2; color:#b91c1c; }
 
 @keyframes spin { to { transform:rotate(360deg); } }
+@keyframes rtpulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.3;transform:scale(.6)} }
 </style>
 </head>
 
@@ -749,10 +750,10 @@ input.locked-field:disabled {
       </div>
       <i class="bi bi-chevron-right menu-arrow"></i>
     </div>
-    <div class="menu-item" onclick="openWalletModal()">
+    <div class="menu-item" onclick="location.href='wallet.html'">
       <div class="menu-icon green"><i class="bi bi-wallet2"></i></div>
       <div class="menu-text">
-        <b>Wallet & Payments</b>
+        <b>My Wallet</b>
         <span id="wallet-preview">No payment method set</span>
       </div>
       <i class="bi bi-chevron-right menu-arrow"></i>
@@ -785,6 +786,31 @@ input.locked-field:disabled {
         <span>Permanently remove your account</span>
       </div>
       <i class="bi bi-chevron-right menu-arrow"></i>
+    </div>
+  </div>
+
+  <!-- Community Earnings Card -->
+  <div class="section-label">Community Earnings</div>
+  <div class="card" style="margin:0 16px;">
+    <div style="padding:16px 18px;display:flex;align-items:center;gap:14px;">
+      <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#22c55e,#16a34a);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <i class="bi bi-lightning-fill" style="color:#fff;font-size:18px;"></i>
+      </div>
+      <div style="flex:1;">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--subtext);font-family:'Sora',sans-serif;">Total Community Earned</div>
+        <div id="community-earnings-display" style="font-family:'Sora',sans-serif;font-size:24px;font-weight:700;color:#16a34a;margin-top:2px;">$0.00</div>
+        <div style="font-size:11px;color:var(--subtext);margin-top:2px;">Live · updates in real-time <span id="rt-pulse" style="display:inline-block;width:6px;height:6px;background:#22c55e;border-radius:50%;margin-left:4px;animation:rtpulse 1.4s infinite;vertical-align:middle;"></span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Activity Feed -->
+  <div class="section-label">Recent Activity</div>
+  <div class="card">
+    <div id="activity-list">
+      <div class="spinner" style="padding:24px;text-align:center;color:var(--subtext);">
+        <i class="bi bi-arrow-repeat" style="animation:spin .8s linear infinite;display:inline-block;font-size:20px;"></i>
+      </div>
     </div>
   </div>
 
@@ -897,10 +923,8 @@ input.locked-field:disabled {
 </div>
 
 
-<!-- ══════════════════════════════════
-     WALLET MODAL
-══════════════════════════════════ -->
-<div class="modal-overlay" id="wallet-modal">
+<!-- WALLET MODAL REMOVED — navigates to wallet.html instead -->
+<div class="modal-overlay" id="wallet-modal" style="display:none!important">
   <div class="modal-box" style="padding:0;overflow:hidden;border-radius:24px 24px 0 0;">
 
     <!-- Header -->
@@ -1315,6 +1339,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("view-profile").style.display = "block";
   await loadProfile();
   await loadStats();
+  await loadActivity();
   subscribeRealtime();
 });
 
@@ -1368,9 +1393,10 @@ async function loadProfile() {
   }
 }
 
-/* ── LOAD STATS ── */
+/* ── LOAD STATS (tasks earnings + community earnings combined) ── */
 async function loadStats() {
   try {
+    // Task earnings
     const { data: tasks } = await db
       .from("user_tasks")
       .select("id, reward, status")
@@ -1378,20 +1404,98 @@ async function loadStats() {
 
     setText("tasks", tasks?.length || 0);
 
-    const earned = (tasks || [])
+    const taskEarned = (tasks || [])
       .filter(t => ["completed","done","approved"].includes(t.status))
       .reduce((sum, t) => sum + (parseFloat(t.reward) || 0), 0);
-    setText("earnings", "$" + (Number.isInteger(earned) ? earned : earned.toFixed(2)));
+
+    // Community earnings — sum from community_earnings table
+    const { data: commRows } = await db
+      .from("community_earnings")
+      .select("amount")
+      .eq("user_id", currentUser.id);
+    const commEarned = (commRows || [])
+      .reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0);
+
+    const totalEarned = taskEarned + commEarned;
+    setText("earnings", "$" + (totalEarned % 1 === 0 ? totalEarned : totalEarned.toFixed(2)));
+    // Update the dedicated community earnings card
+    const commEl = document.getElementById("community-earnings-display");
+    if (commEl) commEl.textContent = "$" + commEarned.toFixed(2);
 
     const { count: teamCount } = await db
       .from("profiles")
       .select("id", { count: "exact", head: true })
       .eq("referred_by", currentUser.id);
     setText("members", teamCount || 0);
-
     setText("since", new Date(currentUser.created_at).getFullYear());
   } catch(e) {
     console.error("loadStats:", e);
+  }
+}
+
+/* ── LOAD ACTIVITY (real-time feed) ── */
+async function loadActivity() {
+  const el = document.getElementById("activity-list");
+  if (!el) return;
+  try {
+    const { data } = await db
+      .from("user_activity")
+      .select("*")
+      .eq("user_id", currentUser.id)
+      .order("created_at", { ascending: false })
+      .limit(20);
+
+    const iconMap = {
+      post:    { icon: "bi-file-text-fill",   color: "#1a56db" },
+      like:    { icon: "bi-heart-fill",        color: "#ef4444" },
+      comment: { icon: "bi-chat-fill",         color: "#7c3aed" },
+      follow:  { icon: "bi-person-plus-fill",  color: "#22c55e" },
+      react:   { icon: "bi-emoji-smile-fill",  color: "#f59e0b" },
+      task:    { icon: "bi-check-circle-fill", color: "#22c55e" },
+      earn:    { icon: "bi-lightning-fill",    color: "#f59e0b" },
+    };
+
+    if (!data || !data.length) {
+      el.innerHTML = `<div style="text-align:center;padding:28px 16px;color:var(--subtext);">
+        <i class="bi bi-clock-history" style="font-size:28px;display:block;margin-bottom:8px;opacity:.3;"></i>
+        <div style="font-size:13px;">No activity yet</div>
+      </div>`;
+      return;
+    }
+
+    function timeAgo(ts) {
+      const s = Math.floor((Date.now() - new Date(ts)) / 1000);
+      if (s < 60)   return s + "s ago";
+      if (s < 3600) return Math.floor(s/60) + "m ago";
+      if (s < 86400)return Math.floor(s/3600) + "h ago";
+      return Math.floor(s/86400) + "d ago";
+    }
+
+    const labelMap = {
+      post:    "Posted to community",
+      like:    "Liked a post",
+      comment: "Commented on a post",
+      follow:  "Followed a user",
+      react:   "Reacted to a post",
+      task:    "Completed a task",
+      earn:    "Earned community reward",
+    };
+
+    el.innerHTML = data.map(a => {
+      const m = iconMap[a.type] || { icon: "bi-circle-fill", color: "var(--subtext)" };
+      const label = labelMap[a.type] || a.type;
+      return `<div class="activity-item">
+        <div style="width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:${m.color}18;">
+          <i class="bi ${m.icon}" style="color:${m.color};font-size:14px;"></i>
+        </div>
+        <div style="flex:1;min-width:0;">
+          <div class="activity-text">${label}</div>
+          <div style="font-size:11px;color:var(--subtext);margin-top:2px;">${a.created_at ? timeAgo(a.created_at) : ""}</div>
+        </div>
+      </div>`;
+    }).join("");
+  } catch(e) {
+    console.error("loadActivity:", e);
   }
 }
 
@@ -1401,15 +1505,29 @@ function subscribeRealtime() {
   if (realtimeChannel) db.removeChannel(realtimeChannel);
   realtimeChannel = db
     .channel("profile-rt-" + currentUser.id)
+    // Profile changes → reload display name, country, wallet preview
     .on("postgres_changes", {
       event: "*", schema: "public", table: "profiles",
       filter: "id=eq." + currentUser.id
-    }, () => loadProfile())
+    }, () => { loadProfile(); })
+    // Task completions → recalculate total earnings
     .on("postgres_changes", {
       event: "*", schema: "public", table: "user_tasks",
       filter: "user_id=eq." + currentUser.id
-    }, () => loadStats())
-    .subscribe();
+    }, () => { loadStats(); })
+    // Community earnings rows → update earnings stat in real-time
+    .on("postgres_changes", {
+      event: "INSERT", schema: "public", table: "community_earnings",
+      filter: "user_id=eq." + currentUser.id
+    }, () => { loadStats(); })
+    // User activity → refresh activity feed in real-time
+    .on("postgres_changes", {
+      event: "INSERT", schema: "public", table: "user_activity",
+      filter: "user_id=eq." + currentUser.id
+    }, () => { loadActivity(); })
+    .subscribe((status) => {
+      if (status === "SUBSCRIBED") console.log("[RT] profile realtime active");
+    });
 }
 
 /* ── MODAL HELPERS ── */
@@ -1603,34 +1721,13 @@ async function saveProfile() {
   await loadProfile();
 }
 
+/* ── WALLET — redirects to wallet.html (modal removed) ── */
+function openWalletModal() { location.href = "wallet.html"; }
+
 /* ══════════════════════════════════════════
-   WALLET MODAL
+   WALLET MODAL (REMOVED — kept as stub for safety)
 ══════════════════════════════════════════ */
 let walletData = {}; // cached payment method data
-
-async function openWalletModal() {
-  openModal("wallet-modal");
-  switchWalletTab("methods", document.getElementById("wtab-methods"));
-
-  // Load balance
-  try {
-    const { data: tasks } = await db.from("user_tasks")
-      .select("reward,status").eq("user_id", currentUser.id);
-    const bal = (tasks||[]).filter(t => ["completed","done","approved"].includes(t.status))
-      .reduce((s,t) => s + (parseFloat(t.reward)||0), 0);
-    setText("wallet-balance", "$" + bal.toFixed(2));
-    setText("wd-available",   "$" + bal.toFixed(2));
-  } catch(e) {}
-
-  // Load payment methods
-  try {
-    const { data } = await db.from("profiles")
-      .select("paypal_email,mpesa_phone,binance_id,minipay_address")
-      .eq("id", currentUser.id).maybeSingle();
-    walletData = data || {};
-    renderPaymentMethods();
-  } catch(e) {}
-}
 
 function renderPaymentMethods() {
   const d = walletData;
