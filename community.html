@@ -1538,6 +1538,16 @@ async function submitPost(){
     if (error) throw error;
   })
   .catch(console.error);
+    const payload = {
+  user_id: user.id,
+  content: text,
+  type: 'text',          // or 'article'/'video'/'image'/'announce'
+  // author, etc. are optional if you rely on defaults
+};
+
+const { data, error } = await db
+  .from('community_posts')
+  .insert(payload);
 
     // Success — close modal and reset AFTER successful save
     closeCreateModal();
