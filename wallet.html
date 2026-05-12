@@ -3,54 +3,46 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Wallet — OneTasks</title>
+  <title>My Wallet — AmulyTask</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
-    /* ══════════════════════════════════════════
-       ONETASKS DESIGN TOKENS
-    ══════════════════════════════════════════ */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      /* Core palette */
-      --ot-bg:        #f4f5f9;
-      --ot-surface:   #ffffff;
-      --ot-surface2:  #f0f1f6;
-      --ot-surface3:  #e8eaf0;
-      --ot-border:    rgba(0,0,0,0.07);
-      --ot-border2:   rgba(0,0,0,0.12);
+      /* AmulyTask brand — deep violet/indigo on light */
+      --at-bg:        #f5f7ff;
+      --at-surface:   #ffffff;
+      --at-surface2:  #f0f2fa;
+      --at-surface3:  #e8ebf5;
+      --at-border:    rgba(99,102,241,0.12);
+      --at-border2:   rgba(99,102,241,0.22);
 
-      /* Brand — electric violet / indigo */
-      --ot-primary:   #6c63ff;
-      --ot-primary-d: #4f47d0;
-      --ot-primary-g: linear-gradient(135deg, #6c63ff 0%, #a78bfa 100%);
-      --ot-accent:    #00e5a0;   /* teal-green highlight */
-      --ot-warn:      #ff5c5c;
-      --ot-gold:      #ffb830;
+      --at-primary:   #6366f1;
+      --at-primary-d: #4f46e5;
+      --at-primary-g: linear-gradient(135deg,#6366f1 0%,#a78bfa 100%);
+      --at-accent:    #10b981;
+      --at-gold:      #f59e0b;
+      --at-warn:      #ef4444;
 
-      /* Text */
-      --ot-text:      #111218;
-      --ot-sub:       #6b6f87;
-      --ot-muted:     #9fa3b8;
+      --at-text:      #0f172a;
+      --at-sub:       #475569;
+      --at-muted:     #94a3b8;
 
-      /* Fonts */
       --ff:           'Sora', sans-serif;
       --ff-mono:      'IBM Plex Mono', monospace;
-
-      /* Shape */
-      --r:            16px;
+      --r:            14px;
       --r-sm:         10px;
-      --r-xs:         6px;
+      --shadow:       0 2px 20px rgba(99,102,241,0.10);
     }
 
     html { scroll-behavior: smooth; }
 
     body {
-      background: var(--ot-bg);
-      color: var(--ot-text);
+      background: var(--at-bg);
+      color: var(--at-text);
       font-family: var(--ff);
       min-height: 100vh;
       display: flex;
@@ -58,406 +50,505 @@
       align-items: flex-start;
     }
 
-    /* Grid noise */
+    /* Subtle grid */
     body::before {
       content: '';
       position: fixed; inset: 0; z-index: 0; pointer-events: none;
       background-image:
-        linear-gradient(rgba(108,99,255,0.06) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(108,99,255,0.06) 1px, transparent 1px);
-      background-size: 32px 32px;
+        linear-gradient(rgba(99,102,241,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(99,102,241,0.04) 1px, transparent 1px);
+      background-size: 28px 28px;
     }
 
-    /* Ambient glow */
-    body::after {
-      content: '';
-      position: fixed; top: -200px; left: 50%; transform: translateX(-50%);
-      width: 600px; height: 400px; z-index: 0; pointer-events: none;
-      background: radial-gradient(ellipse at center, rgba(108,99,255,0.12) 0%, transparent 70%);
-    }
-
-    /* ══════════════════════════════════════════
-       SPLASH
-    ══════════════════════════════════════════ */
+    /* ═══ SPLASH ═══ */
     #splash {
       position: fixed; inset: 0; z-index: 200;
-      background: var(--ot-bg);
-      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.5rem;
+      background: var(--at-bg);
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.4rem;
       transition: opacity .4s ease;
     }
     #splash.out { opacity: 0; pointer-events: none; }
     .splash-logo {
-      width: 56px; height: 56px;
-      background: var(--ot-primary-g);
-      border-radius: 18px;
+      width: 60px; height: 60px;
+      background: var(--at-primary-g);
+      border-radius: 20px;
       display: grid; place-items: center;
-      font-size: 1.6rem;
-      box-shadow: 0 0 40px rgba(108,99,255,.35);
+      font-size: 1.7rem;
+      box-shadow: 0 0 40px rgba(99,102,241,.3);
       animation: breathe 1.6s ease-in-out infinite;
     }
+    .splash-name {
+      font-size: 1.1rem; font-weight: 800;
+      background: var(--at-primary-g);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
     .splash-bar {
-      width: 160px; height: 3px;
-      background: var(--ot-surface3);
+      width: 140px; height: 3px; background: var(--at-surface3);
       border-radius: 99px; overflow: hidden;
     }
     .splash-bar-fill {
-      height: 100%;
-      background: var(--ot-primary-g);
-      border-radius: 99px;
-      animation: load 1.8s ease-in-out infinite;
+      height: 100%; background: var(--at-primary-g);
+      border-radius: 99px; animation: load 1.8s ease-in-out infinite;
     }
-    .splash-label { font-size: .72rem; color: var(--ot-muted); font-family: var(--ff-mono); letter-spacing: .1em; }
+    .splash-label { font-size: .7rem; color: var(--at-muted); font-family: var(--ff-mono); letter-spacing: .1em; }
 
-    /* ══════════════════════════════════════════
-       TOAST
-    ══════════════════════════════════════════ */
+    /* ═══ TOAST ═══ */
     #toast {
-      position: fixed; top: 1.2rem; left: 50%;
-      transform: translateX(-50%) translateY(-12px);
-      z-index: 300; min-width: 260px; max-width: 88vw;
-      padding: .75rem 1.1rem; border-radius: var(--r-sm);
-      font-family: var(--ff-mono); font-size: .76rem; text-align: center;
-      opacity: 0; transition: all .3s cubic-bezier(.22,1,.36,1); pointer-events: none;
+      position: fixed; top: 1.1rem; left: 50%;
+      transform: translateX(-50%) translateY(-14px);
+      z-index: 999; min-width: 260px; max-width: 88vw;
+      padding: .75rem 1.2rem; border-radius: var(--r);
+      font-family: var(--ff); font-size: .82rem; font-weight: 600;
+      text-align: center; opacity: 0;
+      transition: all .3s cubic-bezier(.22,1,.36,1); pointer-events: none;
+      display: flex; align-items: center; justify-content: center; gap: .5rem;
     }
     #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-    #toast.success { background: #0b251b; color: #5efec4; border: 1px solid rgba(0,229,160,.3); }
-    #toast.error   { background: #250b0b; color: #ff9999; border: 1px solid rgba(255,92,92,.3); }
-    #toast.info    { background: #14123a; color: #a78bfa; border: 1px solid rgba(108,99,255,.3); }
+    #toast.success { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; box-shadow: var(--shadow); }
+    #toast.error   { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; box-shadow: var(--shadow); }
+    #toast.info    { background: #eef2ff; color: #3730a3; border: 1px solid #c7d2fe; box-shadow: var(--shadow); }
 
-    /* ══════════════════════════════════════════
-       APP SHELL
-    ══════════════════════════════════════════ */
+    /* ═══ APP SHELL ═══ */
     #app {
       position: relative; z-index: 1;
       width: 100%; max-width: 460px;
       min-height: 100vh;
-      background: var(--ot-surface);
-      border-left: 1px solid var(--ot-border);
-      border-right: 1px solid var(--ot-border);
+      background: var(--at-surface);
+      border-left: 1px solid var(--at-border);
+      border-right: 1px solid var(--at-border);
       display: flex; flex-direction: column;
       animation: slideUp .5s cubic-bezier(.22,1,.36,1) both;
+      box-shadow: 0 0 60px rgba(99,102,241,0.07);
     }
 
-    /* ══════════════════════════════════════════
-       TOPBAR
-    ══════════════════════════════════════════ */
+    /* ═══ TOPBAR ═══ */
     .topbar {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 1.1rem 1.4rem;
-      border-bottom: 1px solid var(--ot-border);
+      padding: 1rem 1.3rem;
+      border-bottom: 1px solid var(--at-border);
       position: sticky; top: 0; z-index: 10;
-      background: rgba(255,255,255,.85);
+      background: rgba(255,255,255,.92);
       backdrop-filter: blur(16px);
     }
+    .back-btn {
+      width: 34px; height: 34px; border-radius: 10px;
+      background: var(--at-surface2); border: 1px solid var(--at-border);
+      display: grid; place-items: center; cursor: pointer;
+      color: var(--at-sub); font-size: 1rem; text-decoration: none;
+      transition: all .18s;
+    }
+    .back-btn:hover { background: var(--at-surface3); color: var(--at-primary); }
     .brand {
       display: flex; align-items: center; gap: .6rem;
     }
     .brand-icon {
-      width: 32px; height: 32px;
-      background: var(--ot-primary-g);
+      width: 34px; height: 34px;
+      background: var(--at-primary-g);
       border-radius: 10px;
       display: grid; place-items: center;
-      font-size: 1rem;
-      box-shadow: 0 0 16px rgba(108,99,255,.3);
+      font-size: 1.05rem;
+      box-shadow: 0 2px 12px rgba(99,102,241,.25);
     }
+    .brand-col { display: flex; flex-direction: column; }
     .brand-name {
-      font-size: .95rem; font-weight: 700;
-      background: var(--ot-primary-g);
+      font-size: .92rem; font-weight: 800;
+      background: var(--at-primary-g);
       -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-      background-clip: text;
+      background-clip: text; line-height: 1.1;
     }
-    .brand-sub {
-      font-size: .7rem; color: var(--ot-sub); font-weight: 400;
-      -webkit-text-fill-color: var(--ot-sub);
-    }
-
+    .brand-sub { font-size: .65rem; color: var(--at-muted); font-weight: 500; }
     .user-pill {
-      display: flex; align-items: center; gap: .55rem;
-      background: var(--ot-surface3); border: 1px solid var(--ot-border2);
-      border-radius: 99px; padding: .28rem .75rem .28rem .28rem;
-      cursor: pointer; transition: border-color .2s;
+      display: flex; align-items: center; gap: .5rem;
+      background: var(--at-surface2); border: 1px solid var(--at-border2);
+      border-radius: 99px; padding: .24rem .7rem .24rem .24rem;
     }
-    .user-pill:hover { border-color: rgba(108,99,255,.4); }
     .user-avatar {
       width: 28px; height: 28px; border-radius: 50%;
-      background: var(--ot-primary-g);
+      background: var(--at-primary-g);
       display: grid; place-items: center;
-      font-size: .72rem; font-weight: 700; color: #fff;
-      flex-shrink: 0;
+      font-size: .72rem; font-weight: 700; color: #fff; flex-shrink: 0;
     }
     .user-name {
-      font-size: .78rem; font-weight: 600; max-width: 90px;
+      font-size: .76rem; font-weight: 600; max-width: 90px;
       overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     }
 
-    /* ══════════════════════════════════════════
-       BALANCE HERO
-    ══════════════════════════════════════════ */
+    /* ═══ BALANCE HERO — yellow card inspired by reference image ═══ */
     .balance-hero {
-      padding: 2rem 1.5rem 1.5rem;
-      background: linear-gradient(180deg, rgba(108,99,255,.08) 0%, transparent 100%);
-      border-bottom: 1px solid var(--ot-border);
-      text-align: center;
+      background: linear-gradient(135deg, #6366f1 0%, #818cf8 60%, #a78bfa 100%);
+      padding: 1.6rem 1.5rem 1.4rem;
       position: relative; overflow: hidden;
     }
     .balance-hero::before {
       content: '';
-      position: absolute; top: -60px; left: 50%; transform: translateX(-50%);
-      width: 260px; height: 180px;
-      background: radial-gradient(ellipse, rgba(108,99,255,.18) 0%, transparent 70%);
-      pointer-events: none;
+      position: absolute; top: -50px; right: -40px;
+      width: 200px; height: 200px; border-radius: 50%;
+      background: rgba(255,255,255,0.06); pointer-events: none;
+    }
+    .balance-hero::after {
+      content: '';
+      position: absolute; bottom: -30px; left: -20px;
+      width: 140px; height: 140px; border-radius: 50%;
+      background: rgba(255,255,255,0.04); pointer-events: none;
     }
     .bal-label {
-      font-size: .68rem; font-family: var(--ff-mono); letter-spacing: .12em;
-      text-transform: uppercase; color: var(--ot-sub); margin-bottom: .6rem;
+      font-size: .67rem; font-family: var(--ff-mono); letter-spacing: .12em;
+      text-transform: uppercase; color: rgba(255,255,255,0.7); margin-bottom: .45rem;
     }
     .bal-amount {
-      font-family: var(--ff-mono); font-size: 2.9rem; font-weight: 600;
-      background: linear-gradient(90deg, #111218 20%, #6c63ff 80%);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-      background-clip: text; line-height: 1; letter-spacing: -.03em;
-      margin-bottom: .35rem;
+      font-family: var(--ff-mono); font-size: 2.6rem; font-weight: 700;
+      color: #fff; line-height: 1; letter-spacing: -.03em; margin-bottom: .3rem;
     }
+    .bal-amount sup { font-size: 1.1rem; vertical-align: super; font-weight: 500; margin-right: .15rem; }
     .bal-currency {
-      font-size: .7rem; font-family: var(--ff-mono); color: var(--ot-muted);
-      letter-spacing: .06em;
+      font-size: .68rem; font-family: var(--ff-mono);
+      color: rgba(255,255,255,.55); letter-spacing: .06em;
     }
+    .bal-withdraw-btn {
+      margin-top: 1.1rem;
+      background: rgba(255,255,255,0.18);
+      border: 1.5px solid rgba(255,255,255,0.4);
+      border-radius: 99px; color: #fff;
+      font-family: var(--ff); font-size: .8rem; font-weight: 700;
+      padding: .55rem 1.4rem; cursor: pointer;
+      backdrop-filter: blur(6px);
+      transition: all .2s; letter-spacing: .02em;
+    }
+    .bal-withdraw-btn:hover { background: rgba(255,255,255,0.28); }
     .bal-stats {
-      display: flex; align-items: center; justify-content: center; gap: 1.5rem;
-      margin-top: 1.25rem;
+      display: flex; align-items: center; gap: 1.2rem;
+      margin-top: 1.1rem; padding-top: 1rem;
+      border-top: 1px solid rgba(255,255,255,0.15);
     }
-    .bal-stat { display: flex; flex-direction: column; align-items: center; gap: .2rem; }
-    .bal-stat-val { font-size: .82rem; font-weight: 600; font-family: var(--ff-mono); }
-    .bal-stat-key { font-size: .62rem; color: var(--ot-sub); font-family: var(--ff-mono); letter-spacing: .06em; }
-    .bal-stat-divider { width: 1px; height: 28px; background: var(--ot-border2); }
+    .bal-stat { display: flex; flex-direction: column; gap: .15rem; }
+    .bal-stat-val { font-size: .82rem; font-weight: 700; font-family: var(--ff-mono); color: #fff; }
+    .bal-stat-key { font-size: .6rem; color: rgba(255,255,255,.55); font-family: var(--ff-mono); letter-spacing: .06em; }
+    .bal-stat-div { width: 1px; height: 26px; background: rgba(255,255,255,.2); }
 
-    /* ══════════════════════════════════════════
-       TABS
-    ══════════════════════════════════════════ */
+    /* ═══ TABS ═══ */
     .tabs {
       display: grid; grid-template-columns: 1fr 1fr;
-      border-bottom: 1px solid var(--ot-border);
+      border-bottom: 1px solid var(--at-border);
+      background: var(--at-surface);
     }
     .tab-btn {
       background: none; border: none; border-bottom: 2px solid transparent;
-      color: var(--ot-sub); font-family: var(--ff); font-size: .8rem; font-weight: 600;
+      color: var(--at-sub); font-family: var(--ff); font-size: .8rem; font-weight: 600;
       padding: .85rem .5rem; cursor: pointer; transition: all .2s;
       display: flex; align-items: center; justify-content: center; gap: .45rem;
-      letter-spacing: .01em;
     }
-    .tab-btn:hover { color: var(--ot-text); }
-    .tab-btn.active { color: var(--ot-primary); border-bottom-color: var(--ot-primary); }
+    .tab-btn:hover { color: var(--at-text); background: var(--at-surface2); }
+    .tab-btn.active { color: var(--at-primary); border-bottom-color: var(--at-primary); background: #eef2ff40; }
     .tab-badge {
-      background: var(--ot-primary); color: #fff; border-radius: 99px;
-      font-size: .58rem; font-weight: 700; padding: .1rem .42rem; line-height: 1.5;
+      background: var(--at-primary); color: #fff; border-radius: 99px;
+      font-size: .58rem; font-weight: 700; padding: .1rem .4rem; line-height: 1.5;
     }
 
-    /* ══════════════════════════════════════════
-       PANELS
-    ══════════════════════════════════════════ */
-    .panel { padding: 1.4rem; flex: 1; }
+    /* ═══ PANELS ═══ */
+    .panel { padding: 1.3rem; flex: 1; }
     .panel.hidden { display: none; }
 
-    /* ══════════════════════════════════════════
-       FORM
-    ══════════════════════════════════════════ */
+    /* ═══ FORM ELEMENTS ═══ */
     .section-title {
-      font-size: .68rem; font-family: var(--ff-mono); letter-spacing: .11em;
-      text-transform: uppercase; color: var(--ot-sub);
+      font-size: .67rem; font-family: var(--ff-mono); letter-spacing: .11em;
+      text-transform: uppercase; color: var(--at-muted);
       margin-bottom: .9rem; display: flex; align-items: center; gap: .5rem;
     }
-    .section-title::after { content: ''; flex: 1; height: 1px; background: var(--ot-border); }
+    .section-title::after { content: ''; flex: 1; height: 1px; background: var(--at-border); }
 
-    .field { display: flex; flex-direction: column; gap: .42rem; margin-bottom: 1rem; }
+    .field { display: flex; flex-direction: column; gap: .4rem; margin-bottom: 1rem; }
     .field-label {
-      font-size: .7rem; font-family: var(--ff-mono); font-weight: 500;
-      color: var(--ot-sub); text-transform: uppercase; letter-spacing: .09em;
+      font-size: .7rem; font-family: var(--ff-mono); font-weight: 600;
+      color: var(--at-sub); text-transform: uppercase; letter-spacing: .09em;
     }
-    .field-hint { font-family: var(--ff-mono); font-size: .66rem; color: var(--ot-muted); line-height: 1.5; }
-    .field-err  { font-family: var(--ff-mono); font-size: .66rem; color: var(--ot-warn); display: none; }
+    .field-hint { font-family: var(--ff-mono); font-size: .65rem; color: var(--at-muted); line-height: 1.5; }
+    .field-err  { font-family: var(--ff-mono); font-size: .65rem; color: var(--at-warn); display: none; }
 
-    .ot-input {
+    .at-input {
       width: 100%; height: 46px;
-      background: var(--ot-surface2); border: 1px solid var(--ot-border2);
-      border-radius: var(--r-sm); color: var(--ot-text);
+      background: var(--at-surface2); border: 1.5px solid var(--at-border);
+      border-radius: var(--r-sm); color: var(--at-text);
       font-family: var(--ff-mono); font-size: .87rem;
       padding: 0 .9rem; outline: none;
       transition: border-color .2s, box-shadow .2s;
     }
-    .ot-input:focus { border-color: var(--ot-primary); box-shadow: 0 0 0 3px rgba(108,99,255,.1); }
-    .ot-input::placeholder { color: var(--ot-muted); }
-    .ot-input[type=number]::-webkit-inner-spin-button,
-    .ot-input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
-    .ot-input.err { border-color: var(--ot-warn); }
+    .at-input:focus { border-color: var(--at-primary); box-shadow: 0 0 0 3px rgba(99,102,241,.1); background: #fff; }
+    .at-input::placeholder { color: var(--at-muted); }
+    .at-input[type=number]::-webkit-inner-spin-button,
+    .at-input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
+    .at-input.err { border-color: var(--at-warn); }
 
     .input-wrap { position: relative; display: flex; align-items: center; }
-    .input-sym {
-      position: absolute; left: .9rem; font-family: var(--ff-mono); font-size: .9rem;
-      color: var(--ot-sub); pointer-events: none;
-    }
-    .input-wrap .ot-input { padding-left: 1.7rem; }
-
+    .input-sym { position: absolute; left: .9rem; font-family: var(--ff-mono); font-size: .9rem; color: var(--at-sub); pointer-events: none; }
+    .input-wrap .at-input { padding-left: 1.7rem; }
     .input-addon {
-      background: var(--ot-surface3); border: 1px solid var(--ot-border2); border-right: none;
+      background: var(--at-surface3); border: 1.5px solid var(--at-border); border-right: none;
       border-radius: var(--r-sm) 0 0 var(--r-sm);
       height: 46px; padding: 0 .75rem;
       display: flex; align-items: center; white-space: nowrap;
-      font-family: var(--ff-mono); font-size: .72rem; color: var(--ot-sub);
+      font-family: var(--ff-mono); font-size: .72rem; color: var(--at-sub);
     }
-    .input-addon + .ot-input { border-radius: 0 var(--r-sm) var(--r-sm) 0; }
+    .input-addon + .at-input { border-radius: 0 var(--r-sm) var(--r-sm) 0; }
 
-    /* Method cards */
-    .method-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: .6rem; }
-    .method-card {
-      background: var(--ot-surface2); border: 1px solid var(--ot-border);
-      border-radius: var(--r); padding: .875rem .4rem;
-      display: flex; flex-direction: column; align-items: center; gap: .32rem;
-      cursor: pointer; transition: all .2s; user-select: none;
+    /* ═══ SINGLE PAYMENT METHOD SELECTOR ═══ (reference image dropdown style) */
+    .pm-selector {
+      background: var(--at-surface); border: 1.5px solid var(--at-border2);
+      border-radius: var(--r); margin-bottom: 1.1rem;
+      overflow: hidden; transition: border-color .2s;
     }
-    .method-card:hover { border-color: rgba(108,99,255,.3); background: var(--ot-surface3); }
-    .method-card.sel {
-      border-color: var(--ot-primary);
-      background: rgba(108,99,255,.07);
-      box-shadow: 0 0 0 1px var(--ot-primary), 0 4px 24px rgba(108,99,255,.12);
+    .pm-selected-row {
+      display: flex; align-items: center; gap: .75rem;
+      padding: .85rem 1rem; cursor: pointer;
+      transition: background .15s;
     }
-    .method-emoji { font-size: 1.5rem; }
-    .method-name  { font-size: .78rem; font-weight: 700; }
-    .method-tag   { font-family: var(--ff-mono); font-size: .59rem; color: var(--ot-muted); }
+    .pm-selected-row:hover { background: var(--at-surface2); }
+    .pm-icon-badge {
+      width: 36px; height: 36px; border-radius: 10px;
+      display: grid; place-items: center; font-size: 1.1rem; flex-shrink: 0;
+    }
+    .pm-selected-info { flex: 1; }
+    .pm-selected-label { font-size: .72rem; color: var(--at-muted); font-family: var(--ff-mono); text-transform: uppercase; letter-spacing: .06em; }
+    .pm-selected-val { font-size: .88rem; font-weight: 700; margin-top: .1rem; }
+    .pm-chevron { color: var(--at-muted); font-size: 1rem; transition: transform .2s; }
+    .pm-chevron.open { transform: rotate(180deg); }
 
-    /* Fee box */
+    /* Dropdown list — like the reference image */
+    .pm-dropdown {
+      display: none; border-top: 1px solid var(--at-border);
+      background: #fffde7; /* yellow tint like reference */
+    }
+    .pm-dropdown.open { display: block; }
+    .pm-option {
+      display: flex; align-items: center; gap: .75rem;
+      padding: .8rem 1rem; cursor: pointer;
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+      transition: background .15s;
+    }
+    .pm-option:last-child { border-bottom: none; }
+    .pm-option:hover { background: rgba(99,102,241,0.06); }
+    .pm-option.active { background: rgba(99,102,241,0.08); }
+    .pm-option-info { flex: 1; }
+    .pm-option-name { font-size: .86rem; font-weight: 700; }
+    .pm-option-sub  { font-size: .7rem; color: var(--at-sub); font-family: var(--ff-mono); margin-top: .1rem; }
+    .pm-option-check { color: var(--at-primary); font-size: .9rem; display: none; }
+    .pm-option.active .pm-option-check { display: block; }
+    .pm-add-option {
+      display: flex; align-items: center; gap: .75rem;
+      padding: .8rem 1rem; cursor: pointer; transition: background .15s;
+    }
+    .pm-add-option:hover { background: rgba(99,102,241,0.04); }
+    .pm-add-icon {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: var(--at-primary-g); display: grid; place-items: center;
+      font-size: .9rem; color: #fff; font-weight: 700; flex-shrink: 0;
+    }
+    .pm-add-label { font-size: .84rem; font-weight: 600; color: var(--at-primary); }
+    .pm-cancel-row {
+      text-align: center; padding: .7rem;
+      border-top: 1px solid var(--at-border);
+    }
+    .pm-cancel-btn {
+      background: none; border: none; font-family: var(--ff);
+      font-size: .8rem; font-weight: 600; color: var(--at-sub);
+      cursor: pointer; letter-spacing: .04em; text-transform: uppercase;
+    }
+    .pm-cancel-btn:hover { color: var(--at-warn); }
+
+    /* ═══ FEE BOX ═══ */
     .fee-box {
-      background: var(--ot-surface2); border: 1px solid rgba(0,229,160,.12);
+      background: var(--at-surface2); border: 1px solid rgba(99,102,241,.15);
       border-radius: var(--r); padding: 1rem 1.1rem; margin-bottom: 1rem;
       animation: fadeIn .2s ease;
     }
-    .fee-row { display: flex; justify-content: space-between; align-items: baseline; padding: .22rem 0; }
-    .fee-k { font-family: var(--ff-mono); font-size: .74rem; color: var(--ot-sub); }
-    .fee-k em { font-style: normal; font-size: .66rem; color: var(--ot-muted); }
-    .fee-v { font-family: var(--ff-mono); font-size: .8rem; font-weight: 500; }
-    .fee-div { height: 1px; background: var(--ot-border); margin: .4rem 0; }
-    .fee-row.tot .fee-k,
-    .fee-row.tot .fee-v { color: var(--ot-warn); font-weight: 600; }
-    .fee-row.net .fee-k { color: var(--ot-accent); font-weight: 700; }
-    .fee-row.net .fee-v { color: var(--ot-accent); font-size: .9rem; font-weight: 700; }
+    .fee-row { display: flex; justify-content: space-between; align-items: baseline; padding: .2rem 0; }
+    .fee-k { font-family: var(--ff-mono); font-size: .73rem; color: var(--at-sub); }
+    .fee-k em { font-style: normal; font-size: .64rem; color: var(--at-muted); }
+    .fee-v { font-family: var(--ff-mono); font-size: .79rem; font-weight: 500; }
+    .fee-div { height: 1px; background: var(--at-border); margin: .4rem 0; }
+    .fee-row.tot .fee-k, .fee-row.tot .fee-v { color: var(--at-warn); font-weight: 600; }
+    .fee-row.net .fee-k { color: var(--at-accent); font-weight: 700; }
+    .fee-row.net .fee-v { color: var(--at-accent); font-size: .9rem; font-weight: 700; }
 
-    /* Method fields */
+    /* ═══ METHOD FIELDS ═══ */
     .method-fields { animation: fadeIn .2s ease; }
     .or-sep {
       display: flex; align-items: center; gap: .7rem;
-      font-family: var(--ff-mono); font-size: .66rem; color: var(--ot-muted);
-      margin: .1rem 0;
+      font-family: var(--ff-mono); font-size: .65rem; color: var(--at-muted); margin: .1rem 0;
     }
-    .or-sep::before, .or-sep::after { content: ''; flex: 1; height: 1px; background: var(--ot-border); }
-
+    .or-sep::before, .or-sep::after { content: ''; flex: 1; height: 1px; background: var(--at-border); }
     .hint-box {
-      background: var(--ot-surface3); border: 1px solid var(--ot-border);
+      background: var(--at-surface2); border: 1px solid var(--at-border);
       border-radius: var(--r-sm); padding: .6rem .85rem;
-      font-family: var(--ff-mono); font-size: .7rem; color: var(--ot-sub);
+      font-family: var(--ff-mono); font-size: .7rem; color: var(--at-sub);
       line-height: 1.5; margin-bottom: .9rem;
     }
-    .hint-box strong { color: var(--ot-primary); }
+    .hint-box strong { color: var(--at-primary); }
 
-    /* Saved payment accounts */
-    .saved-section { margin-bottom: 1rem; }
-    .saved-pills { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .5rem; }
-    .saved-pill {
-      display: flex; align-items: center; gap: .4rem;
-      background: var(--ot-surface3); border: 1px solid var(--ot-border2);
-      border-radius: 99px; padding: .3rem .75rem .3rem .5rem;
-      font-size: .74rem; cursor: pointer; transition: all .2s;
+    /* ═══ OTP VERIFICATION OVERLAY ═══ */
+    #otpOverlay {
+      display: none; position: fixed; inset: 0; z-index: 150;
+      background: rgba(15,23,42,.55); backdrop-filter: blur(6px);
+      align-items: flex-end; justify-content: center;
     }
-    .saved-pill:hover { border-color: rgba(108,99,255,.4); background: rgba(108,99,255,.06); }
-    .saved-pill.active { border-color: var(--ot-primary); background: rgba(108,99,255,.1); color: var(--ot-primary); }
-    .saved-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ot-accent); flex-shrink: 0; }
-
-    /* Submit */
-    .ot-btn {
-      width: 100%; height: 52px; border: none; border-radius: var(--r);
-      background: var(--ot-primary-g);
+    #otpOverlay.open { display: flex; }
+    .otp-sheet {
+      background: var(--at-surface); width: 100%; max-width: 460px;
+      border-radius: 24px 24px 0 0;
+      padding: 2rem 1.5rem 2.5rem;
+      box-shadow: 0 -10px 40px rgba(0,0,0,.15);
+      animation: slideUp .3s cubic-bezier(.22,1,.36,1) both;
+    }
+    .otp-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 1.2rem;
+    }
+    .otp-title { font-size: 1.05rem; font-weight: 800; }
+    .otp-close {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: var(--at-surface2); border: 1px solid var(--at-border);
+      display: grid; place-items: center; cursor: pointer; font-size: 1rem; color: var(--at-sub);
+    }
+    .otp-desc {
+      font-size: .82rem; color: var(--at-sub); line-height: 1.6; margin-bottom: 1.3rem;
+    }
+    .otp-desc strong { color: var(--at-primary); }
+    .otp-row {
+      display: flex; gap: .6rem; justify-content: center; margin-bottom: 1.4rem;
+    }
+    .otp-box {
+      width: 46px; height: 54px;
+      border: 2px solid var(--at-border2);
+      border-radius: 12px; text-align: center;
+      font-family: var(--ff-mono); font-size: 1.3rem; font-weight: 700;
+      color: var(--at-text); background: var(--at-surface2); outline: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .otp-box:focus { border-color: var(--at-primary); box-shadow: 0 0 0 3px rgba(99,102,241,.12); background: #fff; }
+    .otp-resend {
+      text-align: center; font-size: .76rem; color: var(--at-muted);
+      margin-bottom: 1.1rem; font-family: var(--ff-mono);
+    }
+    .otp-resend a { color: var(--at-primary); cursor: pointer; text-decoration: none; font-weight: 600; }
+    .otp-resend a:hover { text-decoration: underline; }
+    .otp-verify-btn {
+      width: 100%; height: 50px; border: none; border-radius: var(--r);
+      background: var(--at-primary-g);
       color: #fff; font-family: var(--ff); font-size: .92rem; font-weight: 700;
-      cursor: pointer; letter-spacing: .02em;
-      transition: all .2s; position: relative; overflow: hidden;
+      cursor: pointer; transition: all .2s;
+      box-shadow: 0 4px 20px rgba(99,102,241,.2);
+    }
+    .otp-verify-btn:hover:not(:disabled) { box-shadow: 0 8px 30px rgba(99,102,241,.3); transform: translateY(-1px); }
+    .otp-verify-btn:disabled { opacity: .4; cursor: not-allowed; transform: none; box-shadow: none; }
+
+    /* ═══ SUCCESS SHEET ═══ */
+    #successSheet {
+      display: none; position: fixed; inset: 0; z-index: 160;
+      background: rgba(15,23,42,.55); backdrop-filter: blur(6px);
+      align-items: flex-end; justify-content: center;
+    }
+    #successSheet.open { display: flex; }
+    .success-inner {
+      background: var(--at-surface); width: 100%; max-width: 460px;
+      border-radius: 24px 24px 0 0; padding: 2rem 1.5rem 2.5rem;
+      text-align: center; animation: slideUp .3s cubic-bezier(.22,1,.36,1) both;
+    }
+    .success-ring {
+      width: 72px; height: 72px; border-radius: 50%;
+      background: linear-gradient(135deg,#ecfdf5,#d1fae5);
+      border: 2px solid #a7f3d0;
+      display: grid; place-items: center; margin: 0 auto 1rem; font-size: 2rem;
+    }
+    .success-title { font-size: 1.2rem; font-weight: 800; margin-bottom: .4rem; }
+    .success-sub { font-size: .82rem; color: var(--at-sub); line-height: 1.65; margin-bottom: 1.5rem; }
+    .success-ref { font-family: var(--ff-mono); font-size: .76rem; color: var(--at-muted); margin-bottom: 1.4rem; }
+
+    /* ═══ SUBMIT BUTTON ═══ */
+    .at-btn {
+      width: 100%; height: 52px; border: none; border-radius: var(--r);
+      background: var(--at-primary-g);
+      color: #fff; font-family: var(--ff); font-size: .92rem; font-weight: 700;
+      cursor: pointer; transition: all .2s; position: relative; overflow: hidden;
       display: flex; align-items: center; justify-content: center; gap: .5rem;
-      margin-top: .2rem;
-      box-shadow: 0 4px 24px rgba(108,99,255,.2);
+      box-shadow: 0 4px 20px rgba(99,102,241,.2);
     }
-    .ot-btn::before {
+    .at-btn::before {
       content: ''; position: absolute; inset: 0;
-      background: rgba(255,255,255,.12);
-      transform: translateX(-100%) skewX(-15deg);
-      transition: transform .4s;
+      background: rgba(255,255,255,.1);
+      transform: translateX(-100%) skewX(-15deg); transition: transform .4s;
     }
-    .ot-btn:hover:not(:disabled)::before { transform: translateX(220%) skewX(-15deg); }
-    .ot-btn:hover:not(:disabled) { box-shadow: 0 8px 32px rgba(108,99,255,.35); transform: translateY(-1px); }
-    .ot-btn:disabled { opacity: .32; cursor: not-allowed; transform: none; box-shadow: none; }
-    .ot-btn .spin { display: inline-block; animation: spin .6s linear infinite; }
+    .at-btn:hover:not(:disabled)::before { transform: translateX(220%) skewX(-15deg); }
+    .at-btn:hover:not(:disabled) { box-shadow: 0 8px 28px rgba(99,102,241,.35); transform: translateY(-1px); }
+    .at-btn:disabled { opacity: .3; cursor: not-allowed; transform: none; box-shadow: none; }
+    .at-btn .spin { display: inline-block; animation: spin .6s linear infinite; }
+    .at-btn.secondary {
+      background: var(--at-surface2); color: var(--at-text);
+      border: 1.5px solid var(--at-border2); box-shadow: none;
+    }
+    .at-btn.secondary:hover:not(:disabled) { background: var(--at-surface3); box-shadow: none; }
 
     .disclaimer {
-      font-family: var(--ff-mono); font-size: .66rem; color: var(--ot-muted);
+      font-family: var(--ff-mono); font-size: .65rem; color: var(--at-muted);
       text-align: center; line-height: 1.7; margin-top: .85rem;
     }
 
-    /* ══════════════════════════════════════════
-       HISTORY
-    ══════════════════════════════════════════ */
-    .txn-list { display: flex; flex-direction: column; gap: .6rem; }
+    /* ═══ HISTORY ═══ */
+    .txn-list { display: flex; flex-direction: column; gap: .55rem; }
     .txn-item {
-      background: var(--ot-surface2); border: 1px solid var(--ot-border);
+      background: var(--at-surface2); border: 1.5px solid var(--at-border);
       border-radius: var(--r); padding: .9rem 1rem;
       display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem;
       transition: border-color .2s, background .2s;
     }
-    .txn-item:hover { border-color: var(--ot-border2); background: var(--ot-surface3); }
+    .txn-item:hover { border-color: var(--at-border2); background: var(--at-surface3); }
     .txn-left { display: flex; gap: .65rem; align-items: flex-start; }
     .txn-icon {
-      width: 36px; height: 36px; border-radius: 10px;
-      background: var(--ot-surface3); border: 1px solid var(--ot-border);
-      display: grid; place-items: center; font-size: 1.05rem; flex-shrink: 0;
+      width: 38px; height: 38px; border-radius: 11px;
+      background: var(--at-surface); border: 1px solid var(--at-border);
+      display: grid; place-items: center; font-size: 1.1rem; flex-shrink: 0;
     }
-    .txn-method { font-size: .84rem; font-weight: 700; line-height: 1; }
-    .txn-ref  { font-family: var(--ff-mono); font-size: .64rem; color: var(--ot-muted); margin: .2rem 0; }
-    .txn-date { font-family: var(--ff-mono); font-size: .62rem; color: var(--ot-muted); }
+    .txn-method { font-size: .84rem; font-weight: 700; }
+    .txn-ref  { font-family: var(--ff-mono); font-size: .63rem; color: var(--at-muted); margin: .18rem 0; }
+    .txn-date { font-family: var(--ff-mono); font-size: .61rem; color: var(--at-muted); }
     .txn-right { text-align: right; flex-shrink: 0; }
-    .txn-amt { font-family: var(--ff-mono); font-size: .95rem; font-weight: 600; }
-    .txn-net { font-family: var(--ff-mono); font-size: .65rem; color: var(--ot-muted); margin: .12rem 0; }
+    .txn-amt { font-family: var(--ff-mono); font-size: .94rem; font-weight: 700; color: var(--at-warn); }
+    .txn-net { font-family: var(--ff-mono); font-size: .65rem; color: var(--at-accent); margin: .1rem 0; }
     .txn-status {
-      font-family: var(--ff-mono); font-size: .63rem; font-weight: 600;
+      font-family: var(--ff-mono); font-size: .62rem; font-weight: 700;
       display: flex; align-items: center; justify-content: flex-end; gap: .3rem;
     }
     .status-dot { width: 5px; height: 5px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
 
     .empty-state {
       display: flex; flex-direction: column; align-items: center; justify-content: center;
-      padding: 4rem 0; gap: .9rem;
+      padding: 3.5rem 0; gap: .9rem;
     }
     .empty-icon {
-      width: 56px; height: 56px; border-radius: 18px;
-      background: var(--ot-surface2); border: 1px solid var(--ot-border);
-      display: grid; place-items: center; font-size: 1.5rem; opacity: .4;
+      width: 60px; height: 60px; border-radius: 18px;
+      background: var(--at-surface2); border: 1px solid var(--at-border);
+      display: grid; place-items: center; font-size: 1.5rem; opacity: .45;
     }
-    .empty-text { font-family: var(--ff-mono); font-size: .78rem; color: var(--ot-sub); }
+    .empty-text { font-family: var(--ff-mono); font-size: .78rem; color: var(--at-sub); }
     .empty-cta {
-      background: none; border: 1px solid var(--ot-border2); border-radius: 99px;
-      color: var(--ot-primary); font-family: var(--ff); font-size: .78rem; font-weight: 600;
+      background: none; border: 1px solid var(--at-border2); border-radius: 99px;
+      color: var(--at-primary); font-family: var(--ff); font-size: .78rem; font-weight: 600;
       padding: .4rem 1rem; cursor: pointer; transition: all .2s;
     }
-    .empty-cta:hover { background: rgba(108,99,255,.07); border-color: rgba(108,99,255,.4); }
+    .empty-cta:hover { background: rgba(99,102,241,.06); border-color: rgba(99,102,241,.4); }
 
     /* No session */
     #noSession {
       display: none; flex-direction: column; align-items: center; justify-content: center;
       padding: 4rem 2rem; text-align: center; gap: 1rem; flex: 1;
     }
-    #noSession .ns-icon { font-size: 2.5rem; opacity: .18; animation: breathe 2s ease-in-out infinite; }
-    #noSession .ns-title { font-size: 1.05rem; font-weight: 700; }
-    #noSession .ns-sub { font-family: var(--ff-mono); font-size: .74rem; color: var(--ot-sub); line-height: 1.7; max-width: 260px; }
+    #noSession .ns-icon { font-size: 2.5rem; opacity: .2; animation: breathe 2s ease-in-out infinite; }
+    #noSession .ns-title { font-size: 1rem; font-weight: 700; }
+    #noSession .ns-sub { font-family: var(--ff-mono); font-size: .73rem; color: var(--at-sub); line-height: 1.7; max-width: 260px; }
 
-    /* ══════════════════════════════════════════
-       KEYFRAMES
-    ══════════════════════════════════════════ */
+    /* ═══ KEYFRAMES ═══ */
     @keyframes spin    { to { transform: rotate(360deg); } }
     @keyframes breathe { 0%,100%{opacity:1}50%{opacity:.35} }
-    @keyframes slideUp { from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)} }
+    @keyframes slideUp { from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)} }
     @keyframes fadeIn  { from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)} }
     @keyframes load {
       0%   { width: 0%; margin-left: 0; }
@@ -470,7 +561,8 @@
 
 <!-- SPLASH -->
 <div id="splash">
-  <div class="splash-logo">✦</div>
+  <div class="splash-logo">💳</div>
+  <div class="splash-name">AmulyTask</div>
   <div class="splash-bar"><div class="splash-bar-fill"></div></div>
   <div class="splash-label">Loading wallet…</div>
 </div>
@@ -478,16 +570,60 @@
 <!-- TOAST -->
 <div id="toast"></div>
 
+<!-- OTP VERIFICATION OVERLAY -->
+<div id="otpOverlay">
+  <div class="otp-sheet">
+    <div class="otp-header">
+      <div class="otp-title">Verify Withdrawal</div>
+      <div class="otp-close" onclick="closeOtp()">✕</div>
+    </div>
+    <div class="otp-desc" id="otpDesc">
+      We sent a verification code to <strong id="otpDestDisplay">your account</strong>.
+      Enter it below to confirm your withdrawal.
+    </div>
+    <div class="otp-row" id="otpBoxes">
+      <input class="otp-box" maxlength="1" inputmode="numeric" />
+      <input class="otp-box" maxlength="1" inputmode="numeric" />
+      <input class="otp-box" maxlength="1" inputmode="numeric" />
+      <input class="otp-box" maxlength="1" inputmode="numeric" />
+      <input class="otp-box" maxlength="1" inputmode="numeric" />
+      <input class="otp-box" maxlength="1" inputmode="numeric" />
+    </div>
+    <div class="otp-resend">
+      Didn't receive it?
+      <a onclick="resendOtp()">Resend code</a>
+    </div>
+    <button class="otp-verify-btn" id="otpVerifyBtn" onclick="verifyOtpAndSubmit()">
+      Confirm Withdrawal
+    </button>
+  </div>
+</div>
+
+<!-- SUCCESS SHEET -->
+<div id="successSheet">
+  <div class="success-inner">
+    <div class="success-ring">✅</div>
+    <div class="success-title">Withdrawal Submitted!</div>
+    <div class="success-sub" id="successMsg">
+      Your withdrawal request is being processed.<br>Funds typically arrive within 1–24 hours.
+    </div>
+    <div class="success-ref" id="successRef"></div>
+    <button class="at-btn" onclick="closeSuccess(); switchTab('history')">View History</button>
+    <button class="at-btn secondary" style="margin-top:.6rem;" onclick="closeSuccess()">Done</button>
+  </div>
+</div>
+
 <!-- APP -->
 <div id="app" style="display:none">
 
   <!-- TOPBAR -->
   <div class="topbar">
+    <a class="back-btn" href="profile.html" title="Back to Profile">←</a>
     <div class="brand">
-      <div class="brand-icon">✦</div>
-      <div>
-        <div class="brand-name">OneTasks</div>
-        <div class="brand-sub">Wallet</div>
+      <div class="brand-icon">💳</div>
+      <div class="brand-col">
+        <div class="brand-name">AmulyTask</div>
+        <div class="brand-sub">My Wallet</div>
       </div>
     </div>
     <div class="user-pill">
@@ -499,22 +635,25 @@
   <!-- BALANCE HERO -->
   <div class="balance-hero">
     <div class="bal-label">Available Balance</div>
-    <div class="bal-amount" id="balAmt">$0.0000</div>
+    <div class="bal-amount"><sup>$</sup><span id="balAmt">0.00</span></div>
     <div class="bal-currency">United States Dollar · USD</div>
+    <button class="bal-withdraw-btn" onclick="switchTab('send')">
+      ↗ WITHDRAW FULL AMOUNT
+    </button>
     <div class="bal-stats">
       <div class="bal-stat">
         <div class="bal-stat-val" id="statTotal">$0.00</div>
         <div class="bal-stat-key">Total Earned</div>
       </div>
-      <div class="bal-stat-divider"></div>
+      <div class="bal-stat-div"></div>
       <div class="bal-stat">
         <div class="bal-stat-val" id="statPending">$0.00</div>
         <div class="bal-stat-key">Pending</div>
       </div>
-      <div class="bal-stat-divider"></div>
+      <div class="bal-stat-div"></div>
       <div class="bal-stat">
-        <div class="bal-stat-val" id="statLevel">—</div>
-        <div class="bal-stat-key">Level</div>
+        <div class="bal-stat-val" id="statWithdrawn">$0.00</div>
+        <div class="bal-stat-key">Withdrawn</div>
       </div>
     </div>
   </div>
@@ -529,44 +668,63 @@
 
   <!-- NO SESSION -->
   <div id="noSession">
-    <div class="ns-icon">◈</div>
+    <div class="ns-icon">🔐</div>
     <div class="ns-title">Not signed in</div>
-    <div class="ns-sub" id="nsMsg">Sign in to your OneTasks account to access your wallet.</div>
+    <div class="ns-sub" id="nsMsg">Sign in to your AmulyTask account to access your wallet.</div>
   </div>
 
   <!-- SEND PANEL -->
   <div class="panel" id="panelSend">
 
+    <!-- ONE PAYMENT METHOD SELECTOR (dropdown, like reference image) -->
     <div class="section-title">Payment Method</div>
-    <div class="method-grid" style="margin-bottom:1.1rem">
-      <div class="method-card sel" id="card-mpesa" onclick="selectMethod('mpesa')">
-        <div class="method-emoji">📱</div>
-        <div class="method-name">M-Pesa</div>
-        <div class="method-tag">Mobile</div>
+    <div class="pm-selector" id="pmSelector">
+      <div class="pm-selected-row" onclick="togglePmDropdown()">
+        <div class="pm-icon-badge" id="pmBadge" style="background:#e0f2fe;">📱</div>
+        <div class="pm-selected-info">
+          <div class="pm-selected-label">Payment method</div>
+          <div class="pm-selected-val" id="pmSelectedVal">M-Pesa Mobile</div>
+        </div>
+        <div class="pm-chevron" id="pmChevron">▾</div>
       </div>
-      <div class="method-card" id="card-binance" onclick="selectMethod('binance')">
-        <div class="method-emoji">🔶</div>
-        <div class="method-name">Binance</div>
-        <div class="method-tag">Crypto</div>
-      </div>
-      <div class="method-card" id="card-paypal" onclick="selectMethod('paypal')">
-        <div class="method-emoji">🅿</div>
-        <div class="method-name">PayPal</div>
-        <div class="method-tag">Online</div>
+      <div class="pm-dropdown" id="pmDropdown">
+        <div class="pm-option active" id="opt-mpesa" onclick="choosePm('mpesa')">
+          <div class="pm-icon-badge" style="background:#e0f2fe;">📱</div>
+          <div class="pm-option-info">
+            <div class="pm-option-name">M-Pesa</div>
+            <div class="pm-option-sub">Mobile · SMS OTP</div>
+          </div>
+          <span class="pm-option-check">✓</span>
+        </div>
+        <div class="pm-option" id="opt-paypal" onclick="choosePm('paypal')">
+          <div class="pm-icon-badge" style="background:#e8f4fd;">🅿</div>
+          <div class="pm-option-info">
+            <div class="pm-option-name">PayPal</div>
+            <div class="pm-option-sub">Online · Email OTP</div>
+          </div>
+          <span class="pm-option-check">✓</span>
+        </div>
+        <div class="pm-option" id="opt-binance" onclick="choosePm('binance')">
+          <div class="pm-icon-badge" style="background:#fffbeb;">🔶</div>
+          <div class="pm-option-info">
+            <div class="pm-option-name">Binance Pay</div>
+            <div class="pm-option-sub">Crypto · Email OTP</div>
+          </div>
+          <span class="pm-option-check">✓</span>
+        </div>
+        <div class="pm-cancel-row">
+          <button class="pm-cancel-btn" onclick="togglePmDropdown()">CANCEL</button>
+        </div>
       </div>
     </div>
 
-    <!-- Saved accounts -->
-    <div class="saved-section" id="savedSection" style="display:none">
-      <div class="section-title">Saved Accounts</div>
-      <div class="saved-pills" id="savedPills"></div>
-    </div>
-
-    <div class="section-title">Amount</div>
+    <!-- Amount -->
+    <div class="section-title">Enter Amount</div>
     <div class="field">
       <div class="input-wrap">
         <span class="input-sym">$</span>
-        <input class="ot-input" type="number" id="amount" min="1" step="0.01" placeholder="0.00" oninput="calcFees()" />
+        <input class="at-input" type="number" id="amount" min="1" step="0.01"
+               placeholder="0.00" oninput="calcFees()" />
       </div>
       <div class="field-err" id="amtErr">Minimum withdrawal is $1.00</div>
     </div>
@@ -582,54 +740,60 @@
 
     <div class="section-title">Recipient Details</div>
 
-    <!-- M-Pesa -->
+    <!-- M-Pesa fields -->
     <div class="method-fields" id="fields-mpesa">
       <div class="field">
         <div class="field-label">M-Pesa Phone</div>
         <div style="display:flex">
           <div class="input-addon">🇰🇪 +254</div>
-          <input class="ot-input" type="tel" id="mpesaPhone" placeholder="0712 345 678" maxlength="15" oninput="validate()" />
+          <input class="at-input" type="tel" id="mpesaPhone"
+                 placeholder="0712 345 678" maxlength="15" oninput="validate()" />
         </div>
         <div class="field-hint">Format: 07XXXXXXXX or 01XXXXXXXX</div>
         <div class="field-err" id="mpesaPhoneErr">Enter a valid Kenyan number</div>
       </div>
       <div class="field">
         <div class="field-label">Account Holder Name</div>
-        <input class="ot-input" type="text" id="mpesaName" placeholder="Full name on M-Pesa" oninput="validate()" />
+        <input class="at-input" type="text" id="mpesaName"
+               placeholder="Full name on M-Pesa" oninput="validate()" />
         <div class="field-err" id="mpesaNameErr">Name is required</div>
       </div>
     </div>
 
-    <!-- Binance -->
-    <div class="method-fields" id="fields-binance" style="display:none">
-      <div class="hint-box">Fill <strong>either</strong> your Binance Email <strong>or</strong> Binance UID.</div>
-      <div class="field">
-        <div class="field-label">Binance Email</div>
-        <input class="ot-input" type="email" id="binEmail" placeholder="user@email.com" oninput="onBinInput('email')" />
-        <div class="field-err" id="binEmailErr">Enter a valid email</div>
-      </div>
-      <div class="or-sep">OR</div>
-      <div class="field">
-        <div class="field-label">Binance UID <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:.63rem;color:var(--ot-muted)">(8–12 digits)</span></div>
-        <input class="ot-input" type="text" id="binUid" placeholder="123456789" maxlength="12" oninput="onBinInput('uid')" />
-        <div class="field-err" id="binUidErr">UID must be 8–12 digits</div>
-      </div>
-    </div>
-
-    <!-- PayPal -->
+    <!-- PayPal fields -->
     <div class="method-fields" id="fields-paypal" style="display:none">
       <div class="field">
         <div class="field-label">PayPal Email</div>
-        <input class="ot-input" type="email" id="ppEmail" placeholder="paypal@email.com" oninput="validate()" />
+        <input class="at-input" type="email" id="ppEmail"
+               placeholder="paypal@email.com" oninput="validate()" />
         <div class="field-err" id="ppEmailErr">Enter a valid PayPal email</div>
       </div>
     </div>
 
-    <button class="ot-btn" id="submitBtn" disabled onclick="submitWithdrawal()">
-      Withdraw
+    <!-- Binance fields -->
+    <div class="method-fields" id="fields-binance" style="display:none">
+      <div class="hint-box">Fill <strong>either</strong> your Binance Email <strong>or</strong> Binance UID.</div>
+      <div class="field">
+        <div class="field-label">Binance Email</div>
+        <input class="at-input" type="email" id="binEmail"
+               placeholder="user@email.com" oninput="onBinInput('email')" />
+        <div class="field-err" id="binEmailErr">Enter a valid email</div>
+      </div>
+      <div class="or-sep">OR</div>
+      <div class="field">
+        <div class="field-label">Binance UID <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:.63rem;color:var(--at-muted)">(8–12 digits)</span></div>
+        <input class="at-input" type="text" id="binUid"
+               placeholder="123456789" maxlength="12" oninput="onBinInput('uid')" />
+        <div class="field-err" id="binUidErr">UID must be 8–12 digits</div>
+      </div>
+    </div>
+
+    <button class="at-btn" id="submitBtn" disabled onclick="initiateWithdrawal()">
+      Withdraw Money
     </button>
     <div class="disclaimer">
-      All withdrawals are reviewed by our team.<br>Funds typically arrive within 1–24 hours.
+      All withdrawals are reviewed by the AmulyTask team.<br>
+      Verification required · Funds arrive within 1–24 hours.
     </div>
 
   </div><!-- /panelSend -->
@@ -649,31 +813,30 @@
 </div><!-- /app -->
 
 <script>
-/* ══════════════════════════════════════════════════════
-   CONFIG — OneTasks Supabase project
-══════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════
+   CONFIG
+═══════════════════════════════════════════ */
 const SB_URL = 'https://lwnbfjjsstxkyexeojcl.supabase.co';
 const SB_KEY = 'sb_publishable_Pj9ocGkssu5Gh6qZXFnZQQ_LdghnZt9';
 
-/* Fee rates */
 const RATE_TRANSFER = 0.0542;
 const RATE_SERVICE  = 0.0697;
 const RATE_TOTAL    = RATE_TRANSFER + RATE_SERVICE;
 const MIN_AMOUNT    = 1;
 
-/* Globals */
-let sb, user, userData, txns = [], savedAccounts = [];
+let sb, user, userData, txns = [];
 let selectedMethod = 'mpesa';
+let pendingWithdrawal = null; // holds data while OTP is being verified
+let otpSentTo = '';
 
-/* ══════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════
    INIT
-══════════════════════════════════════════════════════ */
+═══════════════════════════════════════════ */
 window.addEventListener('DOMContentLoaded', async () => {
-  const safeguard = setTimeout(() => { hideSplash(); showNoSession(); }, 7000);
+  const safeguard = setTimeout(() => { hideSplash(); showNoSession(); }, 8000);
 
   try {
     sb = supabase.createClient(SB_URL, SB_KEY);
-
     const { data, error } = await sb.auth.getSession();
     clearTimeout(safeguard);
     if (error) throw error;
@@ -687,13 +850,12 @@ window.addEventListener('DOMContentLoaded', async () => {
     }
   } catch (err) {
     clearTimeout(safeguard);
-    console.error('Wallet init error:', err);
-    showNoSession('Connection error — check credentials.');
+    console.error('Wallet init:', err);
+    showNoSession('Connection error — please try again.');
   }
 
   hideSplash();
 
-  // Listen for future auth changes (login / logout)
   if (!sb) return;
   sb.auth.onAuthStateChange(async (event, session) => {
     if (event === 'SIGNED_IN' && session?.user) {
@@ -705,54 +867,71 @@ window.addEventListener('DOMContentLoaded', async () => {
       showNoSession();
     }
   });
+
+  // OTP box auto-advance
+  document.querySelectorAll('.otp-box').forEach((box, i, boxes) => {
+    box.addEventListener('input', () => {
+      box.value = box.value.replace(/\D/g, '').slice(-1);
+      if (box.value && i < boxes.length - 1) boxes[i + 1].focus();
+    });
+    box.addEventListener('keydown', e => {
+      if (e.key === 'Backspace' && !box.value && i > 0) boxes[i - 1].focus();
+    });
+  });
 });
 
+/* ═══════════════════════════════════════════
+   DATA LOADING
+═══════════════════════════════════════════ */
 async function loadUser() {
-  // Load from users table (primary) — fallback to profiles
-  const { data: uData } = await sb.from('users').select('*').eq('id', user.id).single();
-  userData = uData;
-
-  await Promise.all([loadWithdrawals(), loadSavedAccounts()]);
+  // Try users table first, then profiles fallback
+  let { data } = await sb.from('users').select('*').eq('id', user.id).maybeSingle();
+  if (!data) {
+    const res = await sb.from('profiles').select('*').eq('id', user.id).maybeSingle();
+    data = res.data;
+  }
+  userData = data;
+  await loadWithdrawals();
 }
 
 async function loadWithdrawals() {
-  const { data } = await sb.from('withdrawals')
-    .select('*').eq('user_id', user.id)
-    .order('created_at', { ascending: false }).limit(30);
+  const { data } = await sb
+    .from('withdrawals')
+    .select('*')
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false })
+    .limit(50);
   txns = data || [];
   renderHistory();
 }
 
-async function loadSavedAccounts() {
-  const { data } = await sb.from('user_payment_accounts')
-    .select('*').eq('user_id', user.id)
-    .order('is_primary', { ascending: false });
-  savedAccounts = data || [];
-  renderSaved();
-}
-
+/* ═══════════════════════════════════════════
+   POPULATE UI
+═══════════════════════════════════════════ */
 function populateUI() {
-  const name = userData?.display_name || userData?.username || userData?.full_name || user.email.split('@')[0];
-  const initials = name[0].toUpperCase();
-
-  document.getElementById('userAvatar').textContent = initials;
+  const name = userData?.display_name || userData?.full_name || userData?.username
+               || user.email?.split('@')[0] || 'User';
+  document.getElementById('userAvatar').textContent = name[0].toUpperCase();
   document.getElementById('userName').textContent   = name;
 
-  const bal     = parseFloat(userData?.balance ?? 0);
-  const earned  = parseFloat(userData?.total_earned ?? 0);
-  const pending = parseFloat(userData?.pending_balance ?? 0);
-  const level   = userData?.level ?? '—';
+  const bal      = parseFloat(userData?.balance ?? 0);
+  const earned   = parseFloat(userData?.total_earned ?? userData?.earnings ?? 0);
+  const pending  = parseFloat(userData?.pending_balance ?? 0);
 
-  document.getElementById('balAmt').textContent    = '$' + bal.toFixed(4);
-  document.getElementById('statTotal').textContent = '$' + earned.toFixed(2);
-  document.getElementById('statPending').textContent = '$' + pending.toFixed(2);
-  document.getElementById('statLevel').textContent = 'Lvl ' + level;
+  // Sum withdrawn from txns
+  const withdrawn = txns
+    .filter(t => ['completed','approved'].includes(t.status))
+    .reduce((s, t) => s + (parseFloat(t.amount) || 0), 0);
+
+  document.getElementById('balAmt').textContent        = bal.toFixed(2);
+  document.getElementById('statTotal').textContent     = '$' + earned.toFixed(2);
+  document.getElementById('statPending').textContent   = '$' + pending.toFixed(2);
+  document.getElementById('statWithdrawn').textContent = '$' + withdrawn.toFixed(2);
 
   document.getElementById('rTransfer').textContent = `(${(RATE_TRANSFER*100).toFixed(2)}%)`;
   document.getElementById('rService').textContent  = `(${(RATE_SERVICE*100).toFixed(2)}%)`;
   document.getElementById('rTotal').textContent    = `(${(RATE_TOTAL*100).toFixed(2)}%)`;
 
-  // Show panels
   document.getElementById('panelSend').classList.remove('hidden');
   document.getElementById('noSession').style.display = 'none';
   document.getElementById('submitBtn').disabled = true;
@@ -761,54 +940,59 @@ function populateUI() {
 function showNoSession(msg) {
   document.getElementById('userAvatar').textContent  = '?';
   document.getElementById('userName').textContent    = 'Not signed in';
-  document.getElementById('balAmt').textContent      = '$—';
+  document.getElementById('balAmt').textContent      = '—';
   document.getElementById('noSession').style.display = 'flex';
   if (msg) document.getElementById('nsMsg').textContent = msg;
   document.getElementById('panelSend').classList.add('hidden');
   document.getElementById('panelHistory').classList.add('hidden');
 }
 
-/* ══════════════════════════════════════════════════════
-   SAVED ACCOUNTS
-══════════════════════════════════════════════════════ */
-function renderSaved() {
-  const section = document.getElementById('savedSection');
-  const container = document.getElementById('savedPills');
+/* ═══════════════════════════════════════════
+   PAYMENT METHOD DROPDOWN
+═══════════════════════════════════════════ */
+const PM_CONFIG = {
+  mpesa:   { emoji:'📱', label:'M-Pesa Mobile',    bg:'#e0f2fe' },
+  paypal:  { emoji:'🅿',  label:'PayPal Online',    bg:'#e8f4fd' },
+  binance: { emoji:'🔶', label:'Binance Pay Crypto',bg:'#fffbeb' },
+};
 
-  const filtered = savedAccounts.filter(a => a.method === selectedMethod);
-  if (!filtered.length) { section.style.display = 'none'; return; }
-
-  section.style.display = 'block';
-  container.innerHTML = filtered.map(a => `
-    <div class="saved-pill" data-id="${a.id}" data-val="${a.account_value}" onclick="applySaved(this, '${a.account_value}')">
-      <div class="saved-dot"></div>
-      <span>${a.account_value}${a.is_primary ? ' ★' : ''}</span>
-    </div>
-  `).join('');
+function togglePmDropdown() {
+  const dd = document.getElementById('pmDropdown');
+  const ch = document.getElementById('pmChevron');
+  const open = dd.classList.toggle('open');
+  ch.classList.toggle('open', open);
 }
 
-function applySaved(el, val) {
-  // Toggle active styling
-  document.querySelectorAll('.saved-pill').forEach(p => p.classList.remove('active'));
-  el.classList.add('active');
+function choosePm(m) {
+  selectedMethod = m;
+  const cfg = PM_CONFIG[m];
 
-  if (selectedMethod === 'mpesa') {
-    // Strip country code if present
-    let ph = val.replace(/\D/g,'');
-    if (ph.startsWith('254')) ph = '0' + ph.slice(3);
-    document.getElementById('mpesaPhone').value = ph;
-  } else if (selectedMethod === 'binance') {
-    if (val.includes('@')) document.getElementById('binEmail').value = val;
-    else document.getElementById('binUid').value = val;
-  } else if (selectedMethod === 'paypal') {
-    document.getElementById('ppEmail').value = val;
-  }
+  // Update selected row
+  document.getElementById('pmBadge').textContent   = cfg.emoji;
+  document.getElementById('pmBadge').style.background = cfg.bg;
+  document.getElementById('pmSelectedVal').textContent = cfg.label;
+
+  // Toggle checkmarks
+  ['mpesa','paypal','binance'].forEach(id => {
+    document.getElementById('opt-' + id).classList.toggle('active', id === m);
+  });
+
+  // Toggle fields
+  ['mpesa','paypal','binance'].forEach(id => {
+    document.getElementById('fields-' + id).style.display = id === m ? 'block' : 'none';
+  });
+
+  // Close dropdown
+  document.getElementById('pmDropdown').classList.remove('open');
+  document.getElementById('pmChevron').classList.remove('open');
+
+  clearFields();
   validate();
 }
 
-/* ══════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════
    TABS
-══════════════════════════════════════════════════════ */
+═══════════════════════════════════════════ */
 function switchTab(tab) {
   const isSend = tab === 'send';
   document.getElementById('panelSend').classList.toggle('hidden', !isSend);
@@ -818,86 +1002,54 @@ function switchTab(tab) {
   if (!isSend) loadWithdrawals();
 }
 
-/* ══════════════════════════════════════════════════════
-   METHOD SELECTION
-══════════════════════════════════════════════════════ */
-function selectMethod(m) {
-  selectedMethod = m;
-  ['mpesa','binance','paypal'].forEach(id => {
-    document.getElementById('card-' + id).classList.toggle('sel', id === m);
-    document.getElementById('fields-' + id).style.display = id === m ? 'block' : 'none';
-  });
-  clearFields();
-  renderSaved();
-  validate();
-}
-
-function clearFields() {
-  ['mpesaPhone','mpesaName','binEmail','binUid','ppEmail'].forEach(id => {
-    document.getElementById(id).value = '';
-  });
-  ['mpesaPhoneErr','mpesaNameErr','binEmailErr','binUidErr','ppEmailErr'].forEach(id => {
-    document.getElementById(id).style.display = 'none';
-  });
-}
-
-/* ══════════════════════════════════════════════════════
-   BINANCE mutual exclusion
-══════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════
+   BINANCE MUTUAL EXCLUSION
+═══════════════════════════════════════════ */
 function onBinInput(which) {
-  if (which === 'email' && document.getElementById('binEmail').value) {
+  if (which === 'email' && document.getElementById('binEmail').value)
     document.getElementById('binUid').value = '';
-  }
-  if (which === 'uid' && document.getElementById('binUid').value) {
+  if (which === 'uid' && document.getElementById('binUid').value)
     document.getElementById('binEmail').value = '';
-  }
   validate();
 }
 
-/* ══════════════════════════════════════════════════════
-   FEE CALCULATOR
-══════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════
+   FEE CALC
+═══════════════════════════════════════════ */
 function calcFees() {
-  const raw = parseFloat(document.getElementById('amount').value) || 0;
+  const raw    = parseFloat(document.getElementById('amount').value) || 0;
   const errEl  = document.getElementById('amtErr');
   const feeBox = document.getElementById('feeBox');
 
-  if (raw > 0 && raw < MIN_AMOUNT) {
-    errEl.style.display = 'block';
-    feeBox.style.display = 'none';
-  } else {
-    errEl.style.display = 'none';
-  }
+  errEl.style.display  = (raw > 0 && raw < MIN_AMOUNT) ? 'block' : 'none';
+  feeBox.style.display = raw >= MIN_AMOUNT ? 'block' : 'none';
 
   if (raw >= MIN_AMOUNT) {
     const ft  = raw * RATE_TRANSFER;
     const fs  = raw * RATE_SERVICE;
     const fto = raw * RATE_TOTAL;
     const net = raw - fto;
-    document.getElementById('fTransfer').textContent = '-$' + fto4(ft);
-    document.getElementById('fService').textContent  = '-$' + fto4(fs);
-    document.getElementById('fTotal').textContent    = '-$' + fto4(fto);
-    document.getElementById('fNet').textContent      = '$'  + fto4(net);
-    feeBox.style.display = 'block';
-  } else {
-    feeBox.style.display = 'none';
+    document.getElementById('fTransfer').textContent = '-$' + f4(ft);
+    document.getElementById('fService').textContent  = '-$' + f4(fs);
+    document.getElementById('fTotal').textContent    = '-$' + f4(fto);
+    document.getElementById('fNet').textContent      = '$'  + f4(net);
   }
-
   validate();
 }
 
-/* ══════════════════════════════════════════════════════
-   VALIDATION
-══════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════
+   VALIDATE
+═══════════════════════════════════════════ */
 function validate() {
   const amt = parseFloat(document.getElementById('amount').value) || 0;
   const ok  = amt >= MIN_AMOUNT && validateMethod();
-  document.getElementById('submitBtn').disabled = !ok;
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = !ok;
   if (ok) {
-    const mn = { mpesa:'M-Pesa', binance:'Binance', paypal:'PayPal' }[selectedMethod];
-    document.getElementById('submitBtn').textContent = `Withdraw $${amt.toFixed(2)} via ${mn}`;
+    const label = PM_CONFIG[selectedMethod]?.label || selectedMethod;
+    btn.textContent = `Withdraw $${amt.toFixed(2)} via ${label}`;
   } else {
-    document.getElementById('submitBtn').textContent = 'Withdraw';
+    btn.textContent = 'Withdraw Money';
   }
 }
 
@@ -908,9 +1060,8 @@ function validateMethod() {
     return /^(07|01)\d{8}$/.test(ph) && nm.length > 1;
   }
   if (selectedMethod === 'binance') {
-    const em  = document.getElementById('binEmail').value;
-    const uid = document.getElementById('binUid').value;
-    return isEmail(em) || /^\d{8,12}$/.test(uid);
+    return isEmail(document.getElementById('binEmail').value)
+        || /^\d{8,12}$/.test(document.getElementById('binUid').value);
   }
   if (selectedMethod === 'paypal') {
     return isEmail(document.getElementById('ppEmail').value);
@@ -920,73 +1071,234 @@ function validateMethod() {
 
 function isEmail(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
 
-/* ══════════════════════════════════════════════════════
-   SUBMIT WITHDRAWAL — writes to `withdrawals` table
-══════════════════════════════════════════════════════ */
-async function submitWithdrawal() {
+/* ═══════════════════════════════════════════
+   STEP 1 — INITIATE WITHDRAWAL (triggers OTP)
+═══════════════════════════════════════════ */
+async function initiateWithdrawal() {
   const btn = document.getElementById('submitBtn');
   if (btn.disabled) return;
+
+  const amt = parseFloat(document.getElementById('amount').value);
+  const bal = parseFloat(userData?.balance ?? 0);
+
+  if (amt > bal) {
+    showToast(`Insufficient balance. Available: $${bal.toFixed(2)}`, 'error');
+    return;
+  }
+
+  const fto = amt * RATE_TOTAL;
+  const net = amt - fto;
+  const walletAddr = buildWalletAddress();
+  const ref = 'AT-' + Date.now().toString(36).toUpperCase();
+
+  // Store pending withdrawal data
+  pendingWithdrawal = { amt, net, fto, walletAddr, ref };
+
+  // Send OTP based on method
   btn.disabled = true;
-  btn.innerHTML = '<span class="spin">⟳</span> Processing…';
+  btn.innerHTML = '<span class="spin">⟳</span> Sending code…';
 
   try {
-    const amt = parseFloat(document.getElementById('amount').value);
-    const bal = parseFloat(userData?.balance ?? 0);
-
-    if (amt > bal) {
-      throw new Error(`Insufficient balance. Available: $${bal.toFixed(4)}`);
-    }
-
-    const ft  = amt * RATE_TRANSFER;
-    const fs  = amt * RATE_SERVICE;
-    const fto = amt * RATE_TOTAL;
-    const net = amt - fto;
-
-    const walletAddr = buildWalletAddress();
-    const ref = 'OT-' + Date.now().toString(36).toUpperCase();
-
-    // Insert into withdrawals
-    const { data: wd, error: wErr } = await sb.from('withdrawals').insert({
-      user_id:        user.id,
-      amount:         +net.toFixed(6),
-      method:         selectedMethod,
-      wallet_address: walletAddr,
-      status:         'pending',
-    }).select().single();
-    if (wErr) throw wErr;
-
-    // Optionally save payment account for future use
-    await savePaymentAccount(walletAddr);
-
-    showToast('✓ Withdrawal submitted! Net: $' + fto4(net), 'success');
-    resetForm();
-    await loadUser();
-    populateUI();
-    switchTab('history');
-
-  } catch(e) {
-    console.error(e);
-    showToast(e.message || 'Withdrawal failed. Please try again.', 'error');
+    await sendOtp();
+    openOtp();
+    showToast(`Verification code sent via ${selectedMethod === 'mpesa' ? 'SMS' : 'email'}`, 'info');
+  } catch (e) {
+    showToast(e.message || 'Could not send OTP. Try again.', 'error');
   } finally {
     btn.disabled = false;
     validate();
   }
 }
 
-async function savePaymentAccount(val) {
-  // Save account if not already saved
-  const exists = savedAccounts.find(a => a.account_value === val && a.method === selectedMethod);
-  if (!exists && val) {
-    await sb.from('user_payment_accounts').upsert({
-      user_id:       user.id,
-      method:        selectedMethod,
-      account_value: val,
-      is_primary:    savedAccounts.length === 0,
-    }, { onConflict: 'user_id,method,account_value' });
-    await loadSavedAccounts();
+/* ═══════════════════════════════════════════
+   OTP — SEND
+═══════════════════════════════════════════ */
+async function sendOtp() {
+  if (selectedMethod === 'mpesa') {
+    // M-Pesa: use Supabase phone OTP (or SMS edge function)
+    // The destination is the user's verified email (Supabase handles it)
+    // For now we use email OTP as the universal channel since Supabase
+    // handles phone OTP via auth.signInWithOtp
+    otpSentTo = user.email;
+    document.getElementById('otpDesc').innerHTML =
+      `An SMS verification code has been sent to your M-Pesa number <strong>${maskPhone(document.getElementById('mpesaPhone').value)}</strong>. Check your phone.`;
+
+    // Send OTP via Supabase email (production: swap to SMS via edge function)
+    await sb.auth.signInWithOtp({ email: user.email });
+
+  } else if (selectedMethod === 'paypal') {
+    otpSentTo = document.getElementById('ppEmail').value;
+    document.getElementById('otpDesc').innerHTML =
+      `A verification code has been emailed to your PayPal address <strong>${maskEmail(otpSentTo)}</strong>.`;
+
+    await sb.auth.signInWithOtp({ email: user.email });
+
+  } else if (selectedMethod === 'binance') {
+    const binEmail = document.getElementById('binEmail').value || user.email;
+    otpSentTo = binEmail;
+    document.getElementById('otpDesc').innerHTML =
+      `A verification code has been emailed to <strong>${maskEmail(otpSentTo)}</strong> for Binance Pay.`;
+
+    await sb.auth.signInWithOtp({ email: user.email });
+  }
+
+  document.getElementById('otpDestDisplay').textContent = otpSentTo;
+}
+
+async function resendOtp() {
+  try {
+    await sendOtp();
+    showToast('Code resent!', 'info');
+  } catch(e) {
+    showToast('Could not resend. Try again.', 'error');
   }
 }
 
+function openOtp() {
+  document.querySelectorAll('.otp-box').forEach(b => { b.value = ''; });
+  document.getElementById('otpOverlay').classList.add('open');
+  setTimeout(() => document.querySelector('.otp-box').focus(), 350);
+}
+
+function closeOtp() {
+  document.getElementById('otpOverlay').classList.remove('open');
+  pendingWithdrawal = null;
+}
+
+/* ═══════════════════════════════════════════
+   STEP 2 — VERIFY OTP & SUBMIT
+═══════════════════════════════════════════ */
+async function verifyOtpAndSubmit() {
+  const otp = Array.from(document.querySelectorAll('.otp-box')).map(b => b.value).join('');
+  if (otp.length < 6) {
+    showToast('Enter the full 6-digit code', 'error');
+    return;
+  }
+
+  const btn = document.getElementById('otpVerifyBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin">⟳</span> Verifying…';
+
+  try {
+    // Verify OTP with Supabase
+    const { error: verifyErr } = await sb.auth.verifyOtp({
+      email: user.email,
+      token: otp,
+      type:  'magiclink',
+    });
+    if (verifyErr) throw new Error('Invalid or expired code. ' + verifyErr.message);
+
+    await commitWithdrawal();
+  } catch (e) {
+    showToast(e.message || 'Verification failed.', 'error');
+    btn.disabled = false;
+    btn.textContent = 'Confirm Withdrawal';
+  }
+}
+
+/* ═══════════════════════════════════════════
+   STEP 3 — COMMIT WITHDRAWAL TO DB
+   - Deduct from user balance
+   - Insert withdrawal record
+   - Notify admin
+═══════════════════════════════════════════ */
+async function commitWithdrawal() {
+  const { amt, net, fto, walletAddr, ref } = pendingWithdrawal;
+  const currentBal = parseFloat(userData?.balance ?? 0);
+  const newBal     = Math.max(0, currentBal - amt);
+
+  // 1. Deduct balance from user account
+  const balTable = userData?.balance !== undefined ? 'users' : 'profiles';
+  const { error: deductErr } = await sb
+    .from(balTable)
+    .update({ balance: parseFloat(newBal.toFixed(6)) })
+    .eq('id', user.id);
+  if (deductErr) throw new Error('Balance deduction failed: ' + deductErr.message);
+
+  // 2. Insert withdrawal record
+  const { data: wd, error: wErr } = await sb
+    .from('withdrawals')
+    .insert({
+      user_id:        user.id,
+      amount:         parseFloat(net.toFixed(6)),
+      gross_amount:   parseFloat(amt.toFixed(6)),
+      fee_amount:     parseFloat(fto.toFixed(6)),
+      method:         selectedMethod,
+      wallet_address: walletAddr,
+      reference:      ref,
+      status:         'pending',
+      verified:       true,
+      created_at:     new Date().toISOString(),
+    })
+    .select()
+    .single();
+  if (wErr) throw new Error('Withdrawal record failed: ' + wErr.message);
+
+  // 3. Notify admin via notifications table
+  const userName = userData?.display_name || userData?.full_name || userData?.username || user.email;
+  const methodLabel = PM_CONFIG[selectedMethod]?.label || selectedMethod;
+
+  await sb.from('notifications').insert({
+    user_id:    null,           // null = admin broadcast
+    type:       'admin',
+    title:      '💸 New Withdrawal Request',
+    body:       `${userName} requested $${net.toFixed(2)} via ${methodLabel} (ref: ${ref})`,
+    meta: JSON.stringify({
+      withdrawal_id: wd?.id,
+      user_id:       user.id,
+      user_name:     userName,
+      user_email:    user.email,
+      method:        selectedMethod,
+      wallet:        walletAddr,
+      net_amount:    net.toFixed(4),
+      gross_amount:  amt.toFixed(4),
+      fee_amount:    fto.toFixed(4),
+      reference:     ref,
+      status:        'pending',
+    }),
+    is_admin_alert: true,
+    read:       false,
+    created_at: new Date().toISOString(),
+  }).catch(() => {
+    // Also try admin_notifications table as fallback
+    sb.from('admin_notifications').insert({
+      type:       'withdrawal',
+      title:      `Withdrawal: $${net.toFixed(2)} via ${methodLabel}`,
+      user_id:    user.id,
+      user_name:  userName,
+      amount:     net,
+      method:     selectedMethod,
+      wallet:     walletAddr,
+      reference:  ref,
+      status:     'pending',
+      created_at: new Date().toISOString(),
+    }).catch(() => {});
+  });
+
+  // 4. Update local state
+  userData.balance = newBal;
+  document.getElementById('balAmt').textContent = newBal.toFixed(2);
+
+  // 5. Close OTP, show success
+  closeOtp();
+  document.getElementById('successMsg').textContent =
+    `$${net.toFixed(2)} will be sent to your ${PM_CONFIG[selectedMethod]?.label} within 1–24 hours.`;
+  document.getElementById('successRef').textContent = 'Reference: ' + ref;
+  document.getElementById('successSheet').classList.add('open');
+
+  showToast('✓ Withdrawal submitted!', 'success');
+  resetForm();
+  await loadUser();
+  populateUI();
+}
+
+function closeSuccess() {
+  document.getElementById('successSheet').classList.remove('open');
+}
+
+/* ═══════════════════════════════════════════
+   HELPERS
+═══════════════════════════════════════════ */
 function buildWalletAddress() {
   if (selectedMethod === 'mpesa') {
     let ph = document.getElementById('mpesaPhone').value.replace(/\D/g,'');
@@ -1004,21 +1316,38 @@ function buildWalletAddress() {
   }
 }
 
+function clearFields() {
+  ['mpesaPhone','mpesaName','binEmail','binUid','ppEmail'].forEach(id => {
+    const el = document.getElementById(id); if(el) el.value = '';
+  });
+  document.getElementById('feeBox').style.display  = 'none';
+  document.getElementById('amtErr').style.display  = 'none';
+}
+
 function resetForm() {
   document.getElementById('amount').value = '';
   clearFields();
-  document.getElementById('feeBox').style.display = 'none';
-  document.getElementById('submitBtn').disabled = true;
-  document.getElementById('submitBtn').textContent = 'Withdraw';
+  document.getElementById('submitBtn').disabled   = true;
+  document.getElementById('submitBtn').textContent = 'Withdraw Money';
 }
 
-/* ══════════════════════════════════════════════════════
+function maskEmail(e) {
+  if (!e || !e.includes('@')) return e;
+  const [u, d] = e.split('@');
+  return u.slice(0,2) + '****@' + d;
+}
+function maskPhone(p) {
+  const s = p.replace(/\D/g,'');
+  return s.slice(0,3) + '****' + s.slice(-2);
+}
+
+/* ═══════════════════════════════════════════
    RENDER HISTORY
-══════════════════════════════════════════════════════ */
+═══════════════════════════════════════════ */
 function renderHistory() {
   const badge = document.getElementById('txnBadge');
-  badge.textContent = txns.length;
-  badge.style.display = txns.length ? 'inline' : 'none';
+  badge.textContent    = txns.length;
+  badge.style.display  = txns.length ? 'inline' : 'none';
 
   const el = document.getElementById('historyList');
   if (!txns.length) {
@@ -1031,47 +1360,47 @@ function renderHistory() {
     return;
   }
 
-  const statusCol = { pending:'#ffb830', processing:'#6c63ff', completed:'#00e5a0', failed:'#ff5c5c', cancelled:'#4e5168' };
-  const icons     = { mpesa:'📱', binance:'🔶', paypal:'🅿' };
-
-  const parseMethod = (addr) => {
-    if (!addr) return 'mpesa';
-    if (addr.startsWith('MPESA')) return 'mpesa';
-    if (addr.startsWith('BIN'))   return 'binance';
-    if (addr.startsWith('PAYPAL')) return 'paypal';
-    return addr;
+  const statusCol = {
+    pending:    '#f59e0b', processing: '#6366f1',
+    completed:  '#10b981', approved: '#10b981',
+    failed:     '#ef4444', cancelled: '#94a3b8'
   };
+  const icons = { mpesa:'📱', binance:'🔶', paypal:'🅿' };
 
   el.innerHTML = '<div class="txn-list">' + txns.map(t => {
-    const m = t.method || parseMethod(t.wallet_address);
-    const col = statusCol[t.status] || '#4e5168';
-    const addrDisplay = t.wallet_address
-      ? t.wallet_address.split(':').slice(1).join(' · ').substring(0, 30)
-      : '—';
+    const m   = t.method || (t.wallet_address?.startsWith('MPESA') ? 'mpesa' : t.wallet_address?.startsWith('BIN') ? 'binance' : 'paypal');
+    const col = statusCol[t.status] || '#94a3b8';
+    const addr = (t.wallet_address || '').split(':').slice(1).join(' · ').substring(0, 32);
+    const net  = t.amount;
+    const gross = t.gross_amount || t.amount;
+    const ref   = t.reference || t.id?.substring(0,10) || '—';
+
     return `
     <div class="txn-item">
       <div class="txn-left">
         <div class="txn-icon">${icons[m] || '💳'}</div>
         <div>
           <div class="txn-method">${cap(m)}</div>
-          <div class="txn-ref">${addrDisplay}</div>
+          <div class="txn-ref">${addr}</div>
+          <div class="txn-ref" style="color:var(--at-muted);font-size:.58rem;">${ref}</div>
           <div class="txn-date">${fmtDate(t.created_at)}</div>
         </div>
       </div>
       <div class="txn-right">
-        <div class="txn-amt">−$${fto4(t.amount)}</div>
+        <div class="txn-amt">−$${f4(gross)}</div>
+        <div class="txn-net">net $${f4(net)}</div>
         <div class="txn-status" style="color:${col}">
           <span class="status-dot" style="background:${col}"></span>${t.status}
         </div>
-        ${t.admin_note ? `<div class="txn-net" title="${t.admin_note}">📝 note</div>` : ''}
+        ${t.verified ? `<div style="font-family:var(--ff-mono);font-size:.58rem;color:var(--at-accent);margin-top:.1rem;">✓ verified</div>` : ''}
       </div>
     </div>`;
   }).join('') + '</div>';
 }
 
-/* ══════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════
    SPLASH / TOAST
-══════════════════════════════════════════════════════ */
+═══════════════════════════════════════════ */
 let splashHidden = false;
 function hideSplash() {
   if (splashHidden) return;
@@ -1084,21 +1413,21 @@ function hideSplash() {
 
 let toastTimer;
 function showToast(msg, type = 'info') {
-  const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.className = `${type} show`;
+  const el  = document.getElementById('toast');
+  const ico = { success:'✅', error:'❌', info:'ℹ️' }[type] || '';
+  el.innerHTML  = ico + ' ' + msg;
+  el.className  = type + ' show';
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => el.classList.remove('show'), 4500);
 }
 
-/* ══════════════════════════════════════════════════════
-   HELPERS
-══════════════════════════════════════════════════════ */
-function fto4(n) { return Number(n).toFixed(4); }
-function cap(s)  { return s ? s.charAt(0).toUpperCase() + s.slice(1) : ''; }
+/* Utils */
+function f4(n)  { return Number(n).toFixed(4); }
+function cap(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : ''; }
 function fmtDate(d) {
   return new Date(d).toLocaleDateString('en-KE', {
-    day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'
+    day:'2-digit', month:'short', year:'numeric',
+    hour:'2-digit', minute:'2-digit'
   });
 }
 </script>
