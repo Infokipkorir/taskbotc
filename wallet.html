@@ -1552,6 +1552,11 @@ async function submitWithdrawal() {
   const amt = parseFloat(document.getElementById('amount').value);
   const bal = parseFloat(userData?.balance ?? 0);
 
+  if (Number.isNaN(amt) || amt <= 0) {
+    toast('Enter a valid withdrawal amount.', 'error');
+    return;
+  }
+
   if (amt > bal) {
     toast(`Insufficient balance. Available: $${bal.toFixed(2)}`, 'error');
     return;
@@ -1559,8 +1564,8 @@ async function submitWithdrawal() {
 
   if (!currentRef) refreshRef();
 
-  const fee = amt * RATE_TOTAL;     // fee amount
-  const net = amt - fee;           // amount stored in withdrawals.amount
+  const fee = amt * RATE_TOTAL;      // fee amount
+  const net = amt - fee;             // amount stored in withdrawals.amount
   const ref = currentRef;
 
   const walletAddr = buildWalletAddress();
@@ -1573,7 +1578,8 @@ async function submitWithdrawal() {
     user?.email;
 
   btn.disabled = true;
-  btn.innerHTML = '<span class="spin"><i class="bi bi-arrow-repeat"></i></span> Submitting…';
+  btn.innerHTML =
+    '<span class="spin"><i class="bi bi-arrow-repeat"></i></span> Submitting…';
 
   try {
     const newBal = Math.max(0, bal - amt);
@@ -1586,8 +1592,7 @@ async function submitWithdrawal() {
 
     if (balErr) throw new Error('Balance update failed: ' + balErr.message);
 
-    // 2) Insert withdrawal record into public.withdrawals
-    // Match your schema: status, wallet_address, reference_code, created_at, etc.
+    // 2) Insert withdrawal record (match public.withdrawals columns)
     const { data: wd, error: wErr } = await sb
       .from('withdrawals')
       .insert({
@@ -1604,7 +1609,7 @@ async function submitWithdrawal() {
 
     if (wErr) throw new Error('Withdrawal record failed: ' + wErr.message);
 
-    // 3) Notify user (keep your existing helper)
+    // 3) Notify user
     await sendUserNotification({
       title: '⏳ Withdrawal Submitted',
       body: `Your withdrawal of $${net.toFixed(2)} via ${methodLabel} is Pending review. Ref: ${ref}`,
@@ -1615,13 +1620,13 @@ async function submitWithdrawal() {
       withdrawalId: wd?.id,
     });
 
-    // 4) Notify admin (only if your notifications table supports these columns)
+    // 4) Notify admin (keep your notifications insert if your table supports these columns)
     await sb
       .from('notifications')
       .insert({
         user_id: null,
         type: 'admin',
-        title: `💸 New Withdrawal Request`,
+        title: '💸 New Withdrawal Request',
         body: `${userName} requested $${net.toFixed(2)} via ${methodLabel} (ref: ${ref})`,
         meta: JSON.stringify({
           withdrawal_id: wd?.id,
@@ -1645,9 +1650,8 @@ async function submitWithdrawal() {
     // 5) Subscribe to real-time updates
     if (wd?.id) subscribeToWithdrawalUpdates(wd.id);
 
-    // 6) Update local state + UI
+    // 6) Update local state/UI
     if (userData) userData.balance = newBal;
-
     document.getElementById('balAmt').textContent = newBal.toFixed(2);
 
     document.getElementById('successMsg').textContent =
@@ -1666,11 +1670,6 @@ async function submitWithdrawal() {
     validate();
   }
 }
-
-function closeSuccess() {
-  document.getElementById('successSheet').classList.remove('open');
-                          }
-
 /* ══════════════════════════════════════════
    USER NOTIFICATION SENDER
 ══════════════════════════════════════════ */
