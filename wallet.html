@@ -1,637 +1,628 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>My Wallet — AmulyTask</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@300;400;500;600&display=swap" rel="stylesheet" />
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Wallet — AmulyTask</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%231a56db'/><text x='50' y='60' font-size='40' text-anchor='middle' fill='white'>W</text></svg>">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+<style>
+/* ── DESIGN TOKENS (from profile.html) ── */
+:root {
+  --blue:       #1a56db;
+  --blue-light: #eef2ff;
+  --blue-mid:   #3b72f6;
+  --gray:       #6b7280;
+  --gray-light: #f3f4f6;
+  --red:        #ef4444;
+  --amber:      #f59e0b;
+  --green:      #22c55e;
+  --bg:         #f1f5f9;
+  --card:       #ffffff;
+  --text:       #111827;
+  --subtext:    #6b7280;
+  --border:     #e5e7eb;
+  --radius:     16px;
+  --radius-sm:  10px;
+  --shadow:     0 2px 16px rgba(0,0,0,0.07);
+  --nav-h:      64px;
+}
 
-    :root {
-      --at-bg:        #f5f7ff;
-      --at-surface:   #ffffff;
-      --at-surface2:  #f0f2fa;
-      --at-surface3:  #e8ebf5;
-      --at-border:    rgba(99,102,241,0.12);
-      --at-border2:   rgba(99,102,241,0.22);
-      --at-primary:   #6366f1;
-      --at-primary-d: #4f46e5;
-      --at-primary-g: linear-gradient(135deg,#6366f1 0%,#a78bfa 100%);
-      --at-accent:    #10b981;
-      --at-gold:      #f59e0b;
-      --at-warn:      #ef4444;
-      --at-text:      #0f172a;
-      --at-sub:       #475569;
-      --at-muted:     #94a3b8;
-      --ff:           'Sora', sans-serif;
-      --ff-mono:      'IBM Plex Mono', monospace;
-      --r:            14px;
-      --r-sm:         10px;
-      --shadow:       0 2px 20px rgba(99,102,241,0.10);
-      --nav-h:        64px;
-    }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    html { scroll-behavior: smooth; }
-    body {
-      background: #ffffff;
-      color: var(--at-text);
-      font-family: var(--ff);
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-    }
-    body::before {
-      content: '';
-      position: fixed; inset: 0; z-index: 0; pointer-events: none;
-      background-image:
-        linear-gradient(rgba(99,102,241,0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(99,102,241,0.03) 1px, transparent 1px);
-      background-size: 28px 28px;
-    }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
 
-    /* ═══ SPLASH ═══ */
-    #splash {
-      position: fixed; inset: 0; z-index: 200;
-      background: #fff;
-      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.4rem;
-      transition: opacity .4s ease;
-    }
-    #splash.out { opacity: 0; pointer-events: none; }
-    .splash-logo {
-      width: 60px; height: 60px;
-      background: var(--at-primary-g);
-      border-radius: 20px;
-      display: grid; place-items: center;
-      font-size: 1.7rem;
-      box-shadow: 0 0 40px rgba(99,102,241,.3);
-      animation: breathe 1.6s ease-in-out infinite;
-    }
-    .splash-name { font-size: 1.1rem; font-weight: 800; background: var(--at-primary-g); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-    .splash-bar { width: 140px; height: 3px; background: var(--at-surface3); border-radius: 99px; overflow: hidden; }
-    .splash-bar-fill { height: 100%; background: var(--at-primary-g); border-radius: 99px; animation: load 1.8s ease-in-out infinite; }
-    .splash-label { font-size: .7rem; color: var(--at-muted); font-family: var(--ff-mono); letter-spacing: .1em; }
+h1,h2,h3,h4 { font-family: 'Sora', sans-serif; }
 
-    /* ═══ TOAST ═══ */
-    #toast {
-      position: fixed; top: 1.1rem; left: 50%;
-      transform: translateX(-50%) translateY(-14px);
-      z-index: 999; min-width: 260px; max-width: 88vw;
-      padding: .75rem 1.2rem; border-radius: var(--r);
-      font-family: var(--ff); font-size: .82rem; font-weight: 600;
-      text-align: center; opacity: 0;
-      transition: all .3s cubic-bezier(.22,1,.36,1); pointer-events: none;
-      display: flex; align-items: center; justify-content: center; gap: .5rem;
-    }
-    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-    #toast.success { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; box-shadow: var(--shadow); }
-    #toast.error   { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; box-shadow: var(--shadow); }
-    #toast.info    { background: #eef2ff; color: #3730a3; border: 1px solid #c7d2fe; box-shadow: var(--shadow); }
+/* ── SPLASH ── */
+#splash {
+  position: fixed; inset: 0; z-index: 200;
+  background: #fff;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.2rem;
+  transition: opacity .4s ease;
+}
+#splash.out { opacity: 0; pointer-events: none; }
+.splash-logo {
+  width: 64px; height: 64px;
+  background: linear-gradient(135deg, var(--blue) 0%, var(--blue-mid) 60%, #6d96ff 100%);
+  border-radius: 20px;
+  display: grid; place-items: center;
+  font-size: 1.8rem; color: #fff;
+  box-shadow: 0 0 40px rgba(26,86,219,.3);
+  animation: breathe 1.6s ease-in-out infinite;
+}
+.splash-name { font-family: 'Sora', sans-serif; font-size: 1rem; font-weight: 800; color: var(--blue); }
+.splash-bar  { width: 120px; height: 3px; background: var(--gray-light); border-radius: 99px; overflow: hidden; }
+.splash-fill { height: 100%; background: linear-gradient(90deg, var(--blue), var(--blue-mid)); border-radius: 99px; animation: load 1.8s ease-in-out infinite; }
+.splash-sub  { font-size: .72rem; color: var(--subtext); font-weight: 500; }
 
-    /* ═══ APP SHELL ═══ */
-    #app {
-      position: relative; z-index: 1;
-      width: 100%; max-width: 460px;
-      min-height: 100vh;
-      background: #ffffff;
-      border-left: 1px solid var(--at-border);
-      border-right: 1px solid var(--at-border);
-      display: flex; flex-direction: column;
-      animation: slideUp .5s cubic-bezier(.22,1,.36,1) both;
-      box-shadow: 0 0 60px rgba(99,102,241,0.07);
-      padding-bottom: var(--nav-h);
-    }
+/* ── TOAST ── */
+#toast {
+  position: fixed; top: 1rem; left: 50%;
+  transform: translateX(-50%) translateY(-14px);
+  z-index: 999; min-width: 260px; max-width: 88vw;
+  padding: .7rem 1.1rem; border-radius: var(--radius);
+  font-family: 'Sora', sans-serif; font-size: .8rem; font-weight: 600;
+  text-align: center; opacity: 0;
+  transition: all .3s cubic-bezier(.22,1,.36,1); pointer-events: none;
+  display: flex; align-items: center; justify-content: center; gap: .5rem;
+}
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+#toast.success { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; box-shadow: var(--shadow); }
+#toast.error   { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; box-shadow: var(--shadow); }
+#toast.info    { background: var(--blue-light); color: #1e3a8a; border: 1px solid #c7d2fe; box-shadow: var(--shadow); }
 
-    /* ═══ TOPBAR ═══ */
-    .topbar {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: .85rem 1.1rem;
-      border-bottom: 1px solid var(--at-border);
-      position: sticky; top: 0; z-index: 10;
-      background: rgba(255,255,255,.96);
-      backdrop-filter: blur(16px);
-      gap: .6rem;
-    }
-    .topbar-left { display: flex; align-items: center; gap: .55rem; flex-shrink: 0; }
-    .topbar-center { display: flex; align-items: center; gap: .55rem; flex: 1; justify-content: center; }
-    .topbar-right { display: flex; align-items: center; gap: .45rem; flex-shrink: 0; }
+/* ── APP SHELL ── */
+#app {
+  position: relative; z-index: 1;
+  width: 100%; max-width: 460px;
+  min-height: 100vh;
+  background: var(--bg);
+  display: flex; flex-direction: column;
+  animation: slideUp .5s cubic-bezier(.22,1,.36,1) both;
+  padding-bottom: calc(var(--nav-h) + 20px);
+}
 
-    .brand-icon {
-      width: 32px; height: 32px; background: var(--at-primary-g);
-      border-radius: 9px; display: grid; place-items: center;
-      font-size: 1rem; box-shadow: 0 2px 10px rgba(99,102,241,.22);
-      flex-shrink: 0;
-    }
-    .brand-col { display: flex; flex-direction: column; }
-    .brand-name {
-      font-size: .88rem; font-weight: 800;
-      background: var(--at-primary-g);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-      background-clip: text; line-height: 1.1;
-    }
-    .brand-sub { font-size: .6rem; color: var(--at-muted); font-weight: 500; }
+/* ── HERO BANNER (profile style) ── */
+.hero-banner {
+  background: linear-gradient(135deg, #1a56db 0%, #3b72f6 60%, #6d96ff 100%);
+  padding: 18px 18px 28px;
+  position: relative; overflow: hidden;
+}
+.hero-banner::after {
+  content: '';
+  position: absolute; inset: 0; pointer-events: none;
+  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
 
-    /* Notification bell */
-    .notif-btn {
-      position: relative; width: 36px; height: 36px; border-radius: 10px;
-      background: var(--at-surface2); border: 1px solid var(--at-border);
-      display: grid; place-items: center; cursor: pointer;
-      color: var(--at-sub); font-size: 1rem; text-decoration: none;
-      transition: all .18s; flex-shrink: 0;
-    }
-    .notif-btn:hover { background: var(--at-surface3); color: var(--at-primary); }
-    .notif-badge {
-      position: absolute; top: -4px; right: -4px;
-      min-width: 16px; height: 16px;
-      background: var(--at-warn); color: #fff;
-      border-radius: 99px; font-size: .58rem; font-weight: 700;
-      display: none; align-items: center; justify-content: center;
-      padding: 0 3px; border: 2px solid #fff;
-    }
-    .notif-badge.visible { display: flex; }
+/* Top nav row inside hero */
+.hero-topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 18px; position: relative; z-index: 1;
+}
+.hero-brand { display: flex; align-items: center; gap: 9px; }
+.hero-brand-icon {
+  width: 36px; height: 36px;
+  background: rgba(255,255,255,0.2);
+  border-radius: 10px; border: 1px solid rgba(255,255,255,.3);
+  display: grid; place-items: center;
+  font-size: 1.1rem; color: #fff;
+}
+.hero-brand-name { font-family: 'Sora', sans-serif; font-weight: 800; font-size: .92rem; color: #fff; line-height: 1.1; }
+.hero-brand-sub  { font-size: .6rem; color: rgba(255,255,255,.7); font-weight: 500; }
+.hero-actions { display: flex; gap: 8px; align-items: center; }
+.hero-action-btn {
+  position: relative; width: 36px; height: 36px; border-radius: 10px;
+  background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,.3);
+  display: grid; place-items: center; cursor: pointer;
+  color: #fff; font-size: 1rem; text-decoration: none;
+  transition: all .18s;
+}
+.hero-action-btn:hover { background: rgba(255,255,255,0.28); }
+.notif-badge {
+  position: absolute; top: -4px; right: -4px;
+  min-width: 16px; height: 16px;
+  background: var(--red); color: #fff;
+  border-radius: 99px; font-size: .58rem; font-weight: 700;
+  display: none; align-items: center; justify-content: center;
+  padding: 0 3px; border: 2px solid var(--blue);
+}
+.notif-badge.visible { display: flex; }
+.profile-btn-hero {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: rgba(255,255,255,0.25);
+  display: grid; place-items: center;
+  cursor: pointer; color: #fff; font-size: .82rem; font-weight: 700;
+  text-decoration: none; border: 2px solid rgba(255,255,255,.4);
+  font-family: 'Sora', sans-serif; flex-shrink: 0;
+  transition: transform .2s;
+}
+.profile-btn-hero:hover { transform: scale(1.08); }
 
-    /* Profile icon */
-    .profile-btn {
-      width: 36px; height: 36px; border-radius: 50%;
-      background: var(--at-primary-g);
-      display: grid; place-items: center;
-      cursor: pointer; color: #fff; font-size: .78rem; font-weight: 700;
-      text-decoration: none; border: 2px solid rgba(99,102,241,.25); flex-shrink: 0;
-      transition: transform .2s, box-shadow .2s;
-    }
-    .profile-btn:hover { transform: scale(1.06); box-shadow: 0 2px 12px rgba(99,102,241,.3); }
+/* Balance block */
+.bal-block { position: relative; z-index: 1; }
+.bal-label {
+  font-size: .65rem; letter-spacing: .12em; text-transform: uppercase;
+  color: rgba(255,255,255,0.75); margin-bottom: 5px; font-weight: 600;
+  font-family: 'Sora', sans-serif;
+}
+.bal-amount {
+  font-family: 'Sora', sans-serif; font-size: 2.6rem; font-weight: 800;
+  color: #fff; line-height: 1; letter-spacing: -.03em; margin-bottom: 5px;
+}
+.bal-amount sup { font-size: 1.1rem; vertical-align: super; font-weight: 600; margin-right: .1rem; }
+.bal-currency { font-size: .65rem; color: rgba(255,255,255,.6); letter-spacing: .06em; }
 
-    /* ═══ BALANCE HERO ═══ */
-    .balance-hero {
-      background: linear-gradient(135deg, #6366f1 0%, #818cf8 60%, #a78bfa 100%);
-      padding: 1.5rem 1.4rem 1.3rem;
-      position: relative; overflow: hidden;
-    }
-    .balance-hero::before {
-      content: ''; position: absolute; top: -50px; right: -40px;
-      width: 200px; height: 200px; border-radius: 50%;
-      background: rgba(255,255,255,0.06); pointer-events: none;
-    }
-    .balance-hero::after {
-      content: ''; position: absolute; bottom: -30px; left: -20px;
-      width: 140px; height: 140px; border-radius: 50%;
-      background: rgba(255,255,255,0.04); pointer-events: none;
-    }
-    .bal-label { font-size: .67rem; font-family: var(--ff-mono); letter-spacing: .12em; text-transform: uppercase; color: rgba(255,255,255,0.7); margin-bottom: .4rem; }
-    .bal-amount { font-family: var(--ff-mono); font-size: 2.5rem; font-weight: 700; color: #fff; line-height: 1; letter-spacing: -.03em; margin-bottom: .25rem; }
-    .bal-amount sup { font-size: 1.05rem; vertical-align: super; font-weight: 500; margin-right: .12rem; }
-    .bal-currency { font-size: .66rem; font-family: var(--ff-mono); color: rgba(255,255,255,.55); letter-spacing: .06em; }
-    .bal-withdraw-btn {
-      margin-top: 1rem;
-      background: rgba(255,255,255,0.18); border: 1.5px solid rgba(255,255,255,0.4);
-      border-radius: 99px; color: #fff; font-family: var(--ff); font-size: .78rem; font-weight: 700;
-      padding: .5rem 1.3rem; cursor: pointer; backdrop-filter: blur(6px);
-      transition: all .2s; letter-spacing: .02em;
-    }
-    .bal-withdraw-btn:hover { background: rgba(255,255,255,0.28); }
-    .bal-stats { display: flex; align-items: center; gap: 1.1rem; margin-top: 1rem; padding-top: .9rem; border-top: 1px solid rgba(255,255,255,0.15); }
-    .bal-stat { display: flex; flex-direction: column; gap: .12rem; }
-    .bal-stat-val { font-size: .8rem; font-weight: 700; font-family: var(--ff-mono); color: #fff; }
-    .bal-stat-key { font-size: .58rem; color: rgba(255,255,255,.55); font-family: var(--ff-mono); letter-spacing: .06em; }
-    .bal-stat-div { width: 1px; height: 24px; background: rgba(255,255,255,.2); }
+.bal-withdraw-btn {
+  margin-top: 14px;
+  background: rgba(255,255,255,0.18); border: 1.5px solid rgba(255,255,255,0.4);
+  border-radius: 99px; color: #fff; font-family: 'Sora', sans-serif; font-size: .78rem; font-weight: 700;
+  padding: .45rem 1.2rem; cursor: pointer; backdrop-filter: blur(6px);
+  transition: all .2s; letter-spacing: .02em; display: inline-flex; align-items: center; gap: 6px;
+}
+.bal-withdraw-btn:hover { background: rgba(255,255,255,0.28); transform: translateY(-1px); }
 
-    /* ═══ TABS ═══ */
-    .tabs { display: grid; grid-template-columns: 1fr 1fr; border-bottom: 1px solid var(--at-border); background: #fff; }
-    .tab-btn {
-      background: none; border: none; border-bottom: 2px solid transparent;
-      color: var(--at-sub); font-family: var(--ff); font-size: .8rem; font-weight: 600;
-      padding: .85rem .5rem; cursor: pointer; transition: all .2s;
-      display: flex; align-items: center; justify-content: center; gap: .45rem;
-    }
-    .tab-btn:hover { color: var(--at-text); background: var(--at-surface2); }
-    .tab-btn.active { color: var(--at-primary); border-bottom-color: var(--at-primary); background: #eef2ff40; }
-    .tab-badge { background: var(--at-primary); color: #fff; border-radius: 99px; font-size: .58rem; font-weight: 700; padding: .1rem .4rem; line-height: 1.5; }
+.bal-stats {
+  display: flex; gap: 1rem; margin-top: 14px;
+  padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.2);
+}
+.bal-stat { display: flex; flex-direction: column; gap: 2px; }
+.bal-stat-val { font-size: .82rem; font-weight: 700; font-family: 'Sora', sans-serif; color: #fff; }
+.bal-stat-key { font-size: .6rem; color: rgba(255,255,255,.6); font-weight: 500; }
+.bal-stat-div { width: 1px; background: rgba(255,255,255,.2); align-self: stretch; margin: 2px 0; }
 
-    /* ═══ PANELS ═══ */
-    .panel { padding: 1.3rem; flex: 1; background: #fff; }
-    .panel.hidden { display: none; }
+/* ── MAIN CONTENT BODY ── */
+.content-body { padding: 0 0 10px; }
 
-    /* ═══ FORM ELEMENTS ═══ */
-    .section-title {
-      font-size: .67rem; font-family: var(--ff-mono); letter-spacing: .11em;
-      text-transform: uppercase; color: var(--at-muted);
-      margin-bottom: .9rem; display: flex; align-items: center; gap: .5rem;
-    }
-    .section-title::after { content: ''; flex: 1; height: 1px; background: var(--at-border); }
-    .field { display: flex; flex-direction: column; gap: .4rem; margin-bottom: 1rem; }
-    .field-label { font-size: .7rem; font-family: var(--ff-mono); font-weight: 600; color: var(--at-sub); text-transform: uppercase; letter-spacing: .09em; }
-    .field-hint { font-family: var(--ff-mono); font-size: .65rem; color: var(--at-muted); line-height: 1.5; }
-    .field-err  { font-family: var(--ff-mono); font-size: .65rem; color: var(--at-warn); display: none; }
-    .at-input {
-      width: 100%; height: 46px;
-      background: #f8f9ff; border: 1.5px solid var(--at-border);
-      border-radius: var(--r-sm); color: var(--at-text);
-      font-family: var(--ff-mono); font-size: .87rem;
-      padding: 0 .9rem; outline: none;
-      transition: border-color .2s, box-shadow .2s;
-    }
-    .at-input:focus { border-color: var(--at-primary); box-shadow: 0 0 0 3px rgba(99,102,241,.1); background: #fff; }
-    .at-input::placeholder { color: var(--at-muted); }
-    .at-input[type=number]::-webkit-inner-spin-button,
-    .at-input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
-    .at-input.err { border-color: var(--at-warn); }
-    .at-input[readonly] { background: #f0f2fa; color: var(--at-sub); cursor: default; }
-    .input-wrap { position: relative; display: flex; align-items: center; }
-    .input-sym { position: absolute; left: .9rem; font-family: var(--ff-mono); font-size: .9rem; color: var(--at-sub); pointer-events: none; }
-    .input-wrap .at-input { padding-left: 1.7rem; }
-    .input-addon {
-      background: #f0f2fa; border: 1.5px solid var(--at-border); border-right: none;
-      border-radius: var(--r-sm) 0 0 var(--r-sm);
-      height: 46px; padding: 0 .75rem;
-      display: flex; align-items: center; white-space: nowrap;
-      font-family: var(--ff-mono); font-size: .72rem; color: var(--at-sub);
-    }
-    .input-addon + .at-input { border-radius: 0 var(--r-sm) var(--r-sm) 0; }
+/* Tabs — profile style */
+.tab-row {
+  display: grid; grid-template-columns: 1fr 1fr;
+  background: var(--card); border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 10;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.05);
+}
+.tab-btn {
+  background: none; border: none; border-bottom: 2.5px solid transparent;
+  color: var(--subtext); font-family: 'Sora', sans-serif; font-size: .82rem; font-weight: 600;
+  padding: .9rem .5rem; cursor: pointer; transition: all .2s;
+  display: flex; align-items: center; justify-content: center; gap: 7px;
+}
+.tab-btn:hover { color: var(--text); background: var(--gray-light); }
+.tab-btn.active { color: var(--blue); border-bottom-color: var(--blue); background: var(--blue-light); }
+.tab-badge {
+  background: var(--blue); color: #fff; border-radius: 99px;
+  font-size: .58rem; font-weight: 700; padding: .1rem .4rem; line-height: 1.5;
+}
 
-    /* ═══ BALANCE QUICK-FILL ═══ */
-    .bal-quick {
-      display: flex; align-items: center; justify-content: space-between;
-      margin-top: .4rem; gap: .5rem;
-    }
-    .bal-quick-info {
-      font-family: var(--ff-mono); font-size: .66rem; color: var(--at-sub);
-      display: flex; flex-direction: column; gap: .1rem;
-    }
-    .bal-quick-info span { color: var(--at-primary); font-weight: 600; }
-    .bal-quick-info .after-fee { color: var(--at-accent); }
-    .withdraw-all-btn {
-      background: var(--at-primary); color: #fff;
-      border: none; border-radius: 99px;
-      font-family: var(--ff); font-size: .72rem; font-weight: 700;
-      padding: .38rem .9rem; cursor: pointer;
-      transition: all .2s; white-space: nowrap;
-      box-shadow: 0 2px 8px rgba(99,102,241,.25);
-    }
-    .withdraw-all-btn:hover { background: var(--at-primary-d); transform: translateY(-1px); box-shadow: 0 4px 14px rgba(99,102,241,.35); }
+/* Panels */
+.panel { padding: 16px; }
+.panel.hidden { display: none; }
 
-    /* ═══ PHONE MISSING ALERT ═══ */
-    .phone-alert {
-      background: #fef3cd; border: 1.5px solid #f59e0b;
-      border-radius: var(--r-sm); padding: .7rem .85rem;
-      display: none; align-items: center; gap: .6rem;
-      margin-bottom: .85rem; animation: fadeIn .25s ease;
-    }
-    .phone-alert.visible { display: flex; }
-    .phone-alert-text { font-family: var(--ff-mono); font-size: .68rem; color: #92400e; line-height: 1.45; flex: 1; }
-    .phone-alert-btn {
-      background: #f59e0b; color: #fff; border: none; border-radius: 8px;
-      font-family: var(--ff); font-size: .7rem; font-weight: 700;
-      padding: .35rem .75rem; cursor: pointer; white-space: nowrap;
-      text-decoration: none; display: inline-block;
-      transition: background .2s;
-    }
-    .phone-alert-btn:hover { background: #d97706; }
+/* Section label (profile style) */
+.section-label {
+  font-family: 'Sora', sans-serif; font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .08em;
+  color: var(--subtext); margin: 18px 0 10px;
+  display: flex; align-items: center; gap: 8px;
+}
+.section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 
-    /* Auto-filled badge */
-    .field-row { display: flex; align-items: center; gap: .5rem; }
-    .auto-badge {
-      background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0;
-      border-radius: 99px; font-size: .6rem; font-weight: 700;
-      padding: .15rem .5rem; white-space: nowrap; font-family: var(--ff-mono);
-    }
+/* Card (profile style) */
+.card {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  margin-bottom: 12px;
+}
 
-    /* ═══ PAYMENT METHOD LOGOS ═══ */
-    .pm-logo {
-      width: 36px; height: 36px; border-radius: 10px;
-      display: grid; place-items: center; flex-shrink: 0; overflow: hidden;
-    }
-    .pm-logo svg { width: 22px; height: 22px; }
-    .pm-logo.mpesa   { background: #00a651; }
-    .pm-logo.paypal  { background: #003087; }
-    .pm-logo.binance { background: #f3ba2f; }
+/* Reference row */
+.ref-row {
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--blue-light); border: 1px solid rgba(26,86,219,.15);
+  border-radius: var(--radius-sm); padding: 10px 14px; margin-bottom: 14px;
+}
+.ref-label { font-size: .64rem; color: var(--subtext); font-weight: 600; text-transform: uppercase; letter-spacing: .07em; }
+.ref-val { font-family: 'Sora', sans-serif; font-size: .82rem; font-weight: 700; color: var(--blue); margin-top: 1px; }
+.ref-copy-btn {
+  background: var(--blue); color: #fff; border: none;
+  border-radius: 8px; font-family: 'Sora', sans-serif; font-size: .68rem; font-weight: 700;
+  padding: .3rem .7rem; cursor: pointer; transition: all .18s;
+  display: flex; align-items: center; gap: 4px;
+}
+.ref-copy-btn:hover { background: var(--blue-mid); transform: translateY(-1px); }
 
-    /* ═══ PAYMENT METHOD SELECTOR ═══ */
-    .pm-selector {
-      background: #fff; border: 1.5px solid var(--at-border2);
-      border-radius: var(--r); margin-bottom: 1.1rem; overflow: hidden; transition: border-color .2s;
-    }
-    .pm-selected-row {
-      display: flex; align-items: center; gap: .75rem;
-      padding: .85rem 1rem; cursor: pointer; transition: background .15s;
-    }
-    .pm-selected-row:hover { background: var(--at-surface2); }
-    .pm-selected-info { flex: 1; }
-    .pm-selected-label { font-size: .72rem; color: var(--at-muted); font-family: var(--ff-mono); text-transform: uppercase; letter-spacing: .06em; }
-    .pm-selected-val { font-size: .88rem; font-weight: 700; margin-top: .1rem; }
-    .pm-chevron { color: var(--at-muted); font-size: 1rem; transition: transform .2s; }
-    .pm-chevron.open { transform: rotate(180deg); }
-    .pm-dropdown { display: none; border-top: 1px solid var(--at-border); background: #f9fafb; }
-    .pm-dropdown.open { display: block; }
-    .pm-option {
-      display: flex; align-items: center; gap: .75rem;
-      padding: .8rem 1rem; cursor: pointer;
-      border-bottom: 1px solid rgba(0,0,0,0.06); transition: background .15s;
-    }
-    .pm-option:last-child { border-bottom: none; }
-    .pm-option:hover { background: rgba(99,102,241,0.06); }
-    .pm-option.active { background: rgba(99,102,241,0.08); }
-    .pm-option-info { flex: 1; }
-    .pm-option-name { font-size: .86rem; font-weight: 700; }
-    .pm-option-sub  { font-size: .7rem; color: var(--at-sub); font-family: var(--ff-mono); margin-top: .1rem; }
-    .pm-option-check { color: var(--at-primary); font-size: .9rem; display: none; }
-    .pm-option.active .pm-option-check { display: block; }
-    .pm-cancel-row { text-align: center; padding: .7rem; border-top: 1px solid var(--at-border); }
-    .pm-cancel-btn {
-      background: none; border: none; font-family: var(--ff);
-      font-size: .8rem; font-weight: 600; color: var(--at-sub);
-      cursor: pointer; letter-spacing: .04em; text-transform: uppercase;
-    }
-    .pm-cancel-btn:hover { color: var(--at-warn); }
+/* Payment method selector */
+.pm-selector {
+  background: var(--card); border: 1.5px solid var(--border);
+  border-radius: var(--radius); margin-bottom: 14px; overflow: hidden;
+  transition: border-color .2s; box-shadow: var(--shadow);
+}
+.pm-selected-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 13px 15px; cursor: pointer; transition: background .15s;
+}
+.pm-selected-row:hover { background: var(--gray-light); }
+.pm-selected-label { font-size: .68rem; color: var(--subtext); font-weight: 600; text-transform: uppercase; letter-spacing: .06em; }
+.pm-selected-val { font-family: 'Sora', sans-serif; font-size: .9rem; font-weight: 700; margin-top: 1px; }
+.pm-chevron { color: var(--subtext); transition: transform .2s; font-size: 1rem; }
+.pm-chevron.open { transform: rotate(180deg); }
+.pm-dropdown { display: none; border-top: 1px solid var(--border); background: var(--gray-light); }
+.pm-dropdown.open { display: block; }
+.pm-option {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 15px; cursor: pointer;
+  border-bottom: 1px solid var(--border); transition: background .15s;
+}
+.pm-option:last-child { border-bottom: none; }
+.pm-option:hover { background: rgba(26,86,219,.04); }
+.pm-option.active { background: var(--blue-light); }
+.pm-option-name { font-family: 'Sora', sans-serif; font-size: .88rem; font-weight: 700; }
+.pm-option-sub { font-size: .7rem; color: var(--subtext); margin-top: 1px; }
+.pm-option-check { color: var(--blue); font-size: 1rem; display: none; margin-left: auto; }
+.pm-option.active .pm-option-check { display: block; }
+.pm-cancel-row { text-align: center; padding: 10px; border-top: 1px solid var(--border); }
+.pm-cancel-btn {
+  background: none; border: none; font-family: 'Sora', sans-serif;
+  font-size: .78rem; font-weight: 600; color: var(--subtext);
+  cursor: pointer; letter-spacing: .04em;
+}
+.pm-cancel-btn:hover { color: var(--red); }
 
-    /* ═══ FEE BOX ═══ */
-    .fee-box {
-      background: #f8f9ff; border: 1px solid rgba(99,102,241,.15);
-      border-radius: var(--r); padding: 1rem 1.1rem; margin-bottom: 1rem;
-      animation: fadeIn .2s ease;
-    }
-    .fee-row { display: flex; justify-content: space-between; align-items: baseline; padding: .2rem 0; }
-    .fee-k { font-family: var(--ff-mono); font-size: .73rem; color: var(--at-sub); }
-    .fee-k em { font-style: normal; font-size: .64rem; color: var(--at-muted); }
-    .fee-v { font-family: var(--ff-mono); font-size: .79rem; font-weight: 500; }
-    .fee-div { height: 1px; background: var(--at-border); margin: .4rem 0; }
-    .fee-row.tot .fee-k, .fee-row.tot .fee-v { color: var(--at-warn); font-weight: 600; }
-    .fee-row.net .fee-k { color: var(--at-accent); font-weight: 700; }
-    .fee-row.net .fee-v { color: var(--at-accent); font-size: .9rem; font-weight: 700; }
+/* Method logo icons */
+.pm-logo {
+  width: 40px; height: 40px; border-radius: 11px;
+  display: grid; place-items: center; flex-shrink: 0; font-size: 1.3rem;
+}
+.pm-logo.mpesa   { background: #00a651; color: #fff; }
+.pm-logo.paypal  { background: #003087; color: #fff; }
+.pm-logo.binance { background: #f3ba2f; color: #1a1a1a; }
 
-    /* ═══ REF ROW ═══ */
-    .ref-row {
-      display: flex; align-items: center; justify-content: space-between;
-      background: #f8f9ff; border: 1px solid var(--at-border);
-      border-radius: var(--r-sm); padding: .6rem .85rem; margin-bottom: 1rem;
-    }
-    .ref-label { font-family: var(--ff-mono); font-size: .63rem; color: var(--at-muted); }
-    .ref-val { font-family: var(--ff-mono); font-size: .78rem; font-weight: 700; color: var(--at-primary); letter-spacing: .04em; }
-    .ref-copy {
-      background: none; border: 1px solid var(--at-border); border-radius: 6px;
-      font-family: var(--ff-mono); font-size: .62rem; color: var(--at-sub);
-      padding: .18rem .5rem; cursor: pointer; transition: all .18s;
-    }
-    .ref-copy:hover { background: var(--at-surface2); color: var(--at-primary); }
+/* Form fields */
+.field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 13px; }
+.field-label {
+  font-family: 'Sora', sans-serif; font-size: .7rem; font-weight: 700;
+  color: var(--subtext); text-transform: uppercase; letter-spacing: .07em;
+  display: flex; align-items: center; gap: 6px;
+}
+.auto-badge {
+  background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0;
+  border-radius: 99px; font-size: .6rem; font-weight: 700;
+  padding: .12rem .5rem; white-space: nowrap; font-family: 'DM Sans', sans-serif;
+  text-transform: none; letter-spacing: 0;
+}
+.field-hint { font-size: .66rem; color: var(--subtext); line-height: 1.5; }
+.field-err  { font-size: .66rem; color: var(--red); display: none; }
 
-    /* ═══ METHOD FIELDS ═══ */
-    .method-fields { animation: fadeIn .2s ease; }
-    .or-sep {
-      display: flex; align-items: center; gap: .7rem;
-      font-family: var(--ff-mono); font-size: .65rem; color: var(--at-muted); margin: .1rem 0;
-    }
-    .or-sep::before, .or-sep::after { content: ''; flex: 1; height: 1px; background: var(--at-border); }
-    .hint-box {
-      background: #f8f9ff; border: 1px solid var(--at-border);
-      border-radius: var(--r-sm); padding: .6rem .85rem;
-      font-family: var(--ff-mono); font-size: .7rem; color: var(--at-sub);
-      margin-bottom: .85rem; line-height: 1.5;
-    }
+.at-input {
+  width: 100%; height: 48px;
+  background: var(--gray-light); border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm); color: var(--text);
+  font-family: 'DM Sans', sans-serif; font-size: .9rem;
+  padding: 0 .9rem; outline: none;
+  transition: border-color .2s, box-shadow .2s;
+}
+.at-input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(26,86,219,.1); background: #fff; }
+.at-input::placeholder { color: var(--subtext); opacity: .6; }
+.at-input[type=number]::-webkit-inner-spin-button,
+.at-input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
+.at-input.err { border-color: var(--red); }
+.at-input[readonly] { background: #f0f2fa; color: var(--subtext); cursor: default; }
 
-    /* ═══ OTP OVERLAY ═══ */
-    #otpOverlay {
-      display: none; position: fixed; inset: 0; z-index: 150;
-      background: rgba(15,23,42,.55); backdrop-filter: blur(6px);
-      align-items: flex-end; justify-content: center;
-    }
-    #otpOverlay.open { display: flex; }
-    .otp-sheet {
-      background: #fff; width: 100%; max-width: 460px;
-      border-radius: 24px 24px 0 0; padding: 1.8rem 1.5rem 2.5rem;
-      animation: slideUp .3s cubic-bezier(.22,1,.36,1) both;
-    }
-    .otp-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: .9rem; }
-    .otp-title { font-size: 1.1rem; font-weight: 800; }
-    .otp-close { width: 30px; height: 30px; border-radius: 50%; background: var(--at-surface2); border: 1px solid var(--at-border); display: grid; place-items: center; cursor: pointer; font-size: .9rem; color: var(--at-sub); }
-    .otp-close:hover { background: var(--at-surface3); }
-    .otp-desc { font-size: .82rem; color: var(--at-sub); line-height: 1.65; margin-bottom: 1.2rem; }
-    .otp-row { display: flex; gap: .6rem; justify-content: center; margin-bottom: 1.2rem; }
-    .otp-box {
-      width: 48px; height: 56px; border-radius: var(--r-sm);
-      background: #f8f9ff; border: 1.5px solid var(--at-border);
-      font-family: var(--ff-mono); font-size: 1.3rem; font-weight: 700;
-      text-align: center; outline: none; color: var(--at-text);
-      transition: border-color .2s, box-shadow .2s;
-    }
-    .otp-box:focus { border-color: var(--at-primary); box-shadow: 0 0 0 3px rgba(99,102,241,.12); background: #fff; }
-    .otp-resend { font-size: .77rem; color: var(--at-sub); text-align: center; margin-bottom: 1.2rem; }
-    .otp-resend a { color: var(--at-primary); font-weight: 700; cursor: pointer; }
-    .otp-resend a:hover { text-decoration: underline; }
-    .otp-verify-btn {
-      width: 100%; height: 52px; border: none; border-radius: var(--r);
-      background: var(--at-primary);
-      color: #fff; font-family: var(--ff); font-size: .92rem; font-weight: 700;
-      cursor: pointer; transition: all .2s;
-      box-shadow: 0 4px 16px rgba(99,102,241,.3);
-    }
-    .otp-verify-btn:hover:not(:disabled) { background: var(--at-primary-d); box-shadow: 0 8px 24px rgba(99,102,241,.4); transform: translateY(-1px); }
-    .otp-verify-btn:disabled { opacity: .4; cursor: not-allowed; transform: none; box-shadow: none; }
+.input-wrap { position: relative; display: flex; align-items: center; }
+.input-sym { position: absolute; left: .9rem; font-size: .9rem; color: var(--subtext); pointer-events: none; font-weight: 600; }
+.input-wrap .at-input { padding-left: 1.8rem; }
 
-    /* ═══ SUCCESS SHEET ═══ */
-    #successSheet { display: none; position: fixed; inset: 0; z-index: 160; background: rgba(15,23,42,.55); backdrop-filter: blur(6px); align-items: flex-end; justify-content: center; }
-    #successSheet.open { display: flex; }
-    .success-inner { background: #fff; width: 100%; max-width: 460px; border-radius: 24px 24px 0 0; padding: 2rem 1.5rem 2.5rem; text-align: center; animation: slideUp .3s cubic-bezier(.22,1,.36,1) both; }
-    .success-ring { width: 72px; height: 72px; border-radius: 50%; background: linear-gradient(135deg,#ecfdf5,#d1fae5); border: 2px solid #a7f3d0; display: grid; place-items: center; margin: 0 auto 1rem; font-size: 2rem; }
-    .success-title { font-size: 1.2rem; font-weight: 800; margin-bottom: .4rem; }
-    .success-sub { font-size: .82rem; color: var(--at-sub); line-height: 1.65; margin-bottom: .8rem; }
-    .success-ref { font-family: var(--ff-mono); font-size: .76rem; color: var(--at-muted); margin-bottom: .5rem; }
-    .success-status-row {
-      display: flex; align-items: center; justify-content: center; gap: .5rem;
-      background: #fef9ec; border: 1px solid #f59e0b; border-radius: 99px;
-      padding: .35rem 1rem; margin: 0 auto .75rem; width: fit-content;
-    }
-    .success-status-dot { width: 7px; height: 7px; border-radius: 50%; background: #f59e0b; animation: breathe 1.5s ease-in-out infinite; }
-    .success-status-text { font-family: var(--ff-mono); font-size: .72rem; font-weight: 700; color: #92400e; }
-    .success-notif-note { font-family: var(--ff-mono); font-size: .65rem; color: var(--at-muted); margin-bottom: 1.2rem; line-height: 1.5; }
+.input-addon {
+  background: var(--gray-light); border: 1.5px solid var(--border); border-right: none;
+  border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+  height: 48px; padding: 0 .75rem;
+  display: flex; align-items: center; white-space: nowrap;
+  font-size: .8rem; color: var(--subtext); font-weight: 600;
+}
+.input-addon + .at-input { border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
 
-    /* ═══ NOTIFICATION PANEL ═══ */
-    #notifPanel {
-      display: none; position: fixed; inset: 0; z-index: 140;
-      background: rgba(15,23,42,.55); backdrop-filter: blur(6px);
-      align-items: flex-end; justify-content: center;
-    }
-    #notifPanel.open { display: flex; }
-    .notif-sheet {
-      background: #fff; width: 100%; max-width: 460px;
-      border-radius: 24px 24px 0 0; padding: 1.5rem 1.3rem 2rem;
-      max-height: 70vh; display: flex; flex-direction: column;
-      animation: slideUp .3s cubic-bezier(.22,1,.36,1) both;
-    }
-    .notif-hdr { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-shrink: 0; }
-    .notif-hdr-title { font-size: 1rem; font-weight: 800; }
-    .notif-close { width: 30px; height: 30px; border-radius: 50%; background: var(--at-surface2); border: 1px solid var(--at-border); display: grid; place-items: center; cursor: pointer; font-size: .9rem; }
-    .notif-close:hover { background: var(--at-surface3); }
-    .notif-list { overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: .55rem; }
-    .notif-item {
-      background: #f8f9ff; border: 1.5px solid var(--at-border);
-      border-radius: var(--r); padding: .85rem 1rem;
-      display: flex; gap: .7rem; align-items: flex-start;
-      transition: border-color .2s;
-    }
-    .notif-item.unread { border-color: rgba(99,102,241,.3); background: #eef2ff; }
-    .notif-icon { font-size: 1.3rem; flex-shrink: 0; margin-top: .05rem; }
-    .notif-body { flex: 1; }
-    .notif-title-text { font-size: .83rem; font-weight: 700; margin-bottom: .2rem; }
-    .notif-msg { font-family: var(--ff-mono); font-size: .68rem; color: var(--at-sub); line-height: 1.45; }
-    .notif-time { font-family: var(--ff-mono); font-size: .6rem; color: var(--at-muted); margin-top: .3rem; }
-    .notif-empty { display: flex; flex-direction: column; align-items: center; padding: 2.5rem 0; gap: .7rem; color: var(--at-muted); font-family: var(--ff-mono); font-size: .78rem; }
-    .notif-empty .ne-icon { font-size: 2rem; opacity: .3; }
-    .mark-read-btn {
-      background: none; border: 1px solid var(--at-border); border-radius: 99px;
-      font-family: var(--ff); font-size: .72rem; font-weight: 600; color: var(--at-primary);
-      padding: .3rem .9rem; cursor: pointer; transition: all .18s; flex-shrink: 0;
-    }
-    .mark-read-btn:hover { background: rgba(99,102,241,.06); }
+/* Balance quick fill */
+.bal-quick {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 6px; gap: .5rem;
+}
+.bal-quick-info { font-size: .7rem; color: var(--subtext); display: flex; flex-direction: column; gap: 2px; }
+.bal-quick-info .avail { color: var(--blue); font-weight: 700; }
+.bal-quick-info .net-lbl { color: var(--green); font-weight: 600; }
+.withdraw-all-btn {
+  background: var(--blue); color: #fff; border: none; border-radius: 99px;
+  font-family: 'Sora', sans-serif; font-size: .72rem; font-weight: 700;
+  padding: .38rem .9rem; cursor: pointer; transition: all .2s; white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(26,86,219,.3); display: flex; align-items: center; gap: 5px;
+}
+.withdraw-all-btn:hover { background: var(--blue-mid); transform: translateY(-1px); }
 
-    /* ═══ SUBMIT BUTTON ═══ */
-    .at-btn {
-      width: 100%; height: 52px; border: none; border-radius: var(--r);
-      background: var(--at-primary);
-      color: #fff; font-family: var(--ff); font-size: .92rem; font-weight: 700;
-      cursor: pointer; transition: all .2s; position: relative; overflow: hidden;
-      display: flex; align-items: center; justify-content: center; gap: .5rem;
-      box-shadow: 0 4px 16px rgba(99,102,241,.28);
-    }
-    .at-btn::before { content: ''; position: absolute; inset: 0; background: rgba(255,255,255,.1); transform: translateX(-100%) skewX(-15deg); transition: transform .4s; }
-    .at-btn:hover:not(:disabled)::before { transform: translateX(220%) skewX(-15deg); }
-    .at-btn:hover:not(:disabled) { background: var(--at-primary-d); box-shadow: 0 8px 24px rgba(99,102,241,.4); transform: translateY(-1px); }
-    .at-btn:disabled { opacity: .3; cursor: not-allowed; transform: none; box-shadow: none; }
-    .at-btn .spin { display: inline-block; animation: spin .6s linear infinite; }
-    .at-btn.secondary { background: #fff; color: var(--at-text); border: 1.5px solid var(--at-border2); box-shadow: none; }
-    .at-btn.secondary:hover:not(:disabled) { background: var(--at-surface2); box-shadow: none; }
+/* Fee box */
+.fee-box {
+  background: var(--blue-light); border: 1px solid rgba(26,86,219,.18);
+  border-radius: var(--radius-sm); padding: 13px 15px; margin-bottom: 13px;
+  animation: fadeIn .2s ease;
+}
+.fee-row { display: flex; justify-content: space-between; align-items: baseline; padding: 3px 0; }
+.fee-k { font-size: .74rem; color: var(--subtext); }
+.fee-k em { font-style: normal; font-size: .65rem; color: var(--gray); }
+.fee-v { font-size: .8rem; font-weight: 600; font-family: 'Sora', sans-serif; }
+.fee-divider { height: 1px; background: var(--border); margin: 5px 0; }
+.fee-row.tot .fee-k, .fee-row.tot .fee-v { color: var(--red); font-weight: 700; }
+.fee-row.net .fee-k { color: var(--green); font-weight: 700; }
+.fee-row.net .fee-v { color: var(--green); font-size: .9rem; font-weight: 800; font-family: 'Sora', sans-serif; }
 
-    .disclaimer { font-family: var(--ff-mono); font-size: .65rem; color: var(--at-muted); text-align: center; line-height: 1.7; margin-top: .85rem; }
+/* Phone alert */
+.phone-alert {
+  background: #fffbeb; border: 1.5px solid var(--amber);
+  border-radius: var(--radius-sm); padding: 10px 13px;
+  display: none; align-items: center; gap: 9px;
+  margin-bottom: 12px; animation: fadeIn .25s ease;
+}
+.phone-alert.visible { display: flex; }
+.phone-alert-text { font-size: .72rem; color: #92400e; line-height: 1.45; flex: 1; }
+.phone-alert-link {
+  background: var(--amber); color: #fff; border: none; border-radius: 8px;
+  font-family: 'Sora', sans-serif; font-size: .7rem; font-weight: 700;
+  padding: .35rem .75rem; cursor: pointer; white-space: nowrap;
+  text-decoration: none; display: inline-block; transition: background .2s;
+}
+.phone-alert-link:hover { background: #d97706; }
 
-    /* ═══ HISTORY ═══ */
-    .txn-list { display: flex; flex-direction: column; gap: .55rem; }
-    .txn-item {
-      background: #f8f9ff; border: 1.5px solid var(--at-border);
-      border-radius: var(--r); padding: .9rem 1rem;
-      display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem;
-      transition: border-color .2s, background .2s;
-    }
-    .txn-item:hover { border-color: var(--at-border2); background: #f0f2fa; }
-    .txn-left { display: flex; gap: .65rem; align-items: flex-start; }
-    .txn-icon { width: 38px; height: 38px; border-radius: 11px; background: #fff; border: 1px solid var(--at-border); display: grid; place-items: center; font-size: 1.1rem; flex-shrink: 0; overflow: hidden; }
-    .txn-icon svg { width: 20px; height: 20px; }
-    .txn-method { font-size: .84rem; font-weight: 700; }
-    .txn-ref  { font-family: var(--ff-mono); font-size: .63rem; color: var(--at-muted); margin: .18rem 0; }
-    .txn-date { font-family: var(--ff-mono); font-size: .61rem; color: var(--at-muted); }
-    .txn-right { text-align: right; flex-shrink: 0; }
-    .txn-amt { font-family: var(--ff-mono); font-size: .94rem; font-weight: 700; color: var(--at-warn); }
-    .txn-net { font-family: var(--ff-mono); font-size: .65rem; color: var(--at-accent); margin: .1rem 0; }
-    .txn-status { font-family: var(--ff-mono); font-size: .62rem; font-weight: 700; display: flex; align-items: center; justify-content: flex-end; gap: .3rem; }
-    .status-dot { width: 5px; height: 5px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+/* OR separator */
+.or-sep {
+  display: flex; align-items: center; gap: 10px;
+  font-size: .68rem; color: var(--subtext); margin: 4px 0;
+}
+.or-sep::before, .or-sep::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 
-    .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 3.5rem 0; gap: .9rem; }
-    .empty-icon { width: 60px; height: 60px; border-radius: 18px; background: var(--at-surface2); border: 1px solid var(--at-border); display: grid; place-items: center; font-size: 1.5rem; opacity: .45; }
-    .empty-text { font-family: var(--ff-mono); font-size: .78rem; color: var(--at-sub); }
-    .empty-cta { background: none; border: 1px solid var(--at-border2); border-radius: 99px; color: var(--at-primary); font-family: var(--ff); font-size: .78rem; font-weight: 600; padding: .4rem 1rem; cursor: pointer; transition: all .2s; }
-    .empty-cta:hover { background: rgba(99,102,241,.06); border-color: rgba(99,102,241,.4); }
+.hint-box {
+  background: var(--blue-light); border: 1px solid rgba(26,86,219,.15);
+  border-radius: var(--radius-sm); padding: 10px 13px;
+  font-size: .72rem; color: var(--subtext);
+  margin-bottom: 12px; line-height: 1.5;
+}
 
-    /* No session */
-    #noSession { display: none; flex-direction: column; align-items: center; justify-content: center; padding: 4rem 2rem; text-align: center; gap: 1rem; flex: 1; }
-    #noSession .ns-icon { font-size: 2.5rem; opacity: .2; animation: breathe 2s ease-in-out infinite; }
-    #noSession .ns-title { font-size: 1rem; font-weight: 700; }
-    #noSession .ns-sub { font-family: var(--ff-mono); font-size: .73rem; color: var(--at-sub); line-height: 1.7; max-width: 260px; }
+/* Submit button (profile edit-profile-btn style) */
+.submit-btn {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%; padding: 14px;
+  border: none; border-radius: var(--radius-sm);
+  background: var(--blue); color: #fff;
+  font-family: 'Sora', sans-serif; font-weight: 700; font-size: .92rem;
+  cursor: pointer; transition: all .2s;
+  box-shadow: 0 4px 14px rgba(26,86,219,.3);
+  position: relative; overflow: hidden;
+}
+.submit-btn:hover:not(:disabled) { background: var(--blue-mid); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(26,86,219,.38); }
+.submit-btn:active:not(:disabled) { transform: scale(.98); }
+.submit-btn:disabled { opacity: .45; cursor: not-allowed; transform: none; box-shadow: none; }
+.submit-btn .spin { display: inline-block; animation: spin .6s linear infinite; }
 
-    /* ═══ BOTTOM NAV ═══ */
-    .bottom-nav {
-      position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
-      width: 100%; max-width: 460px;
-      background: #fff;
-      border-top: 1px solid var(--at-border);
-      display: flex; z-index: 20;
-      padding-bottom: env(safe-area-inset-bottom, 0px);
-      box-shadow: 0 -4px 20px rgba(99,102,241,0.07);
-    }
-    .nav-item {
-      flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px;
-      padding: .6rem .4rem .55rem;
-      cursor: pointer; border: none; background: none;
-      color: var(--at-muted); font-size: .6rem; font-weight: 600;
-      font-family: var(--ff); text-decoration: none;
-      transition: color .2s; position: relative;
-    }
-    .nav-item:hover { color: var(--at-sub); }
-    .nav-item.active { color: var(--at-primary); }
-    .nav-item.active::before {
-      content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
-      width: 28px; height: 3px; background: var(--at-primary);
-      border-radius: 0 0 4px 4px;
-    }
-    .nav-icon { font-size: 1.3rem; line-height: 1; }
-    .nav-label { line-height: 1; }
+.disclaimer { font-size: .66rem; color: var(--subtext); text-align: center; line-height: 1.7; margin-top: 10px; }
 
-    /* ═══ KEYFRAMES ═══ */
-    @keyframes spin    { to { transform: rotate(360deg); } }
-    @keyframes breathe { 0%,100%{opacity:1}50%{opacity:.35} }
-    @keyframes slideUp { from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)} }
-    @keyframes fadeIn  { from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)} }
-    @keyframes load {
-      0%   { width: 0%; margin-left: 0; }
-      50%  { width: 80%; margin-left: 0; }
-      100% { width: 0%; margin-left: 100%; }
-    }
-  </style>
+/* ── HISTORY / TRANSACTIONS ── */
+.txn-list { display: flex; flex-direction: column; gap: 8px; }
+.txn-item {
+  background: var(--card); border: 1.5px solid var(--border);
+  border-radius: var(--radius); padding: 13px 15px;
+  display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;
+  transition: border-color .2s, transform .15s; box-shadow: var(--shadow);
+}
+.txn-item:hover { border-color: rgba(26,86,219,.3); transform: translateY(-1px); }
+.txn-left { display: flex; gap: 11px; align-items: flex-start; }
+.txn-icon {
+  width: 40px; height: 40px; border-radius: 11px;
+  display: grid; place-items: center; font-size: 1.3rem; flex-shrink: 0;
+}
+.txn-icon.mpesa   { background: #e8faf1; color: #00a651; }
+.txn-icon.paypal  { background: #e8eef7; color: #003087; }
+.txn-icon.binance { background: #fff9e5; color: #d97706; }
+.txn-method { font-family: 'Sora', sans-serif; font-size: .86rem; font-weight: 700; }
+.txn-ref { font-size: .65rem; color: var(--subtext); margin: 2px 0; }
+.txn-ref.ref-blue { color: var(--blue); font-size: .62rem; font-weight: 600; }
+.txn-date { font-size: .63rem; color: var(--gray); }
+.txn-right { text-align: right; flex-shrink: 0; }
+.txn-amt { font-family: 'Sora', sans-serif; font-size: .94rem; font-weight: 800; color: var(--red); }
+.txn-net { font-size: .65rem; color: var(--green); font-weight: 600; margin: 2px 0; }
+.txn-status-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-family: 'Sora', sans-serif; font-size: .62rem; font-weight: 700;
+  padding: .15rem .6rem; border-radius: 99px; margin-top: 4px;
+}
+.txn-status-badge.pending    { background: #fffbeb; color: #92400e; border: 1px solid #fde68a; }
+.txn-status-badge.processing { background: var(--blue-light); color: var(--blue); border: 1px solid #c7d2fe; }
+.txn-status-badge.completed  { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
+.txn-status-badge.failed     { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+.status-dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+
+/* Empty state */
+.empty-state {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 4rem 1.5rem; gap: 12px; text-align: center;
+}
+.empty-icon {
+  width: 64px; height: 64px; border-radius: 18px;
+  background: var(--gray-light); border: 1.5px solid var(--border);
+  display: grid; place-items: center; font-size: 1.8rem; opacity: .4;
+}
+.empty-text { font-family: 'Sora', sans-serif; font-size: .86rem; color: var(--subtext); font-weight: 600; }
+.empty-cta {
+  background: var(--blue); color: #fff; border: none; border-radius: 99px;
+  font-family: 'Sora', sans-serif; font-size: .78rem; font-weight: 700;
+  padding: .45rem 1.2rem; cursor: pointer; transition: all .2s;
+  box-shadow: 0 2px 10px rgba(26,86,219,.3); display: flex; align-items: center; gap: 5px;
+}
+.empty-cta:hover { background: var(--blue-mid); transform: translateY(-1px); }
+
+/* No session */
+#noSession {
+  display: none; flex-direction: column; align-items: center; justify-content: center;
+  padding: 4rem 2rem; text-align: center; gap: 12px; flex: 1;
+}
+.ns-icon { font-size: 2.8rem; opacity: .2; animation: breathe 2s ease-in-out infinite; }
+.ns-title { font-family: 'Sora', sans-serif; font-size: 1rem; font-weight: 700; }
+.ns-sub { font-size: .76rem; color: var(--subtext); line-height: 1.7; max-width: 260px; }
+
+/* ── SUCCESS SHEET ── */
+#successSheet {
+  display: none; position: fixed; inset: 0; z-index: 160;
+  background: rgba(0,0,0,.4); backdrop-filter: blur(6px);
+  align-items: flex-end; justify-content: center;
+}
+#successSheet.open { display: flex; }
+.success-inner {
+  background: var(--card); width: 100%; max-width: 460px;
+  border-radius: 24px 24px 0 0; padding: 2rem 1.5rem 2.5rem;
+  text-align: center; animation: slideUp .3s cubic-bezier(.22,1,.36,1) both;
+}
+.success-ring {
+  width: 76px; height: 76px; border-radius: 50%;
+  background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+  border: 2.5px solid #a7f3d0;
+  display: grid; place-items: center;
+  margin: 0 auto 1rem; font-size: 2.4rem;
+}
+.success-title { font-family: 'Sora', sans-serif; font-size: 1.25rem; font-weight: 800; margin-bottom: 5px; }
+.success-sub { font-size: .84rem; color: var(--subtext); line-height: 1.65; margin-bottom: 9px; }
+.success-ref { font-size: .76rem; color: var(--subtext); margin-bottom: 6px; }
+.success-ref span { font-family: 'Sora', sans-serif; color: var(--blue); font-weight: 700; }
+.success-status {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: #fffbeb; border: 1px solid var(--amber); border-radius: 99px;
+  padding: .35rem 1rem; margin: 0 auto 1rem; font-size: .72rem; font-weight: 700;
+  color: #92400e; font-family: 'Sora', sans-serif;
+}
+.success-status-dot {
+  width: 7px; height: 7px; border-radius: 50%; background: var(--amber);
+  animation: breathe 1.5s ease-in-out infinite;
+}
+.success-note { font-size: .66rem; color: var(--subtext); margin-bottom: 1.3rem; line-height: 1.5; }
+
+/* ── NOTIFICATION PANEL ── */
+#notifPanel {
+  display: none; position: fixed; inset: 0; z-index: 140;
+  background: rgba(0,0,0,.4); backdrop-filter: blur(6px);
+  align-items: flex-end; justify-content: center;
+}
+#notifPanel.open { display: flex; }
+.notif-sheet {
+  background: var(--card); width: 100%; max-width: 460px;
+  border-radius: 24px 24px 0 0; padding: 1.4rem 1.2rem 2rem;
+  max-height: 72vh; display: flex; flex-direction: column;
+  animation: slideUp .3s cubic-bezier(.22,1,.36,1) both;
+}
+.notif-hdr { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-shrink: 0; }
+.notif-hdr-title { font-family: 'Sora', sans-serif; font-size: 1rem; font-weight: 800; display: flex; align-items: center; gap: 8px; }
+.notif-close-btn {
+  width: 30px; height: 30px; border-radius: 50%;
+  background: var(--gray-light); border: 1px solid var(--border);
+  display: grid; place-items: center; cursor: pointer; font-size: .9rem; color: var(--subtext);
+}
+.notif-close-btn:hover { background: var(--border); }
+.notif-list { overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 8px; }
+.notif-item {
+  background: var(--gray-light); border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm); padding: 12px 14px;
+  display: flex; gap: 10px; align-items: flex-start;
+}
+.notif-item.unread { border-color: rgba(26,86,219,.3); background: var(--blue-light); }
+.notif-icon-wrap { font-size: 1.3rem; flex-shrink: 0; }
+.notif-body { flex: 1; }
+.notif-title-txt { font-family: 'Sora', sans-serif; font-size: .84rem; font-weight: 700; margin-bottom: 2px; }
+.notif-msg  { font-size: .7rem; color: var(--subtext); line-height: 1.45; }
+.notif-time { font-size: .62rem; color: var(--gray); margin-top: 4px; }
+.notif-empty {
+  display: flex; flex-direction: column; align-items: center; padding: 2.5rem 0;
+  gap: 9px; color: var(--subtext); font-size: .78rem;
+}
+.notif-empty i { font-size: 2rem; opacity: .25; }
+.mark-read-btn {
+  background: none; border: 1px solid var(--border); border-radius: 99px;
+  font-family: 'Sora', sans-serif; font-size: .72rem; font-weight: 600; color: var(--blue);
+  padding: .28rem .9rem; cursor: pointer; transition: all .18s; flex-shrink: 0;
+}
+.mark-read-btn:hover { background: var(--blue-light); }
+
+/* ── BOTTOM NAV (profile style) ── */
+.bottom-nav {
+  position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+  width: 100%; max-width: 460px;
+  background: var(--card);
+  border-top: 1px solid var(--border);
+  display: flex; z-index: 20;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  box-shadow: 0 -4px 20px rgba(0,0,0,.06);
+}
+.nav-item {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px;
+  padding: .6rem .4rem .55rem;
+  cursor: pointer; border: none; background: none;
+  color: var(--gray); font-size: .6rem; font-weight: 600;
+  font-family: 'Sora', sans-serif; text-decoration: none;
+  transition: color .2s; position: relative;
+}
+.nav-item:hover { color: var(--subtext); }
+.nav-item.active { color: var(--blue); }
+.nav-item.active::before {
+  content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+  width: 28px; height: 3px; background: var(--blue);
+  border-radius: 0 0 4px 4px;
+}
+.nav-icon { font-size: 1.25rem; line-height: 1; }
+
+/* ── KEYFRAMES ── */
+@keyframes spin    { to { transform: rotate(360deg); } }
+@keyframes breathe { 0%,100%{opacity:1}50%{opacity:.35} }
+@keyframes slideUp { from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)} }
+@keyframes fadeIn  { from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)} }
+@keyframes load {
+  0%   { width: 0%; margin-left: 0; }
+  50%  { width: 80%; margin-left: 0; }
+  100% { width: 0%; margin-left: 100%; }
+}
+</style>
 </head>
 <body>
 
 <!-- SPLASH -->
 <div id="splash">
-  <div class="splash-logo">💳</div>
-  <div class="splash-name">AmulyTask</div>
-  <div class="splash-bar"><div class="splash-bar-fill"></div></div>
-  <div class="splash-label">Loading wallet…</div>
+  <div class="splash-logo"><i class="bi bi-wallet2"></i></div>
+  <div class="splash-name">AmulyTask Wallet</div>
+  <div class="splash-bar"><div class="splash-fill"></div></div>
+  <div class="splash-sub">Loading your wallet…</div>
 </div>
 
 <!-- TOAST -->
 <div id="toast"></div>
 
-<!-- OTP VERIFICATION OVERLAY -->
-<div id="otpOverlay">
-  <div class="otp-sheet">
-    <div class="otp-header">
-      <div class="otp-title">Verify Withdrawal</div>
-      <div class="otp-close" onclick="closeOtp()">✕</div>
-    </div>
-    <div class="otp-desc" id="otpDesc">
-      We sent a verification code to <strong id="otpDestDisplay">your account</strong>.
-      Enter it below to confirm your withdrawal.
-    </div>
-    <div class="otp-row" id="otpBoxes">
-      <input class="otp-box" maxlength="1" inputmode="numeric" />
-      <input class="otp-box" maxlength="1" inputmode="numeric" />
-      <input class="otp-box" maxlength="1" inputmode="numeric" />
-      <input class="otp-box" maxlength="1" inputmode="numeric" />
-      <input class="otp-box" maxlength="1" inputmode="numeric" />
-      <input class="otp-box" maxlength="1" inputmode="numeric" />
-    </div>
-    <div class="otp-resend">
-      Didn't receive it? <a onclick="resendOtp()">Resend code</a>
-    </div>
-    <button class="otp-verify-btn" id="otpVerifyBtn" onclick="verifyOtpAndSubmit()">
-      Confirm Withdrawal
-    </button>
-  </div>
-</div>
-
 <!-- SUCCESS SHEET -->
 <div id="successSheet">
   <div class="success-inner">
-    <div class="success-ring">✓</div>
+    <div class="success-ring"><i class="bi bi-check-lg" style="color:#16a34a;"></i></div>
     <div class="success-title">Withdrawal Submitted!</div>
     <div class="success-sub" id="successMsg"></div>
-    <div class="success-ref" id="successRef"></div>
-    <div class="success-status-row">
-      <div class="success-status-dot"></div>
-      <div class="success-status-text">Status: Pending</div>
+    <div class="success-ref">Reference: <span id="successRef"></span></div>
+    <div class="success-status">
+      <span class="success-status-dot"></span>
+      Status: Pending Review
     </div>
-    <div class="success-notif-note" id="successNotifNote">🔔 You'll receive a notification when your status updates</div>
-    <button class="at-btn" onclick="closeSuccess()">Done</button>
+    <div class="success-note"><i class="bi bi-bell-fill" style="color:var(--amber);"></i> You'll get notified when your withdrawal status updates.</div>
+    <button class="submit-btn" onclick="closeSuccess()">
+      <i class="bi bi-check2-circle"></i> Done
+    </button>
   </div>
 </div>
 
@@ -639,14 +630,14 @@
 <div id="notifPanel">
   <div class="notif-sheet">
     <div class="notif-hdr">
-      <div class="notif-hdr-title">🔔 Notifications</div>
-      <div style="display:flex;gap:.5rem;align-items:center;">
+      <div class="notif-hdr-title"><i class="bi bi-bell-fill"></i> Notifications</div>
+      <div style="display:flex;gap:8px;align-items:center;">
         <button class="mark-read-btn" onclick="markAllRead()">Mark all read</button>
-        <div class="notif-close" onclick="closeNotifPanel()">✕</div>
+        <div class="notif-close-btn" onclick="closeNotifPanel()"><i class="bi bi-x-lg"></i></div>
       </div>
     </div>
     <div class="notif-list" id="notifList">
-      <div class="notif-empty"><div class="ne-icon">🔕</div>No notifications yet</div>
+      <div class="notif-empty"><i class="bi bi-bell-slash"></i>No notifications yet</div>
     </div>
   </div>
 </div>
@@ -654,59 +645,67 @@
 <!-- APP SHELL -->
 <div id="app" style="display:none">
 
-  <!-- TOPBAR -->
-  <div class="topbar">
-    <div class="topbar-left">
-      <div class="brand-icon">💳</div>
-      <div class="brand-col">
-        <div class="brand-name">AmulyTask</div>
-        <div class="brand-sub">My Wallet</div>
+  <!-- HERO BANNER (balance + topbar) -->
+  <div class="hero-banner">
+    <!-- Top nav row -->
+    <div class="hero-topbar">
+      <div class="hero-brand">
+        <div class="hero-brand-icon"><i class="bi bi-wallet2"></i></div>
+        <div>
+          <div class="hero-brand-name">AmulyTask</div>
+          <div class="hero-brand-sub">My Wallet</div>
+        </div>
+      </div>
+      <div class="hero-actions">
+        <div class="hero-action-btn" onclick="openNotifPanel()" title="Notifications">
+          <i class="bi bi-bell"></i>
+          <span class="notif-badge" id="notifBadge">0</span>
+        </div>
+        <a class="profile-btn-hero" href="profile.html" id="profileBtn" title="My Profile">U</a>
       </div>
     </div>
-    <div class="topbar-right">
-      <div class="notif-btn" onclick="openNotifPanel()" title="Notifications">
-        🔔
-        <span class="notif-badge" id="notifBadge">0</span>
-      </div>
-      <a class="profile-btn" href="profile.html" id="profileBtn" title="My Profile">U</a>
-    </div>
-  </div>
 
-  <!-- BALANCE HERO -->
-  <div class="balance-hero">
-    <div class="bal-label">Available Balance</div>
-    <div class="bal-amount"><sup>$</sup><span id="balAmt">0.00</span></div>
-    <div class="bal-currency">United States Dollar · USD</div>
-    <button class="bal-withdraw-btn" onclick="fillAllBalance()">↗ WITHDRAW FULL AMOUNT</button>
-    <div class="bal-stats">
-      <div class="bal-stat">
-        <div class="bal-stat-val" id="statTotal">$0.00</div>
-        <div class="bal-stat-key">Total Earned</div>
-      </div>
-      <div class="bal-stat-div"></div>
-      <div class="bal-stat">
-        <div class="bal-stat-val" id="statPending">$0.00</div>
-        <div class="bal-stat-key">Pending</div>
-      </div>
-      <div class="bal-stat-div"></div>
-      <div class="bal-stat">
-        <div class="bal-stat-val" id="statWithdrawn">$0.00</div>
-        <div class="bal-stat-key">Withdrawn</div>
+    <!-- Balance display -->
+    <div class="bal-block">
+      <div class="bal-label">Available Balance</div>
+      <div class="bal-amount"><sup>$</sup><span id="balAmt">0.00</span></div>
+      <div class="bal-currency">United States Dollar · USD</div>
+      <button class="bal-withdraw-btn" onclick="fillAllBalance()">
+        <i class="bi bi-box-arrow-up"></i> Withdraw Full Amount
+      </button>
+      <div class="bal-stats">
+        <div class="bal-stat">
+          <div class="bal-stat-val" id="statTotal">$0.00</div>
+          <div class="bal-stat-key">Total Earned</div>
+        </div>
+        <div class="bal-stat-div"></div>
+        <div class="bal-stat">
+          <div class="bal-stat-val" id="statPending">$0.00</div>
+          <div class="bal-stat-key">Pending</div>
+        </div>
+        <div class="bal-stat-div"></div>
+        <div class="bal-stat">
+          <div class="bal-stat-val" id="statWithdrawn">$0.00</div>
+          <div class="bal-stat-key">Withdrawn</div>
+        </div>
       </div>
     </div>
   </div>
 
   <!-- TABS -->
-  <div class="tabs">
-    <button class="tab-btn active" id="tabSend" onclick="switchTab('send')">↗ Withdraw</button>
+  <div class="tab-row">
+    <button class="tab-btn active" id="tabSend" onclick="switchTab('send')">
+      <i class="bi bi-box-arrow-up"></i> Withdraw
+    </button>
     <button class="tab-btn" id="tabHistory" onclick="switchTab('history')">
-      ≡ History <span class="tab-badge" id="txnBadge" style="display:none">0</span>
+      <i class="bi bi-clock-history"></i> History
+      <span class="tab-badge" id="txnBadge" style="display:none">0</span>
     </button>
   </div>
 
   <!-- NO SESSION -->
   <div id="noSession">
-    <div class="ns-icon">🔐</div>
+    <div class="ns-icon"><i class="bi bi-lock"></i></div>
     <div class="ns-title">Not signed in</div>
     <div class="ns-sub" id="nsMsg">Sign in to your AmulyTask account to access your wallet.</div>
   </div>
@@ -717,185 +716,181 @@
     <!-- Transaction Reference -->
     <div class="ref-row">
       <div>
-        <div class="ref-label">Transaction Reference</div>
+        <div class="ref-label"><i class="bi bi-hash"></i> Transaction Reference</div>
         <div class="ref-val" id="txRefDisplay">—</div>
       </div>
-      <button class="ref-copy" onclick="copyRef()">Copy</button>
+      <button class="ref-copy-btn" onclick="copyRef()">
+        <i class="bi bi-copy"></i> Copy
+      </button>
     </div>
 
-    <div class="section-title">Payment Method</div>
+    <div class="section-label"><i class="bi bi-credit-card"></i> Payment Method</div>
 
     <!-- PAYMENT METHOD SELECTOR -->
     <div class="pm-selector" id="pmSelector">
       <div class="pm-selected-row" onclick="togglePmDropdown()">
         <div id="pmBadge" class="pm-logo mpesa">
-          <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-weight="900" font-size="22" fill="#fff">M</text>
-          </svg>
+          <i class="bi bi-phone-fill"></i>
         </div>
-        <div class="pm-selected-info">
+        <div style="flex:1;">
           <div class="pm-selected-label">Payment method</div>
           <div class="pm-selected-val" id="pmSelectedVal">M-Pesa Mobile</div>
         </div>
-        <div class="pm-chevron" id="pmChevron">▾</div>
+        <i class="bi bi-chevron-down pm-chevron" id="pmChevron"></i>
       </div>
 
       <div class="pm-dropdown" id="pmDropdown">
-        <!-- M-Pesa -->
         <div class="pm-option active" id="opt-mpesa" onclick="choosePm('mpesa')">
-          <div class="pm-logo mpesa">
-            <svg viewBox="0 0 60 60" fill="none"><text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-weight="900" font-size="22" fill="#fff">M</text></svg>
-          </div>
+          <div class="pm-logo mpesa"><i class="bi bi-phone-fill"></i></div>
           <div class="pm-option-info">
-            <div class="pm-option-name">M-Pesa</div>
-            <div class="pm-option-sub">Mobile Money · SMS OTP</div>
+            <div class="pm-option-name">M-Pesa Mobile</div>
+            <div class="pm-option-sub"><i class="bi bi-shield-check" style="color:var(--green)"></i> Direct mobile transfer</div>
           </div>
-          <span class="pm-option-check">✓</span>
+          <i class="bi bi-check-circle-fill pm-option-check"></i>
         </div>
-        <!-- PayPal -->
         <div class="pm-option" id="opt-paypal" onclick="choosePm('paypal')">
-          <div class="pm-logo paypal">
-            <svg viewBox="0 0 24 24" fill="none">
-              <path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944.901C5.026.382 5.474 0 5.998 0h7.46c2.57 0 4.578.543 5.69 1.81 1.01 1.15 1.304 2.42 1.012 4.287-.023.143-.047.288-.077.437-.983 5.05-4.349 6.797-8.647 6.797h-2.19c-.524 0-.968.382-1.05.9l-1.12 7.106zm14.146-14.42a3.35 3.35 0 0 0-.607-.541c-.013.076-.026.175-.041.254-.93 4.778-4.005 7.201-9.138 7.201h-2.19a.563.563 0 0 0-.556.479l-1.187 7.527h-.506l-.24 1.516a.56.56 0 0 0 .554.647h3.882c.46 0 .85-.334.922-.788.06-.26.76-4.852.816-5.09a.932.932 0 0 1 .923-.788h.58c3.76 0 6.705-1.528 7.565-5.946.36-1.847.174-3.388-.777-4.47z" fill="#fff"/>
-            </svg>
-          </div>
+          <div class="pm-logo paypal"><i class="bi bi-paypal"></i></div>
           <div class="pm-option-info">
             <div class="pm-option-name">PayPal</div>
-            <div class="pm-option-sub">Online · Email OTP</div>
+            <div class="pm-option-sub"><i class="bi bi-globe" style="color:var(--blue)"></i> Online payment</div>
           </div>
-          <span class="pm-option-check">✓</span>
+          <i class="bi bi-check-circle-fill pm-option-check"></i>
         </div>
-        <!-- Binance -->
         <div class="pm-option" id="opt-binance" onclick="choosePm('binance')">
-          <div class="pm-logo binance">
-            <svg viewBox="0 0 24 24" fill="none">
-              <path d="M12 0L9.36 2.64 12 5.28l2.64-2.64L12 0zM6.72 5.28L4.08 7.92l2.64 2.64 2.64-2.64-2.64-2.64zm10.56 0l-2.64 2.64 2.64 2.64 2.64-2.64-2.64-2.64zM12 8.04L7.92 12 12 16.08 16.08 12 12 8.04zM6.72 13.08l-2.64 2.64 2.64 2.64 2.64-2.64-2.64-2.64zm10.56 0l-2.64 2.64 2.64 2.64 2.64-2.64-2.64-2.64zM12 18.72L9.36 21.36 12 24l2.64-2.64L12 18.72z" fill="#1a1a1a"/>
-            </svg>
-          </div>
+          <div class="pm-logo binance"><i class="bi bi-currency-bitcoin"></i></div>
           <div class="pm-option-info">
             <div class="pm-option-name">Binance Pay</div>
-            <div class="pm-option-sub">Crypto · Email OTP</div>
+            <div class="pm-option-sub"><i class="bi bi-coin" style="color:var(--amber)"></i> Crypto transfer</div>
           </div>
-          <span class="pm-option-check">✓</span>
+          <i class="bi bi-check-circle-fill pm-option-check"></i>
         </div>
-
         <div class="pm-cancel-row">
-          <button class="pm-cancel-btn" onclick="togglePmDropdown()">CANCEL</button>
+          <button class="pm-cancel-btn" onclick="togglePmDropdown()">
+            <i class="bi bi-x"></i> Cancel
+          </button>
         </div>
       </div>
     </div>
 
     <!-- Amount -->
-    <div class="section-title">Enter Amount</div>
+    <div class="section-label"><i class="bi bi-cash-coin"></i> Enter Amount</div>
     <div class="field">
       <div class="input-wrap">
         <span class="input-sym">$</span>
         <input class="at-input" type="number" id="amount" min="1" step="0.01"
                placeholder="0.00" oninput="calcFees()" />
       </div>
-      <div class="field-err" id="amtErr">Minimum withdrawal is $1.00</div>
-      <!-- Balance quick info + Withdraw All -->
+      <div class="field-err" id="amtErr">
+        <i class="bi bi-exclamation-circle"></i> Minimum withdrawal is $1.00
+      </div>
       <div class="bal-quick" id="balQuick" style="display:none">
         <div class="bal-quick-info">
-          <div>Available: <span id="quickBal">$0.00</span></div>
-          <div class="after-fee">After fees: <span id="quickNet">$0.00</span></div>
+          <div>Available: <span class="avail" id="quickBal">$0.00</span></div>
+          <div>After fees: <span class="net-lbl" id="quickNet">$0.00</span></div>
         </div>
-        <button class="withdraw-all-btn" onclick="fillAllBalance()">↗ Withdraw All</button>
+        <button class="withdraw-all-btn" onclick="fillAllBalance()">
+          <i class="bi bi-box-arrow-up"></i> Withdraw All
+        </button>
       </div>
     </div>
 
-    <!-- Fee box -->
+    <!-- Fee breakdown -->
     <div class="fee-box" id="feeBox" style="display:none">
       <div class="fee-row"><span class="fee-k">Transfer fee <em id="rTransfer"></em></span><span class="fee-v" id="fTransfer">$0.0000</span></div>
       <div class="fee-row"><span class="fee-k">Service fee <em id="rService"></em></span><span class="fee-v" id="fService">$0.0000</span></div>
-      <div class="fee-div"></div>
+      <div class="fee-divider"></div>
       <div class="fee-row tot"><span class="fee-k">Total fees <em id="rTotal"></em></span><span class="fee-v" id="fTotal">$0.0000</span></div>
-      <div class="fee-row net"><span class="fee-k">You receive</span><span class="fee-v" id="fNet">$0.0000</span></div>
+      <div class="fee-row net"><span class="fee-k"><i class="bi bi-arrow-down-circle-fill"></i> You receive</span><span class="fee-v" id="fNet">$0.0000</span></div>
     </div>
 
-    <div class="section-title">Recipient Details</div>
+    <div class="section-label"><i class="bi bi-person-fill"></i> Recipient Details</div>
 
     <!-- M-Pesa fields -->
     <div class="method-fields" id="fields-mpesa">
-      <!-- Phone missing alert -->
       <div class="phone-alert" id="mpesaPhoneAlert">
-        <span style="font-size:1.1rem">⚠️</span>
-        <div class="phone-alert-text">No phone number on your profile. Add it to auto-fill M-Pesa withdrawals.</div>
-        <a class="phone-alert-btn" href="profile.html">Set Phone</a>
+        <i class="bi bi-exclamation-triangle-fill" style="color:var(--amber);font-size:1.1rem;flex-shrink:0;"></i>
+        <div class="phone-alert-text">No phone number saved. Add it to your profile to auto-fill M-Pesa details.</div>
+        <a class="phone-alert-link" href="profile.html">Set Phone</a>
       </div>
       <div class="field">
-        <div class="field-row">
-          <div class="field-label">M-Pesa Phone</div>
-          <span class="auto-badge" id="mpesaPhoneAutoBadge" style="display:none">✓ Auto-filled</span>
+        <div class="field-label">
+          M-Pesa Phone
+          <span class="auto-badge" id="mpesaPhoneAutoBadge" style="display:none"><i class="bi bi-check2"></i> Auto-filled</span>
         </div>
         <div style="display:flex">
-          <div class="input-addon">🇰🇪 +254</div>
+          <div class="input-addon"><i class="bi bi-flag-fill" style="color:#006600;"></i> &nbsp;+254</div>
           <input class="at-input" type="tel" id="mpesaPhone"
                  placeholder="0712 345 678" maxlength="15" oninput="validate()" />
         </div>
-        <div class="field-hint">Format: 07XXXXXXXX or 01XXXXXXXX</div>
-        <div class="field-err" id="mpesaPhoneErr">Enter a valid Kenyan number</div>
+        <div class="field-hint"><i class="bi bi-info-circle"></i> Format: 07XXXXXXXX or 01XXXXXXXX</div>
+        <div class="field-err" id="mpesaPhoneErr"><i class="bi bi-x-circle"></i> Enter a valid Kenyan number</div>
       </div>
       <div class="field">
         <div class="field-label">Account Holder Name</div>
         <input class="at-input" type="text" id="mpesaName"
                placeholder="Full name on M-Pesa" oninput="validate()" />
-        <div class="field-err" id="mpesaNameErr">Name is required</div>
+        <div class="field-err" id="mpesaNameErr"><i class="bi bi-x-circle"></i> Name is required</div>
       </div>
     </div>
 
     <!-- PayPal fields -->
     <div class="method-fields" id="fields-paypal" style="display:none">
       <div class="field">
-        <div class="field-row">
-          <div class="field-label">PayPal Email</div>
-          <span class="auto-badge" id="ppEmailAutoBadge" style="display:none">✓ Auto-filled</span>
+        <div class="field-label">
+          PayPal Email
+          <span class="auto-badge" id="ppEmailAutoBadge" style="display:none"><i class="bi bi-check2"></i> Auto-filled</span>
         </div>
         <input class="at-input" type="email" id="ppEmail"
-               placeholder="paypal@email.com" oninput="validate()" />
-        <div class="field-err" id="ppEmailErr">Enter a valid PayPal email</div>
+               placeholder="you@paypal.com" oninput="validate()" />
+        <div class="field-err" id="ppEmailErr"><i class="bi bi-x-circle"></i> Enter a valid PayPal email</div>
       </div>
     </div>
 
     <!-- Binance fields -->
     <div class="method-fields" id="fields-binance" style="display:none">
-      <div class="hint-box">Fill <strong>either</strong> your Binance Email <strong>or</strong> Binance UID.</div>
+      <div class="hint-box">
+        <i class="bi bi-info-circle-fill" style="color:var(--blue);"></i>
+        Fill <strong>either</strong> your Binance Email <strong>or</strong> Binance UID — whichever you prefer.
+      </div>
       <div class="field">
-        <div class="field-row">
-          <div class="field-label">Binance Email</div>
-          <span class="auto-badge" id="binEmailAutoBadge" style="display:none">✓ Auto-filled</span>
+        <div class="field-label">
+          Binance Email
+          <span class="auto-badge" id="binEmailAutoBadge" style="display:none"><i class="bi bi-check2"></i> Auto-filled</span>
         </div>
         <input class="at-input" type="email" id="binEmail"
                placeholder="user@email.com" oninput="onBinInput('email')" />
-        <div class="field-err" id="binEmailErr">Enter a valid email</div>
+        <div class="field-err" id="binEmailErr"><i class="bi bi-x-circle"></i> Enter a valid email</div>
       </div>
       <div class="or-sep">OR</div>
       <div class="field">
-        <div class="field-label">Binance UID <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:.63rem;color:var(--at-muted)">(8–12 digits)</span></div>
+        <div class="field-label">Binance UID <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:.65rem;color:var(--subtext)">(8–12 digits)</span></div>
         <input class="at-input" type="text" id="binUid"
                placeholder="123456789" maxlength="12" oninput="onBinInput('uid')" />
-        <div class="field-err" id="binUidErr">UID must be 8–12 digits</div>
+        <div class="field-err" id="binUidErr"><i class="bi bi-x-circle"></i> UID must be 8–12 digits</div>
       </div>
     </div>
 
-    <button class="at-btn" id="submitBtn" disabled onclick="initiateWithdrawal()">
-      Withdraw Money
+    <button class="submit-btn" id="submitBtn" disabled onclick="submitWithdrawal()">
+      <i class="bi bi-box-arrow-up"></i> Withdraw Money
     </button>
     <div class="disclaimer">
+      <i class="bi bi-shield-check" style="color:var(--green);"></i>
       All withdrawals are reviewed by the AmulyTask team.<br>
-      Verification required · Funds arrive within 1–24 hours.
+      Funds typically arrive within 1–24 hours.
     </div>
 
   </div><!-- /panelSend -->
 
   <!-- HISTORY PANEL -->
   <div class="panel hidden" id="panelHistory">
-    <div class="section-title">Transaction History</div>
+    <div class="section-label"><i class="bi bi-clock-history"></i> Transaction History</div>
     <div id="historyList">
       <div class="empty-state">
-        <div class="empty-icon">◌</div>
+        <div class="empty-icon"><i class="bi bi-inbox"></i></div>
         <div class="empty-text">No withdrawals yet</div>
-        <button class="empty-cta" onclick="switchTab('send')">Make your first withdrawal →</button>
+        <button class="empty-cta" onclick="switchTab('send')">
+          <i class="bi bi-box-arrow-up"></i> Make your first withdrawal
+        </button>
       </div>
     </div>
   </div>
@@ -905,31 +900,31 @@
 <!-- BOTTOM NAV -->
 <nav class="bottom-nav">
   <a class="nav-item" href="dashboard.html" title="Dashboard">
-    <span class="nav-icon">🏠</span>
-    <span class="nav-label">Dashboard</span>
+    <span class="nav-icon"><i class="bi bi-house-fill"></i></span>
+    <span>Dashboard</span>
   </a>
   <a class="nav-item" href="tasks.html" title="Tasks">
-    <span class="nav-icon">📋</span>
-    <span class="nav-label">Tasks</span>
+    <span class="nav-icon"><i class="bi bi-list-task"></i></span>
+    <span>Tasks</span>
   </a>
   <a class="nav-item active" href="wallet.html" title="Wallet">
-    <span class="nav-icon">💳</span>
-    <span class="nav-label">Wallet</span>
+    <span class="nav-icon"><i class="bi bi-wallet2"></i></span>
+    <span>Wallet</span>
   </a>
   <a class="nav-item" href="my-tasks.html" title="My Tasks">
-    <span class="nav-icon">✅</span>
-    <span class="nav-label">My Tasks</span>
+    <span class="nav-icon"><i class="bi bi-check2-square"></i></span>
+    <span>My Tasks</span>
   </a>
   <a class="nav-item" href="support.html" title="Support">
-    <span class="nav-icon">💬</span>
-    <span class="nav-label">Support</span>
+    <span class="nav-icon"><i class="bi bi-chat-dots-fill"></i></span>
+    <span>Support</span>
   </a>
 </nav>
 
 <script>
-/* ═══════════════════════════════════════════
+/* ══════════════════════════════════════════
    CONFIG
-═══════════════════════════════════════════ */
+══════════════════════════════════════════ */
 const SB_URL = 'https://lwnbfjjsstxkyexeojcl.supabase.co';
 const SB_KEY = 'sb_publishable_Pj9ocGkssu5Gh6qZXFnZQQ_LdghnZt9';
 
@@ -940,65 +935,58 @@ const MIN_AMOUNT    = 1;
 
 let sb, user, userData, txns = [];
 let selectedMethod = 'mpesa';
-let pendingWithdrawal = null;
-let otpSentTo = '';
 let currentRef = '';
 let userNotifications = [];
 
-/* ═══════════════════════════════════════════
-   LOGO SVGs
-═══════════════════════════════════════════ */
+/* ══════════════════════════════════════════
+   PAYMENT METHOD CONFIGS
+══════════════════════════════════════════ */
 const PM_CONFIG = {
   mpesa: {
     label: 'M-Pesa Mobile',
-    badgeClass: 'mpesa',
-    badgeSvg: `<svg viewBox="0 0 60 60" fill="none"><text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-weight="900" font-size="22" fill="#fff">M</text></svg>`,
-    txnSvg: `<svg viewBox="0 0 24 24" fill="none"><rect width="24" height="24" rx="6" fill="#00a651"/><text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-weight="900" font-size="11" fill="#fff">M</text></svg>`,
+    iconClass: 'mpesa',
+    iconHtml: '<i class="bi bi-phone-fill"></i>',
+    txnIconHtml: '<i class="bi bi-phone-fill"></i>',
   },
   paypal: {
-    label: 'PayPal Online',
-    badgeClass: 'paypal',
-    badgeSvg: `<svg viewBox="0 0 24 24" fill="none"><path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944.901C5.026.382 5.474 0 5.998 0h7.46c2.57 0 4.578.543 5.69 1.81 1.01 1.15 1.304 2.42 1.012 4.287-.023.143-.047.288-.077.437-.983 5.05-4.349 6.797-8.647 6.797h-2.19c-.524 0-.968.382-1.05.9l-1.12 7.106zm14.146-14.42a3.35 3.35 0 0 0-.607-.541c-.013.076-.026.175-.041.254-.93 4.778-4.005 7.201-9.138 7.201h-2.19a.563.563 0 0 0-.556.479l-1.187 7.527h-.506l-.24 1.516a.56.56 0 0 0 .554.647h3.882c.46 0 .85-.334.922-.788.06-.26.76-4.852.816-5.09a.932.932 0 0 1 .923-.788h.58c3.76 0 6.705-1.528 7.565-5.946.36-1.847.174-3.388-.777-4.47z" fill="#fff"/></svg>`,
-    txnSvg: `<svg viewBox="0 0 24 24" fill="none"><rect width="24" height="24" rx="6" fill="#003087"/><path d="M7.5 17H5.5l1.5-9h3c1.5 0 2.5.7 2.3 2.2-.2 1.5-1.4 2.3-2.8 2.3H8l-.5 4.5zm1-5.5h1c.6 0 1-.3 1.1-.9.1-.5-.2-.8-.8-.8h-1l-.3 1.7z" fill="#fff"/></svg>`,
+    label: 'PayPal',
+    iconClass: 'paypal',
+    iconHtml: '<i class="bi bi-paypal"></i>',
+    txnIconHtml: '<i class="bi bi-paypal"></i>',
   },
   binance: {
-    label: 'Binance Pay Crypto',
-    badgeClass: 'binance',
-    badgeSvg: `<svg viewBox="0 0 24 24" fill="none"><path d="M12 0L9.36 2.64 12 5.28l2.64-2.64L12 0zM6.72 5.28L4.08 7.92l2.64 2.64 2.64-2.64-2.64-2.64zm10.56 0l-2.64 2.64 2.64 2.64 2.64-2.64-2.64-2.64zM12 8.04L7.92 12 12 16.08 16.08 12 12 8.04zM6.72 13.08l-2.64 2.64 2.64 2.64 2.64-2.64-2.64-2.64zm10.56 0l-2.64 2.64 2.64 2.64 2.64-2.64-2.64-2.64zM12 18.72L9.36 21.36 12 24l2.64-2.64L12 18.72z" fill="#1a1a1a"/></svg>`,
-    txnSvg: `<svg viewBox="0 0 24 24" fill="none"><rect width="24" height="24" rx="6" fill="#f3ba2f"/><path d="M12 5l-1.5 1.5L12 8l1.5-1.5L12 5zM8.5 8.5L7 10l1.5 1.5L10 10 8.5 8.5zm7 0L14 10l1.5 1.5L17 10l-1.5-1.5zM12 11l-2 2 2 2 2-2-2-2zM8.5 13.5L7 15l1.5 1.5L10 15l-1.5-1.5zm7 0L14 15l1.5 1.5L17 15l-1.5-1.5zM12 16.5L10.5 18l1.5 1.5 1.5-1.5L12 16.5z" fill="#1a1a1a"/></svg>`,
+    label: 'Binance Pay',
+    iconClass: 'binance',
+    iconHtml: '<i class="bi bi-currency-bitcoin"></i>',
+    txnIconHtml: '<i class="bi bi-currency-bitcoin"></i>',
   },
 };
 
-/* ═══════════════════════════════════════════
+/* ══════════════════════════════════════════
    REFERENCE GENERATOR
-   Format: AWT-YYYYMMDD-XXXXXX (6 alphanumeric)
-═══════════════════════════════════════════ */
+══════════════════════════════════════════ */
 function generateRef() {
-  const now = new Date();
-  const d = now.toISOString().slice(0,10).replace(/-/g,'');
+  const d = new Date().toISOString().slice(0,10).replace(/-/g,'');
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   let rand = '';
   for (let i = 0; i < 6; i++) rand += chars[Math.floor(Math.random() * chars.length)];
   return `AWT-${d}-${rand}`;
 }
-
 function refreshRef() {
   currentRef = generateRef();
   const el = document.getElementById('txRefDisplay');
   if (el) el.textContent = currentRef;
 }
-
 function copyRef() {
   if (!currentRef) return;
-  navigator.clipboard.writeText(currentRef).then(() => showToast('Reference copied!', 'success'));
+  navigator.clipboard.writeText(currentRef).then(() => toast('Reference copied!', 'success'));
 }
 
-/* ═══════════════════════════════════════════
+/* ══════════════════════════════════════════
    INIT
-═══════════════════════════════════════════ */
+══════════════════════════════════════════ */
 window.addEventListener('DOMContentLoaded', async () => {
   refreshRef();
-
   const safeguard = setTimeout(() => { hideSplash(); showNoSession(); }, 8000);
 
   try {
@@ -1030,59 +1018,28 @@ window.addEventListener('DOMContentLoaded', async () => {
   hideSplash();
 
   if (!sb) return;
-
   sb.auth.onAuthStateChange(async (event, session) => {
     if (event === 'SIGNED_IN' && session?.user) {
-      user = session.user;
-      await loadUser();
-      populateUI();
+      user = session.user; await loadUser(); populateUI();
     } else if (event === 'SIGNED_OUT') {
-      user = null; userData = null; txns = [];
-      showNoSession();
+      user = null; userData = null; txns = []; showNoSession();
     }
-  });
-
-  // OTP box auto-advance
-  document.querySelectorAll('.otp-box').forEach((box, i, boxes) => {
-    box.addEventListener('input', () => {
-      box.value = box.value.replace(/\D/g, '').slice(-1);
-      if (box.value && i < boxes.length - 1) boxes[i + 1].focus();
-    });
-    box.addEventListener('keydown', e => {
-      if (e.key === 'Backspace' && !box.value && i > 0) boxes[i - 1].focus();
-    });
   });
 });
 
-/* ═══════════════════════════════════════════
+/* ══════════════════════════════════════════
    DATA LOADING
-═══════════════════════════════════════════ */
+══════════════════════════════════════════ */
 async function loadUser() {
   try {
-    const { data: profile } = await sb
-      .from('profiles')
-      .select('*')
-      .eq('id', user.id)
-      .maybeSingle();
-
+    const { data: profile } = await sb.from('profiles').select('*').eq('id', user.id).maybeSingle();
     userData = profile;
 
-    const { data: tasks } = await sb
-      .from('user_tasks')
-      .select('id, reward, status')
-      .eq('user_id', user.id);
+    const { data: tasks } = await sb.from('user_tasks').select('id, reward, status').eq('user_id', user.id);
+    const taskEarned = (tasks || []).filter(t => ['completed','done','approved'].includes(t.status)).reduce((s,t) => s + (parseFloat(t.reward)||0), 0);
 
-    const taskEarned = (tasks || [])
-      .filter(t => ['completed', 'done', 'approved'].includes(t.status))
-      .reduce((sum, t) => sum + (parseFloat(t.reward) || 0), 0);
-
-    const { data: commRows } = await sb
-      .from('community_earnings')
-      .select('amount')
-      .eq('user_id', user.id);
-
-    const commEarned = (commRows || [])
-      .reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0);
+    const { data: commRows } = await sb.from('community_earnings').select('amount').eq('user_id', user.id);
+    const commEarned = (commRows || []).reduce((s,r) => s + (parseFloat(r.amount)||0), 0);
 
     if (!userData) userData = {};
     userData._taskEarned  = taskEarned;
@@ -1090,12 +1047,11 @@ async function loadUser() {
     userData._totalEarned = taskEarned + commEarned;
 
     const pendingEarned = (tasks || [])
-      .filter(t => ['pending', 'submitted', 'under_review'].includes(t.status))
-      .reduce((sum, t) => sum + (parseFloat(t.reward) || 0), 0);
+      .filter(t => ['pending','submitted','under_review'].includes(t.status))
+      .reduce((s,t) => s + (parseFloat(t.reward)||0), 0);
     userData._pendingEarned = pendingEarned;
-
-  } catch (err) {
-    console.error('loadUser error:', err);
+  } catch(err) {
+    console.error('loadUser:', err);
     if (!userData) userData = {};
   }
 
@@ -1105,30 +1061,20 @@ async function loadUser() {
 
 async function loadWithdrawals() {
   try {
-    let { data } = await sb
-      .from('withdrawals')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
-      .limit(50);
+    let { data } = await sb.from('withdrawals').select('*').eq('user_id', user.id)
+      .order('created_at', { ascending: false }).limit(50);
 
-    if (!data || data.length === 0) {
-      const res = await sb
-        .from('withdrawal_requests')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(50);
+    if (!data || !data.length) {
+      const res = await sb.from('withdrawal_requests').select('*').eq('user_id', user.id)
+        .order('created_at', { ascending: false }).limit(50);
       data = (res.data || []).map(r => ({
-        ...r,
-        amount: r.amount, gross_amount: r.amount, fee_amount: 0,
+        ...r, amount: r.amount, gross_amount: r.amount, fee_amount: 0,
         method: r.method, wallet_address: r.destination || '',
         reference: r.id, status: r.status, verified: true, created_at: r.created_at,
       }));
     }
-
     txns = data || [];
-  } catch (err) {
+  } catch(err) {
     console.error('loadWithdrawals:', err);
     txns = [];
   }
@@ -1138,31 +1084,25 @@ async function loadWithdrawals() {
 async function loadUserNotifications() {
   if (!user) return;
   try {
-    const { data } = await sb
-      .from('notifications')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
-      .limit(30);
+    const { data } = await sb.from('notifications').select('*').eq('user_id', user.id)
+      .order('created_at', { ascending: false }).limit(30);
     userNotifications = data || [];
-  } catch (e) {
-    userNotifications = [];
-  }
+  } catch(e) { userNotifications = []; }
   updateNotifBadge();
 }
 
 function updateNotifBadge() {
   const unread = userNotifications.filter(n => !n.read).length;
-  const badge = document.getElementById('notifBadge');
+  const badge  = document.getElementById('notifBadge');
   if (badge) {
     badge.textContent = unread > 9 ? '9+' : unread;
     badge.classList.toggle('visible', unread > 0);
   }
 }
 
-/* ═══════════════════════════════════════════
+/* ══════════════════════════════════════════
    NOTIFICATION PANEL
-═══════════════════════════════════════════ */
+══════════════════════════════════════════ */
 function openNotifPanel() {
   renderNotifications();
   document.getElementById('notifPanel').classList.add('open');
@@ -1170,29 +1110,24 @@ function openNotifPanel() {
 function closeNotifPanel() {
   document.getElementById('notifPanel').classList.remove('open');
 }
-
 function renderNotifications() {
   const list = document.getElementById('notifList');
   if (!userNotifications.length) {
-    list.innerHTML = '<div class="notif-empty"><div class="ne-icon">🔕</div>No notifications yet</div>';
+    list.innerHTML = '<div class="notif-empty"><i class="bi bi-bell-slash"></i>No notifications yet</div>';
     return;
   }
-  const statusIcons = { pending: '⏳', processing: '🔄', 'in_progress': '🔄', completed: '✅', approved: '✅', cancelled: '❌', failed: '❌' };
+  const icons = { pending:'⏳', processing:'🔄', in_progress:'🔄', completed:'✅', approved:'✅', cancelled:'❌', failed:'❌' };
   list.innerHTML = userNotifications.map(n => `
     <div class="notif-item ${n.read ? '' : 'unread'}">
-      <div class="notif-icon">${statusIcons[n.meta ? tryParseStatus(n.meta) : ''] || '🔔'}</div>
+      <div class="notif-icon-wrap">${icons[tryStatus(n.meta)] || '🔔'}</div>
       <div class="notif-body">
-        <div class="notif-title-text">${escHtml(n.title || 'Notification')}</div>
-        <div class="notif-msg">${escHtml(n.body || '')}</div>
+        <div class="notif-title-txt">${esc(n.title || 'Notification')}</div>
+        <div class="notif-msg">${esc(n.body || '')}</div>
         <div class="notif-time">${fmtDate(n.created_at)}</div>
       </div>
     </div>`).join('');
 }
-
-function tryParseStatus(meta) {
-  try { return JSON.parse(meta).status || ''; } catch { return ''; }
-}
-
+function tryStatus(meta) { try { return JSON.parse(meta).status || ''; } catch { return ''; } }
 async function markAllRead() {
   if (!user || !userNotifications.length) return;
   const ids = userNotifications.filter(n => !n.read).map(n => n.id);
@@ -1200,103 +1135,23 @@ async function markAllRead() {
   try {
     await sb.from('notifications').update({ read: true }).in('id', ids);
     userNotifications.forEach(n => n.read = true);
-    updateNotifBadge();
-    renderNotifications();
-    showToast('All notifications marked read', 'success');
+    updateNotifBadge(); renderNotifications();
+    toast('All notifications marked read', 'success');
   } catch(e) {}
 }
 
-/* ═══════════════════════════════════════════
-   USER NOTIFICATION SENDER
-═══════════════════════════════════════════ */
-async function sendUserNotification({ title, body, status, method, amount, reference, withdrawalId }) {
-  if (!user) return;
-  const meta = JSON.stringify({ status, method, amount, reference, withdrawal_id: withdrawalId });
-  try {
-    const { data: inserted } = await sb.from('notifications').insert({
-      user_id:       user.id,
-      type:          'withdrawal',
-      title,
-      body,
-      meta,
-      is_admin_alert: false,
-      read:          false,
-      created_at:    new Date().toISOString(),
-    }).select().single();
-    if (inserted) {
-      userNotifications.unshift(inserted);
-      updateNotifBadge();
-    }
-  } catch(e) {
-    console.warn('sendUserNotification failed:', e);
-  }
-}
-
-/* Subscribe to realtime withdrawal status changes */
-function subscribeToWithdrawalUpdates(withdrawalId) {
-  if (!sb || !user) return;
-  try {
-    sb.channel('withdrawal-status-' + withdrawalId)
-      .on('postgres_changes', {
-        event: 'UPDATE',
-        schema: 'public',
-        table: 'withdrawals',
-        filter: `id=eq.${withdrawalId}`,
-      }, payload => {
-        const newStatus = payload.new?.status;
-        const amt       = payload.new?.amount || payload.new?.gross_amount || 0;
-        const ref       = payload.new?.reference || withdrawalId;
-        const method    = payload.new?.method || selectedMethod;
-        const methodLabel = PM_CONFIG[method]?.label || method;
-        const statusLabels = {
-          pending:    'Pending',
-          processing: 'In Progress',
-          in_progress:'In Progress',
-          completed:  'Completed',
-          approved:   'Completed',
-          cancelled:  'Cancelled',
-          failed:     'Cancelled',
-        };
-        const label = statusLabels[newStatus] || cap(newStatus);
-        const icons = { Pending:'⏳', 'In Progress':'🔄', Completed:'✅', Cancelled:'❌' };
-        const icon  = icons[label] || '🔔';
-
-        sendUserNotification({
-          title: `${icon} Withdrawal ${label}`,
-          body:  `Your $${parseFloat(amt).toFixed(2)} withdrawal via ${methodLabel} is now ${label}. Ref: ${ref}`,
-          status: newStatus,
-          method, amount: amt, reference: ref, withdrawalId,
-        });
-
-        // Update local txn list
-        const txn = txns.find(t => t.id === withdrawalId);
-        if (txn) { txn.status = newStatus; renderHistory(); }
-        showToast(`${icon} Withdrawal status: ${label}`, newStatus === 'completed' ? 'success' : 'info');
-      })
-      .subscribe();
-  } catch(e) {
-    console.warn('realtime subscribe failed', e);
-  }
-}
-
-/* ═══════════════════════════════════════════
+/* ══════════════════════════════════════════
    POPULATE UI
-═══════════════════════════════════════════ */
+══════════════════════════════════════════ */
 function populateUI() {
-  const name = userData?.display_name || userData?.full_name || userData?.username
-               || user.email?.split('@')[0] || 'User';
-
-  // Profile button
+  const name = userData?.display_name || userData?.full_name || userData?.username || user.email?.split('@')[0] || 'U';
   const profileBtn = document.getElementById('profileBtn');
   if (profileBtn) profileBtn.textContent = name[0].toUpperCase();
 
   const bal     = parseFloat(userData?.balance ?? userData?._totalEarned ?? 0);
   const earned  = parseFloat(userData?._totalEarned ?? userData?.total_earned ?? userData?.earnings ?? 0);
   const pending = parseFloat(userData?._pendingEarned ?? userData?.pending_balance ?? 0);
-
-  const withdrawn = txns
-    .filter(t => ['completed', 'approved'].includes(t.status))
-    .reduce((s, t) => s + (parseFloat(t.amount) || 0), 0);
+  const withdrawn = txns.filter(t => ['completed','approved'].includes(t.status)).reduce((s,t) => s + (parseFloat(t.amount)||0), 0);
 
   document.getElementById('balAmt').textContent        = bal.toFixed(2);
   document.getElementById('statTotal').textContent     = '$' + earned.toFixed(2);
@@ -1307,103 +1162,77 @@ function populateUI() {
   document.getElementById('rService').textContent  = `(${(RATE_SERVICE*100).toFixed(2)}%)`;
   document.getElementById('rTotal').textContent    = `(${(RATE_TOTAL*100).toFixed(2)}%)`;
 
-  // Show balance quick info
   const balQuick = document.getElementById('balQuick');
   if (balQuick && bal > 0) {
     balQuick.style.display = 'flex';
     document.getElementById('quickBal').textContent = '$' + bal.toFixed(2);
-    const netAfterFee = bal - (bal * RATE_TOTAL);
-    document.getElementById('quickNet').textContent = '$' + netAfterFee.toFixed(2);
+    document.getElementById('quickNet').textContent = '$' + (bal - bal * RATE_TOTAL).toFixed(2);
   }
 
   document.getElementById('panelSend').classList.remove('hidden');
   document.getElementById('noSession').style.display = 'none';
   document.getElementById('submitBtn').disabled = true;
 
-  // Auto-fill M-Pesa phone from profile
   prefillMpesaPhone();
-
-  // Auto-fill email for PayPal & Binance
   prefillEmails();
-
-  // Generate fresh reference
   refreshRef();
 }
 
 function prefillMpesaPhone() {
-  const phoneAlert = document.getElementById('mpesaPhoneAlert');
-  const phoneInput = document.getElementById('mpesaPhone');
-  const autoBadge  = document.getElementById('mpesaPhoneAutoBadge');
-
-  // Try multiple common field names for phone
-  let phone = userData?.phone_number || userData?.phone || userData?.mpesa_phone
-           || userData?.mobile || userData?.mobile_number || '';
-
+  let phone = userData?.phone_number || userData?.phone || userData?.mpesa_phone || userData?.mobile || '';
+  const inp = document.getElementById('mpesaPhone');
+  const badge = document.getElementById('mpesaPhoneAutoBadge');
+  const alert = document.getElementById('mpesaPhoneAlert');
   if (phone) {
-    // Normalize: strip +254 prefix, ensure starts with 07 or 01
-    phone = phone.replace(/\D/g, '');
+    phone = phone.replace(/\D/g,'');
     if (phone.startsWith('254')) phone = '0' + phone.slice(3);
-    phoneInput.value = phone;
-    if (autoBadge) autoBadge.style.display = 'inline';
-    if (phoneAlert) phoneAlert.classList.remove('visible');
+    inp.value = phone;
+    if (badge) badge.style.display = 'inline';
+    if (alert) alert.classList.remove('visible');
   } else {
-    phoneInput.value = '';
-    if (autoBadge) autoBadge.style.display = 'none';
-    if (phoneAlert) phoneAlert.classList.add('visible');
+    inp.value = '';
+    if (badge) badge.style.display = 'none';
+    if (alert) alert.classList.add('visible');
   }
-
-  // Auto-fill name if available
-  const nameInput = document.getElementById('mpesaName');
+  const nameInp = document.getElementById('mpesaName');
   const fullName = userData?.full_name || userData?.display_name || userData?.username || '';
-  if (nameInput && fullName) nameInput.value = fullName;
+  if (nameInp && fullName) nameInp.value = fullName;
 }
 
 function prefillEmails() {
   const email = user?.email || '';
   if (!email) return;
-
-  // PayPal
   const ppEl = document.getElementById('ppEmail');
-  if (ppEl && !ppEl.value) {
-    ppEl.value = email;
-    const badge = document.getElementById('ppEmailAutoBadge');
-    if (badge) badge.style.display = 'inline';
-  }
-
-  // Binance
+  if (ppEl && !ppEl.value) { ppEl.value = email; const b = document.getElementById('ppEmailAutoBadge'); if (b) b.style.display = 'inline'; }
   const binEl = document.getElementById('binEmail');
-  if (binEl && !binEl.value) {
-    binEl.value = email;
-    const badge = document.getElementById('binEmailAutoBadge');
-    if (badge) badge.style.display = 'inline';
-  }
+  if (binEl && !binEl.value) { binEl.value = email; const b = document.getElementById('binEmailAutoBadge'); if (b) b.style.display = 'inline'; }
 }
 
 function showNoSession(msg) {
   const profileBtn = document.getElementById('profileBtn');
   if (profileBtn) profileBtn.textContent = '?';
-  document.getElementById('balAmt').textContent      = '—';
+  document.getElementById('balAmt').textContent = '—';
   document.getElementById('noSession').style.display = 'flex';
   if (msg) document.getElementById('nsMsg').textContent = msg;
   document.getElementById('panelSend').classList.add('hidden');
   document.getElementById('panelHistory').classList.add('hidden');
 }
 
-/* ═══════════════════════════════════════════
+/* ══════════════════════════════════════════
    FILL ALL BALANCE
-═══════════════════════════════════════════ */
+══════════════════════════════════════════ */
 function fillAllBalance() {
   const bal = parseFloat(userData?.balance ?? userData?._totalEarned ?? 0);
-  if (bal <= 0) { showToast('No balance to withdraw', 'error'); return; }
+  if (bal <= 0) { toast('No balance to withdraw', 'error'); return; }
   document.getElementById('amount').value = bal.toFixed(2);
   switchTab('send');
   calcFees();
   document.getElementById('amount').scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
-/* ═══════════════════════════════════════════
+/* ══════════════════════════════════════════
    PAYMENT METHOD DROPDOWN
-═══════════════════════════════════════════ */
+══════════════════════════════════════════ */
 function togglePmDropdown() {
   const dd = document.getElementById('pmDropdown');
   const ch = document.getElementById('pmChevron');
@@ -1414,33 +1243,27 @@ function togglePmDropdown() {
 function choosePm(m) {
   selectedMethod = m;
   const cfg = PM_CONFIG[m];
-
   const badge = document.getElementById('pmBadge');
-  badge.className = 'pm-logo ' + cfg.badgeClass;
-  badge.innerHTML = cfg.badgeSvg;
+  badge.className = 'pm-logo ' + cfg.iconClass;
+  badge.innerHTML = cfg.iconHtml;
   document.getElementById('pmSelectedVal').textContent = cfg.label;
 
-  ['mpesa', 'paypal', 'binance'].forEach(id => {
-    document.getElementById('opt-' + id).classList.toggle('active', id === m);
-    document.getElementById('fields-' + id).style.display = id === m ? 'block' : 'none';
-  });
+  document.querySelectorAll('.pm-option').forEach(el => el.classList.remove('active'));
+  document.getElementById('opt-' + m).classList.add('active');
+
+  document.querySelectorAll('.method-fields').forEach(el => el.style.display = 'none');
+  document.getElementById('fields-' + m).style.display = 'block';
 
   document.getElementById('pmDropdown').classList.remove('open');
   document.getElementById('pmChevron').classList.remove('open');
-
-  // Re-prefill based on method
-  if (m === 'mpesa') prefillMpesaPhone();
-  if (m === 'paypal' || m === 'binance') prefillEmails();
-
-  clearFields();
   validate();
 }
 
-/* ═══════════════════════════════════════════
+/* ══════════════════════════════════════════
    TABS
-═══════════════════════════════════════════ */
-function switchTab(tab) {
-  const isSend = tab === 'send';
+══════════════════════════════════════════ */
+function switchTab(t) {
+  const isSend = t === 'send';
   document.getElementById('panelSend').classList.toggle('hidden', !isSend);
   document.getElementById('panelHistory').classList.toggle('hidden', isSend);
   document.getElementById('tabSend').classList.toggle('active', isSend);
@@ -1448,9 +1271,9 @@ function switchTab(tab) {
   if (!isSend) loadWithdrawals();
 }
 
-/* ═══════════════════════════════════════════
+/* ══════════════════════════════════════════
    BINANCE MUTUAL EXCLUSION
-═══════════════════════════════════════════ */
+══════════════════════════════════════════ */
 function onBinInput(which) {
   const binEmailBadge = document.getElementById('binEmailAutoBadge');
   if (which === 'email' && document.getElementById('binEmail').value) {
@@ -1464,17 +1287,15 @@ function onBinInput(which) {
   validate();
 }
 
-/* ═══════════════════════════════════════════
+/* ══════════════════════════════════════════
    FEE CALC
-═══════════════════════════════════════════ */
+══════════════════════════════════════════ */
 function calcFees() {
-  const raw    = parseFloat(document.getElementById('amount').value) || 0;
+  const raw = parseFloat(document.getElementById('amount').value) || 0;
   const errEl  = document.getElementById('amtErr');
   const feeBox = document.getElementById('feeBox');
-
   errEl.style.display  = (raw > 0 && raw < MIN_AMOUNT) ? 'block' : 'none';
   feeBox.style.display = raw >= MIN_AMOUNT ? 'block' : 'none';
-
   if (raw >= MIN_AMOUNT) {
     const ft  = raw * RATE_TRANSFER;
     const fs  = raw * RATE_SERVICE;
@@ -1488,9 +1309,9 @@ function calcFees() {
   validate();
 }
 
-/* ═══════════════════════════════════════════
+/* ══════════════════════════════════════════
    VALIDATE
-═══════════════════════════════════════════ */
+══════════════════════════════════════════ */
 function validate() {
   const amt = parseFloat(document.getElementById('amount').value) || 0;
   const ok  = amt >= MIN_AMOUNT && validateMethod();
@@ -1498,9 +1319,9 @@ function validate() {
   btn.disabled = !ok;
   if (ok) {
     const label = PM_CONFIG[selectedMethod]?.label || selectedMethod;
-    btn.textContent = `Withdraw $${amt.toFixed(2)} via ${label}`;
+    btn.innerHTML = `<i class="bi bi-box-arrow-up"></i> Withdraw $${amt.toFixed(2)} via ${label}`;
   } else {
-    btn.textContent = 'Withdraw Money';
+    btn.innerHTML = `<i class="bi bi-box-arrow-up"></i> Withdraw Money`;
   }
 }
 
@@ -1519,117 +1340,42 @@ function validateMethod() {
   }
   return false;
 }
-
 function isEmail(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
 
-/* ═══════════════════════════════════════════
-   STEP 1 — INITIATE WITHDRAWAL (triggers OTP)
-═══════════════════════════════════════════ */
-async function initiateWithdrawal() {
+/* ══════════════════════════════════════════
+   SUBMIT WITHDRAWAL (direct — no OTP)
+══════════════════════════════════════════ */
+async function submitWithdrawal() {
   const btn = document.getElementById('submitBtn');
   if (btn.disabled) return;
 
   const amt = parseFloat(document.getElementById('amount').value);
   const bal = parseFloat(userData?.balance ?? userData?._totalEarned ?? 0);
 
-  if (amt > bal) {
-    showToast(`Insufficient balance. Available: $${bal.toFixed(2)}`, 'error');
-    return;
-  }
+  if (amt > bal) { toast(`Insufficient balance. Available: $${bal.toFixed(2)}`, 'error'); return; }
+  if (!currentRef) refreshRef();
 
   const fto = amt * RATE_TOTAL;
   const net = amt - fto;
-  const walletAddr = buildWalletAddress();
-
-  // Use existing ref or regenerate
-  if (!currentRef) refreshRef();
   const ref = currentRef;
-
-  pendingWithdrawal = { amt, net, fto, walletAddr, ref };
+  const walletAddr = buildWalletAddress();
+  const methodLabel = PM_CONFIG[selectedMethod]?.label || selectedMethod;
+  const userName    = userData?.display_name || userData?.full_name || userData?.username || user.email;
 
   btn.disabled = true;
-  btn.innerHTML = '<span class="spin">⟳</span> Sending code…';
+  btn.innerHTML = '<span class="spin"><i class="bi bi-arrow-repeat"></i></span> Submitting…';
 
   try {
-    await sb.auth.resetPasswordForEmail(user.email, { redirectTo: window.location.href });
-    otpSentTo = user.email;
-    document.getElementById('otpDestDisplay').textContent = maskEmail(user.email);
-    document.getElementById('otpDesc').innerHTML =
-      `We sent a 6-digit code to <strong>${maskEmail(user.email)}</strong>. Enter it to confirm.`;
-  } catch(e) {
-    showToast('Failed to send OTP. Try again.', 'error');
-    btn.disabled = false;
-    validate();
-    return;
-  }
+    const newBal = Math.max(0, bal - amt);
 
-  document.getElementById('otpOverlay').classList.add('open');
-  document.querySelectorAll('.otp-box').forEach(b => b.value = '');
-  document.querySelector('.otp-box').focus();
+    // 1. Update balance
+    const { error: balErr } = await sb.from('profiles')
+      .update({ balance: parseFloat(newBal.toFixed(6)) })
+      .eq('id', user.id);
+    if (balErr) throw new Error('Balance update failed: ' + balErr.message);
 
-  btn.disabled = false;
-  validate();
-}
-
-/* ═══════════════════════════════════════════
-   OTP
-═══════════════════════════════════════════ */
-function closeOtp() {
-  document.getElementById('otpOverlay').classList.remove('open');
-  document.querySelectorAll('.otp-box').forEach(b => b.value = '');
-}
-
-async function resendOtp() {
-  try {
-    await sb.auth.resetPasswordForEmail(user.email, { redirectTo: window.location.href });
-    showToast('Code resent to ' + maskEmail(user.email), 'info');
-  } catch(e) {
-    showToast('Failed to resend. Try again.', 'error');
-  }
-}
-
-async function verifyOtpAndSubmit() {
-  const otp = Array.from(document.querySelectorAll('.otp-box')).map(b => b.value).join('');
-  if (otp.length < 6) { showToast('Enter the full 6-digit code', 'error'); return; }
-
-  const vBtn = document.getElementById('otpVerifyBtn');
-  vBtn.disabled = true;
-  vBtn.textContent = 'Verifying…';
-
-  try {
-    const { error: verifyError } = await sb.auth.verifyOtp({
-      email: user.email, token: otp, type: 'recovery'
-    });
-    if (verifyError) throw new Error(verifyError.message);
-    await commitWithdrawal();
-  } catch(e) {
-    showToast('Invalid code: ' + e.message, 'error');
-    vBtn.disabled = false;
-    vBtn.textContent = 'Confirm Withdrawal';
-  }
-}
-
-/* ═══════════════════════════════════════════
-   STEP 2 — COMMIT WITHDRAWAL
-═══════════════════════════════════════════ */
-async function commitWithdrawal() {
-  if (!pendingWithdrawal) return;
-  const { amt, net, fto, walletAddr, ref } = pendingWithdrawal;
-
-  const bal    = parseFloat(userData?.balance ?? userData?._totalEarned ?? 0);
-  const newBal = Math.max(0, bal - amt);
-
-  // 1. Update balance
-  const { error: balErr } = await sb
-    .from('profiles')
-    .update({ balance: parseFloat(newBal.toFixed(6)) })
-    .eq('id', user.id);
-  if (balErr) throw new Error('Balance update failed: ' + balErr.message);
-
-  // 2. Insert withdrawal record
-  const { data: wd, error: wErr } = await sb
-    .from('withdrawals')
-    .insert({
+    // 2. Insert withdrawal record
+    const { data: wd, error: wErr } = await sb.from('withdrawals').insert({
       user_id:        user.id,
       amount:         parseFloat(net.toFixed(6)),
       gross_amount:   parseFloat(amt.toFixed(6)),
@@ -1640,86 +1386,178 @@ async function commitWithdrawal() {
       status:         'pending',
       verified:       true,
       created_at:     new Date().toISOString(),
-    })
-    .select()
-    .single();
-  if (wErr) throw new Error('Withdrawal record failed: ' + wErr.message);
+    }).select().single();
+    if (wErr) throw new Error('Withdrawal record failed: ' + wErr.message);
 
-  const methodLabel = PM_CONFIG[selectedMethod]?.label || selectedMethod;
-  const userName    = userData?.display_name || userData?.full_name || userData?.username || user.email;
+    // 3. Notify user
+    await sendUserNotification({
+      title: '⏳ Withdrawal Submitted',
+      body: `Your withdrawal of $${net.toFixed(2)} via ${methodLabel} is Pending review. Ref: ${ref}`,
+      status: 'pending', method: selectedMethod, amount: net.toFixed(2),
+      reference: ref, withdrawalId: wd?.id,
+    });
 
-  // 3. Notify USER — initial Pending notification
-  await sendUserNotification({
-    title:       '⏳ Withdrawal Submitted',
-    body:        `Your withdrawal of $${net.toFixed(2)} via ${methodLabel} is Pending review. Ref: ${ref}`,
-    status:      'pending',
-    method:      selectedMethod,
-    amount:      net.toFixed(2),
-    reference:   ref,
-    withdrawalId: wd?.id,
-  });
-
-  // 4. Notify ADMIN
-  await sb.from('notifications').insert({
-    user_id:       null,
-    type:          'admin',
-    title:         '💸 New Withdrawal Request',
-    body:          `${userName} requested $${net.toFixed(2)} via ${methodLabel} (ref: ${ref})`,
-    meta:          JSON.stringify({
-      withdrawal_id: wd?.id, user_id: user.id, user_name: userName, user_email: user.email,
-      method: selectedMethod, wallet: walletAddr,
-      net_amount: net.toFixed(4), gross_amount: amt.toFixed(4), fee_amount: fto.toFixed(4),
-      reference: ref, status: 'pending',
-    }),
-    is_admin_alert: true, read: false, created_at: new Date().toISOString(),
-  }).catch(() => {
-    sb.from('admin_notifications').insert({
-      type: 'withdrawal', title: `Withdrawal: $${net.toFixed(2)} via ${methodLabel}`,
-      user_id: user.id, user_name: userName, amount: net,
-      method: selectedMethod, wallet: walletAddr, reference: ref,
-      status: 'pending', created_at: new Date().toISOString(),
+    // 4. Notify admin
+    await sb.from('notifications').insert({
+      user_id: null, type: 'admin',
+      title: `💸 New Withdrawal Request`,
+      body:  `${userName} requested $${net.toFixed(2)} via ${methodLabel} (ref: ${ref})`,
+      meta: JSON.stringify({
+        withdrawal_id: wd?.id, user_id: user.id, user_name: userName, user_email: user.email,
+        method: selectedMethod, wallet: walletAddr,
+        net_amount: net.toFixed(4), gross_amount: amt.toFixed(4), fee_amount: fto.toFixed(4),
+        reference: ref, status: 'pending',
+      }),
+      is_admin_alert: true, read: false, created_at: new Date().toISOString(),
     }).catch(() => {});
-  });
 
-  // 5. Subscribe to status updates for real-time notifications
-  if (wd?.id) subscribeToWithdrawalUpdates(wd.id);
+    // 5. Subscribe to real-time updates
+    if (wd?.id) subscribeToWithdrawalUpdates(wd.id);
 
-  // 6. Update local state
-  if (userData) {
-    userData.balance = newBal;
-    if (userData._totalEarned !== undefined) userData._totalEarned = newBal;
+    // 6. Update local state
+    if (userData) { userData.balance = newBal; }
+    document.getElementById('balAmt').textContent = newBal.toFixed(2);
+
+    // 7. Show success
+    document.getElementById('successMsg').textContent = `$${net.toFixed(2)} will be sent to your ${methodLabel} within 1–24 hours.`;
+    document.getElementById('successRef').textContent = ref;
+    document.getElementById('successSheet').classList.add('open');
+
+    toast('Withdrawal submitted successfully!', 'success');
+    refreshRef();
+    resetForm();
+    await loadUser();
+    populateUI();
+
+  } catch(e) {
+    toast('Error: ' + e.message, 'error');
+    btn.disabled = false;
+    validate();
   }
-  document.getElementById('balAmt').textContent = newBal.toFixed(2);
-
-  // 7. Close OTP, show success
-  closeOtp();
-  document.getElementById('successMsg').textContent =
-    `$${net.toFixed(2)} will be sent to your ${methodLabel} within 1–24 hours.`;
-  document.getElementById('successRef').textContent = `Reference: ${ref}`;
-  document.getElementById('successSheet').classList.add('open');
-
-  showToast('✓ Withdrawal submitted!', 'success');
-
-  // Refresh ref for next transaction
-  refreshRef();
-  resetForm();
-  await loadUser();
-  populateUI();
 }
 
 function closeSuccess() {
   document.getElementById('successSheet').classList.remove('open');
 }
 
-/* ═══════════════════════════════════════════
+/* ══════════════════════════════════════════
+   USER NOTIFICATION SENDER
+══════════════════════════════════════════ */
+async function sendUserNotification({ title, body, status, method, amount, reference, withdrawalId }) {
+  if (!user) return;
+  const meta = JSON.stringify({ status, method, amount, reference, withdrawal_id: withdrawalId });
+  try {
+    const { data: inserted } = await sb.from('notifications').insert({
+      user_id: user.id, type: 'withdrawal', title, body, meta,
+      is_admin_alert: false, read: false, created_at: new Date().toISOString(),
+    }).select().single();
+    if (inserted) { userNotifications.unshift(inserted); updateNotifBadge(); }
+  } catch(e) { console.warn('sendUserNotification failed:', e); }
+}
+
+/* Subscribe to realtime status changes */
+function subscribeToWithdrawalUpdates(withdrawalId) {
+  if (!sb || !user) return;
+  try {
+    sb.channel('withdrawal-status-' + withdrawalId)
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'withdrawals', filter: `id=eq.${withdrawalId}` }, payload => {
+        const newStatus = payload.new?.status;
+        const amt = payload.new?.amount || 0;
+        const ref = payload.new?.reference || withdrawalId;
+        const method = payload.new?.method || selectedMethod;
+        const methodLabel = PM_CONFIG[method]?.label || method;
+        const statusLabels = { pending:'Pending', processing:'In Progress', in_progress:'In Progress', completed:'Completed', approved:'Completed', cancelled:'Cancelled', failed:'Cancelled' };
+        const label = statusLabels[newStatus] || cap(newStatus);
+        const icons  = { Pending:'⏳', 'In Progress':'🔄', Completed:'✅', Cancelled:'❌' };
+        const icon   = icons[label] || '🔔';
+        sendUserNotification({
+          title: `${icon} Withdrawal ${label}`,
+          body: `Your $${parseFloat(amt).toFixed(2)} withdrawal via ${methodLabel} is now ${label}. Ref: ${ref}`,
+          status: newStatus, method, amount: amt, reference: ref, withdrawalId,
+        });
+        const txn = txns.find(t => t.id === withdrawalId);
+        if (txn) { txn.status = newStatus; renderHistory(); }
+        toast(`${icon} Withdrawal status: ${label}`, newStatus === 'completed' ? 'success' : 'info');
+      }).subscribe();
+  } catch(e) { console.warn('realtime subscribe failed', e); }
+}
+
+/* ══════════════════════════════════════════
+   RENDER HISTORY
+══════════════════════════════════════════ */
+function renderHistory() {
+  const badge = document.getElementById('txnBadge');
+  badge.textContent   = txns.length;
+  badge.style.display = txns.length ? 'inline' : 'none';
+
+  const el = document.getElementById('historyList');
+  if (!txns.length) {
+    el.innerHTML = `<div class="empty-state">
+      <div class="empty-icon"><i class="bi bi-inbox"></i></div>
+      <div class="empty-text">No withdrawals yet</div>
+      <button class="empty-cta" onclick="switchTab('send')">
+        <i class="bi bi-box-arrow-up"></i> Make your first withdrawal
+      </button>
+    </div>`;
+    return;
+  }
+
+  const statusMap = {
+    pending: 'pending', processing: 'processing', in_progress: 'processing',
+    completed: 'completed', approved: 'completed', failed: 'failed', cancelled: 'failed',
+  };
+  const statusLabel = {
+    pending: 'Pending', processing: 'In Progress', in_progress: 'In Progress',
+    completed: 'Completed', approved: 'Completed', failed: 'Cancelled', cancelled: 'Cancelled',
+  };
+  const statusDotColor = {
+    pending: '#f59e0b', processing: 'var(--blue)', completed: 'var(--green)', failed: 'var(--red)'
+  };
+
+  el.innerHTML = '<div class="txn-list">' + txns.map(t => {
+    const m = t.method || (
+      t.wallet_address?.startsWith('MPESA')  ? 'mpesa' :
+      t.wallet_address?.startsWith('BIN')    ? 'binance' :
+      t.wallet_address?.startsWith('PAYPAL') ? 'paypal' : 'mpesa'
+    );
+    const cfg    = PM_CONFIG[m] || PM_CONFIG.mpesa;
+    const stKey  = statusMap[t.status] || 'pending';
+    const lbl    = statusLabel[t.status] || cap(t.status);
+    const dotCol = statusDotColor[stKey] || 'var(--gray)';
+    const addr   = (t.wallet_address || t.destination || '').split(':').slice(1).join(' · ').substring(0, 30);
+    const ref    = t.reference || (t.id || '').substring(0,10) || '—';
+    const net    = t.amount;
+    const gross  = t.gross_amount || t.amount;
+
+    return `<div class="txn-item">
+      <div class="txn-left">
+        <div class="txn-icon ${m}">${cfg.txnIconHtml}</div>
+        <div>
+          <div class="txn-method">${cfg.label}</div>
+          ${addr ? `<div class="txn-ref">${esc(addr)}</div>` : ''}
+          <div class="txn-ref ref-blue">${esc(ref)}</div>
+          <div class="txn-date">${fmtDate(t.created_at)}</div>
+        </div>
+      </div>
+      <div class="txn-right">
+        <div class="txn-amt">−$${f4(gross)}</div>
+        <div class="txn-net"><i class="bi bi-arrow-down-circle-fill"></i> $${f4(net)}</div>
+        <div class="txn-status-badge ${stKey}">
+          <span class="status-dot" style="background:${dotCol}"></span>${lbl}
+        </div>
+      </div>
+    </div>`;
+  }).join('') + '</div>';
+}
+
+/* ══════════════════════════════════════════
    HELPERS
-═══════════════════════════════════════════ */
+══════════════════════════════════════════ */
 function buildWalletAddress() {
   if (selectedMethod === 'mpesa') {
     let ph = document.getElementById('mpesaPhone').value.replace(/\D/g,'');
     if (ph.startsWith('0')) ph = '254' + ph.slice(1);
-    const nm = document.getElementById('mpesaName').value.trim();
-    return `MPESA:${ph}:${nm}`;
+    return `MPESA:${ph}:${document.getElementById('mpesaName').value.trim()}`;
   }
   if (selectedMethod === 'binance') {
     const em  = document.getElementById('binEmail').value || '';
@@ -1731,104 +1569,24 @@ function buildWalletAddress() {
   }
 }
 
-function clearFields() {
-  document.getElementById('feeBox').style.display  = 'none';
-  document.getElementById('amtErr').style.display  = 'none';
-}
-
 function resetForm() {
   document.getElementById('amount').value = '';
-  clearFields();
-  document.getElementById('submitBtn').disabled   = true;
-  document.getElementById('submitBtn').textContent = 'Withdraw Money';
-  pendingWithdrawal = null;
+  document.getElementById('feeBox').style.display = 'none';
+  document.getElementById('amtErr').style.display = 'none';
+  document.getElementById('submitBtn').disabled = true;
+  document.getElementById('submitBtn').innerHTML = '<i class="bi bi-box-arrow-up"></i> Withdraw Money';
 }
 
-function maskEmail(e) {
-  if (!e || !e.includes('@')) return e;
-  const [u, d] = e.split('@');
-  return u.slice(0,2) + '****@' + d;
-}
-function maskPhone(p) {
-  const s = p.replace(/\D/g,'');
-  return s.slice(0,3) + '****' + s.slice(-2);
+function f4(n)  { return Number(n).toFixed(4); }
+function cap(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : ''; }
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function fmtDate(d) {
+  return new Date(d).toLocaleDateString('en-KE', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
 }
 
-function escHtml(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-/* ═══════════════════════════════════════════
-   RENDER HISTORY
-═══════════════════════════════════════════ */
-function renderHistory() {
-  const badge = document.getElementById('txnBadge');
-  badge.textContent    = txns.length;
-  badge.style.display  = txns.length ? 'inline' : 'none';
-
-  const el = document.getElementById('historyList');
-  if (!txns.length) {
-    el.innerHTML = `
-      <div class="empty-state">
-        <div class="empty-icon">◌</div>
-        <div class="empty-text">No withdrawals yet</div>
-        <button class="empty-cta" onclick="switchTab('send')">Make your first withdrawal →</button>
-      </div>`;
-    return;
-  }
-
-  const statusCol = {
-    pending:    '#f59e0b', processing: '#6366f1', in_progress: '#6366f1',
-    completed:  '#10b981', approved: '#10b981',
-    failed:     '#ef4444', cancelled: '#94a3b8'
-  };
-
-  const statusLabel = {
-    pending: 'Pending', processing: 'In Progress', in_progress: 'In Progress',
-    completed: 'Completed', approved: 'Completed',
-    failed: 'Cancelled', cancelled: 'Cancelled',
-  };
-
-  el.innerHTML = '<div class="txn-list">' + txns.map(t => {
-    const m = t.method || (
-      t.wallet_address?.startsWith('MPESA')   ? 'mpesa'   :
-      t.wallet_address?.startsWith('BIN')     ? 'binance' :
-      t.wallet_address?.startsWith('PAYPAL')  ? 'paypal'  : 'mpesa'
-    );
-    const cfg  = PM_CONFIG[m] || PM_CONFIG.mpesa;
-    const col  = statusCol[t.status] || '#94a3b8';
-    const lbl  = statusLabel[t.status] || cap(t.status);
-    const addr = (t.wallet_address || t.destination || '').split(':').slice(1).join(' · ').substring(0, 32);
-    const net  = t.amount;
-    const gross = t.gross_amount || t.amount;
-    const ref   = t.reference || t.id?.substring(0,10) || '—';
-
-    return `
-    <div class="txn-item">
-      <div class="txn-left">
-        <div class="txn-icon">${cfg.txnSvg}</div>
-        <div>
-          <div class="txn-method">${cfg.label}</div>
-          <div class="txn-ref">${addr}</div>
-          <div class="txn-ref" style="color:var(--at-primary);font-size:.6rem;letter-spacing:.04em;">${ref}</div>
-          <div class="txn-date">${fmtDate(t.created_at)}</div>
-        </div>
-      </div>
-      <div class="txn-right">
-        <div class="txn-amt">−$${f4(gross)}</div>
-        <div class="txn-net">net $${f4(net)}</div>
-        <div class="txn-status" style="color:${col}">
-          <span class="status-dot" style="background:${col}"></span>${lbl}
-        </div>
-        ${t.verified ? `<div style="font-family:var(--ff-mono);font-size:.58rem;color:var(--at-accent);margin-top:.1rem;">✓ verified</div>` : ''}
-      </div>
-    </div>`;
-  }).join('') + '</div>';
-}
-
-/* ═══════════════════════════════════════════
+/* ══════════════════════════════════════════
    SPLASH / TOAST
-═══════════════════════════════════════════ */
+══════════════════════════════════════════ */
 let splashHidden = false;
 function hideSplash() {
   if (splashHidden) return;
@@ -1836,27 +1594,18 @@ function hideSplash() {
   const s = document.getElementById('splash');
   s.classList.add('out');
   document.getElementById('app').style.display = 'flex';
-  setTimeout(() => { s.style.display = 'none'; }, 450);
+  document.getElementById('app').style.flexDirection = 'column';
+  setTimeout(() => s.style.display = 'none', 450);
 }
 
 let toastTimer;
-function showToast(msg, type = 'info') {
-  const el  = document.getElementById('toast');
-  const ico = { success:'✅', error:'❌', info:'ℹ️' }[type] || '';
+function toast(msg, type = 'info') {
+  const el = document.getElementById('toast');
+  const ico = { success: '<i class="bi bi-check-circle-fill"></i>', error: '<i class="bi bi-x-circle-fill"></i>', info: '<i class="bi bi-info-circle-fill"></i>' }[type] || '';
   el.innerHTML  = ico + ' ' + msg;
   el.className  = type + ' show';
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => el.classList.remove('show'), 4500);
-}
-
-/* Utils */
-function f4(n)  { return Number(n).toFixed(4); }
-function cap(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : ''; }
-function fmtDate(d) {
-  return new Date(d).toLocaleDateString('en-KE', {
-    day:'2-digit', month:'short', year:'numeric',
-    hour:'2-digit', minute:'2-digit'
-  });
 }
 </script>
 </body>
