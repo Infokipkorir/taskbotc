@@ -1046,66 +1046,66 @@ window.addEventListener('DOMContentLoaded', async () => {
    DATA LOADING
 ══════════════════════════════════════════ */
 
-    async function loadUser() {
-  // Guard + defaults
+async function loadUser() {
   const currentUserId = user?.id;
   if (!currentUserId) return;
 
-  userData = userData || {};
-  userData._taskEarned = 0;
-  userData._commEarned = 0;
-  userData._totalEarned = 0;
-  userData._pendingEarned = 0;
+  let _taskEarned = 0, _commEarned = 0, _pendingEarned = 0;
 
   try {
-    // profiles table: id (uuid) matches auth.users.id
-    const { data: profile } = await sb
+    // 1. Load profile — source of truth for balance, phone, name
+    const { data: profile, error: profileErr } = await sb
       .from('profiles')
       .select('*')
       .eq('id', currentUserId)
       .maybeSingle();
 
-    if (profile) userData = profile;
+    if (profileErr) console.warn('profiles fetch:', profileErr.message);
 
-    // user_tasks: status + reward
+    // Merge: profile column values win over stale userData
+    userData = { ...(userData || {}), ...(profile || {}) };
+
+    // 2. Completed task earnings
     const { data: tasks } = await sb
       .from('user_tasks')
-      .select('status,reward')
+      .select('status, reward')
       .eq('user_id', currentUserId);
 
     const taskRows = tasks || [];
-
-    const earnedTaskStatuses = ['completed', 'done', 'approved'];
-    const pendingTaskStatuses = ['pending', 'submitted', 'under_review'];
-
-    userData._taskEarned = taskRows
-      .filter(t => earnedTaskStatuses.includes(t.status))
+    _taskEarned = taskRows
+      .filter(t => ['completed', 'done', 'approved'].includes(t.status))
+      .reduce((s, t) => s + Number(t.reward || 0), 0);
+    _pendingEarned = taskRows
+      .filter(t => ['pending', 'submitted', 'under_review'].includes(t.status))
       .reduce((s, t) => s + Number(t.reward || 0), 0);
 
-    userData._pendingEarned = taskRows
-      .filter(t => pendingTaskStatuses.includes(t.status))
-      .reduce((s, t) => s + Number(t.reward || 0), 0);
-
-    // community_earnings: amount
+    // 3. Community earnings
     const { data: commRows } = await sb
       .from('community_earnings')
       .select('amount')
       .eq('user_id', currentUserId);
 
-    const comm = commRows || [];
-    userData._commEarned = comm.reduce((s, r) => s + Number(r.amount || 0), 0);
+    _commEarned = (commRows || []).reduce((s, r) => s + Number(r.amount || 0), 0);
 
-    userData._totalEarned = userData._taskEarned + userData._commEarned;
   } catch (err) {
-    console.error('loadUser:', err);
-    userData = userData || {};
-    // keep defaults so UI doesn’t explode
+    console.error('loadUser error:', err);
+    if (!userData) userData = {};
+  }
+
+  // Attach computed fields — always available
+  userData._taskEarned    = _taskEarned;
+  userData._commEarned    = _commEarned;
+  userData._totalEarned   = _taskEarned + _commEarned;
+  userData._pendingEarned = _pendingEarned;
+
+  // If profile has no explicit balance column, fall back to computed total
+  if (userData.balance == null || isNaN(parseFloat(userData.balance))) {
+    userData.balance = userData._totalEarned;
   }
 
   await loadWithdrawals();
   await loadUserNotifications();
 }
-
 async function loadWithdrawals() {
   try {
     // withdrawals table only (no withdrawal_requests table exists in your schema)
@@ -1118,11 +1118,12 @@ async function loadWithdrawals() {
 
     txns = (data || []).map(r => ({
       ...r,
-      // normalize fields to what your UI expects
-      gross_amount: r.amount,
-      fee_amount: 0,
+      // normalize for UI: prefer stored gross_amount, fall back to amount
+      gross_amount:   r.gross_amount || r.amount,
+      fee_amount:     r.fee_amount   || 0,
       wallet_address: r.wallet_address || '',
-      reference: r.reference_code || r.id,
+      // reference_code is the column name in withdrawals table
+      reference:      r.reference_code || r.reference || r.id,
     }));
   } catch (err) {
     console.error('loadWithdrawals:', err);
@@ -1139,14 +1140,13 @@ async function loadUserNotifications() {
     const { data } = await sb
       .from('notifications')
       .select('*')
-      .eq('target_user_id', user.id) // if your system uses per-user notifications
-      .or(`target_user_id.eq.null,is_global.eq.true`)
+      .eq('user_id', user.id)
       .order('created_at', { ascending: false })
       .limit(30);
 
     userNotifications = data || [];
   } catch (e) {
-    console.error('loadUserNotifications:', e);
+    console.warn('loadUserNotifications:', e);
     userNotifications = [];
   }
 
@@ -1154,15 +1154,9 @@ async function loadUserNotifications() {
 }
 
 function updateNotifBadge() {
-  const currentUserId = user?.id;
-  if (!currentUserId) return;
+  if (!user?.id) return;
 
-  // notifications table uses: is_read_by (jsonb)
-  // We'll treat unread as "NOT included in is_read_by"
-  const unread = (userNotifications || []).filter(n => {
-    const list = Array.isArray(n.is_read_by) ? n.is_read_by : [];
-    return !list.includes(currentUserId);
-  }).length;
+  const unread = (userNotifications || []).filter(n => !n.read).length;
 
   const badge = document.getElementById('notifBadge');
   if (badge) {
@@ -1382,15 +1376,15 @@ function populateUI() {
   const profileBtn = document.getElementById('profileBtn');
   if (profileBtn && name) profileBtn.textContent = name[0].toUpperCase();
 
-  // Match DB columns: public.users.balance, total_earned, pending_balance
-  const bal = parseFloat(userData?.balance ?? 0);
-  const earned = parseFloat(userData?.total_earned ?? 0);
-  const pending = parseFloat(userData?.pending_balance ?? 0);
-
-  // Your withdrawals currently only have status = 'pending'
-  // So show withdrawn as pending withdrawals for now.
+  // Balance: use explicit profile.balance, fallback to computed total
+  const bal     = parseFloat(userData?.balance ?? userData?._totalEarned ?? 0);
+  // Total earned: computed from tasks+community, fallback to DB column
+  const earned  = parseFloat(userData?._totalEarned ?? userData?.total_earned ?? userData?.earnings ?? 0);
+  // Pending: computed tasks in review, fallback to DB column
+  const pending = parseFloat(userData?._pendingEarned ?? userData?.pending_balance ?? 0);
+  // Withdrawn: sum of completed/approved withdrawals
   const withdrawn = (txns || [])
-    .filter(t => t.status === 'pending')
+    .filter(t => ['completed', 'approved'].includes(t.status))
     .reduce((s, t) => s + (parseFloat(t.amount) || 0), 0);
 
   document.getElementById('balAmt').textContent = bal.toFixed(2);
@@ -1515,27 +1509,29 @@ async function submitWithdrawal() {
     '<span class="spin"><i class="bi bi-arrow-repeat"></i></span> Submitting…';
 
   try {
-    const newBal = Math.max(0, bal - amt);
+    const newBal = parseFloat(Math.max(0, bal - amt).toFixed(6));
 
-    // 1) Update balance in public.users (NOT profiles)
+    // 1) Deduct balance from profiles table (same table loadUser reads from)
     const { error: balErr } = await sb
-      .from('users')
-      .update({ balance: parseFloat(newBal.toFixed(6)) })
+      .from('profiles')
+      .update({ balance: newBal })
       .eq('id', user.id);
 
     if (balErr) throw new Error('Balance update failed: ' + balErr.message);
 
-    // 2) Insert withdrawal record (match public.withdrawals columns)
+    // 2) Insert withdrawal record
     const { data: wd, error: wErr } = await sb
       .from('withdrawals')
       .insert({
-        user_id: user.id,
-        amount: parseFloat(net.toFixed(6)),
-        method: selectedMethod,
+        user_id:        user.id,
+        amount:         parseFloat(net.toFixed(6)),
+        gross_amount:   parseFloat(amt.toFixed(6)),
+        fee_amount:     parseFloat(fee.toFixed(6)),
+        method:         selectedMethod,
         wallet_address: walletAddr,
-        status: 'pending',
+        status:         'pending',
         reference_code: ref,
-        created_at: new Date().toISOString(),
+        created_at:     new Date().toISOString(),
       })
       .select()
       .single();
@@ -1583,9 +1579,18 @@ async function submitWithdrawal() {
     // 5) Subscribe to real-time updates
     if (wd?.id) subscribeToWithdrawalUpdates(wd.id);
 
-    // 6) Update local state/UI
+    // 6) Update local state immediately — no flicker before reload
     if (userData) userData.balance = newBal;
     document.getElementById('balAmt').textContent = newBal.toFixed(2);
+    // Also update the quick-fill "available" display
+    const qb = document.getElementById('quickBal');
+    const qn = document.getElementById('quickNet');
+    if (qb) qb.textContent = '$' + newBal.toFixed(2);
+    if (qn) qn.textContent = '$' + (newBal - newBal * RATE_TOTAL).toFixed(2);
+    if (newBal <= 0) {
+      const bq = document.getElementById('balQuick');
+      if (bq) bq.style.display = 'none';
+    }
 
     document.getElementById('successMsg').textContent =
       `$${net.toFixed(2)} will be sent to your ${methodLabel} within 1–24 hours.`;
@@ -1595,6 +1600,8 @@ async function submitWithdrawal() {
     toast('Withdrawal submitted successfully!', 'success');
     refreshRef();
     resetForm();
+
+    // Reload fresh data from DB to confirm balance + new txn in history
     await loadUser();
     populateUI();
   } catch (e) {
