@@ -1208,21 +1208,26 @@ function showDash(){
 function adminLogout(){localStorage.removeItem('tb_admin');CA=null;if(userRefreshTimer)clearInterval(userRefreshTimer);location.reload();}
 
 // ── LOAD ALL ─────────────────────────────────────────────────
-async function loadAll(){
-  // Run all loaders independently so one failure doesn't block others
-  await Promise.allSettled([
-    loadOverview().catch(e=>console.warn('overview:',e)),
-    loadTasks().catch(e=>console.warn('tasks:',e)),
-    loadSubs().catch(e=>console.warn('subs:',e)),
-    loadUsers().catch(e=>console.warn('users:',e)),
-    loadNotifications().catch(e=>console.warn('notifs:',e)),
-    loadTickets().catch(e=>console.warn('tickets:',e)),
-    loadFAQs().catch(e=>console.warn('faqs:',e)),
-    loadWDs().catch(e=>console.warn('wds:',e)),
-    loadAdmins().catch(e=>console.warn('admins:',e)),
-    loadAccountant().catch(e=>console.warn('accountant:',e))
-  ]);
-}
+async function loadAll() {
+  const tasks = [
+    loadOverview,
+    loadTasks,
+    loadSubs,
+    loadUsers,
+    loadNotifications,
+    loadTickets,
+    loadFAQs,
+    loadWDs,
+    loadAdmins,
+    loadAccountant
+  ];
+
+  await Promise.allSettled(
+    tasks.map(fn => fn().catch(e => {
+      console.warn(fn.name || 'loader', e);
+    }))
+  );
+  }
 
 // ── OVERVIEW ─────────────────────────────────────────────────
 async function countUsers(){
