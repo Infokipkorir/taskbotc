@@ -1545,24 +1545,22 @@ async function submitWithdrawal() {
 
     if (balErr) throw new Error('Balance update failed: ' + balErr.message);
 
-    // ── Step 2: Insert withdrawal record ───────────────────────────────────
-    const { data: wd, error: wErr } = await sb
-      .from('withdrawals')
-      .insert({
-        user_id:        user.id,
-        amount:         parseFloat(net.toFixed(6)),
-        gross_amount:   parseFloat(amt.toFixed(6)),
-        fee_amount:     parseFloat(fee.toFixed(6)),
-        method:         selectedMethod,
-        wallet_address: walletAddr,
-        status:         'pending',
-        reference_code: ref,
-        created_at:     new Date().toISOString(),
-      })
-      .select()
-      .single();
+// ── Step 2: Insert withdrawal record ───────────────────────────────────
+const { data: wd, error: wErr } = await sb
+  .from('withdrawals')
+  .insert({
+    user_id: user.id,
+    amount: parseFloat(net.toFixed(6)), // net amount stored in `amount`
+    method: selectedMethod,
+    wallet_address: walletAddr,
+    status: 'pending',
+    reference_code: ref,
+    created_at: new Date().toISOString(),
+  })
+  .select()
+  .single();
 
-    if (wErr) throw new Error('Withdrawal record failed: ' + wErr.message);
+if (wErr) throw new Error('Withdrawal record failed: ' + wErr.message);
 
     // ── Step 3: User notification ──────────────────────────────────────────
     await sendUserNotification({
