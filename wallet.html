@@ -1005,7 +1005,19 @@ window.addEventListener('DOMContentLoaded', async () => {
       await loadUser();
       populateUI();
     } else {
-      showNoSession();
+      // Fallback: try getUser() for token-based / magic-link sessions
+      try {
+        const { data: ud } = await sb.auth.getUser();
+        if (ud?.user) {
+          user = ud.user;
+          await loadUser();
+          populateUI();
+        } else {
+          showNoSession();
+        }
+      } catch {
+        showNoSession();
+      }
     }
   } catch (err) {
     clearTimeout(safeguard);
@@ -1162,6 +1174,48 @@ function updateNotifBadge() {
 /* ══════════════════════════════════════════
    NOTIFICATION PANEL
 ══════════════════════════════════════════ */
+function openNotifPanel() {
+  renderNotifications();
+  document.getElementById('notifPanel').classList.add('open');
+}
+
+function closeNotifPanel() {
+  document.getElementById('notifPanel').classList.remove('open');
+}
+
+function isNotifUnread(n) {
+  // Support both simple `read` boolean and `is_read_by` jsonb array
+  if (typeof n.read === 'boolean') return !n.read;
+  const list = Array.isArray(n.is_read_by) ? n.is_read_by : [];
+  return !list.includes(user?.id);
+}
+
+function renderNotifications() {
+  const list = document.getElementById('notifList');
+  if (!userNotifications.length) {
+    list.innerHTML = '<div class="notif-empty"><i class="bi bi-bell-slash"></i>No notifications yet</div>';
+    return;
+  }
+  const icons = { pending:'⏳', processing:'🔄', in_progress:'🔄', completed:'✅', approved:'✅', cancelled:'❌', failed:'❌' };
+  list.innerHTML = userNotifications.map(n => {
+    const unread = isNotifUnread(n);
+    let status = '';
+    try { status = JSON.parse(n.meta || '{}').status || ''; } catch {}
+    return `<div class="notif-item ${unread ? 'unread' : ''}">
+      <div class="notif-icon-wrap">${icons[status] || '🔔'}</div>
+      <div class="notif-body">
+        <div class="notif-title-txt">${esc(n.title || 'Notification')}</div>
+        <div class="notif-msg">${esc(n.body || '')}</div>
+        <div class="notif-time">${fmtDate(n.created_at)}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function closeSuccess() {
+  document.getElementById('successSheet').classList.remove('open');
+}
+
 async function markAllRead() {
   if (!user?.id || !userNotifications.length) return;
 
@@ -1172,23 +1226,16 @@ async function markAllRead() {
   if (!ids.length) return;
 
   try {
-    // Append current user's id into the jsonb array
+    // Try simple `read` boolean column first (most common schema)
     await sb
       .from('notifications')
-      .update({
-        is_read_by: (coalesce(is_read_by, '[]'::jsonb) || jsonb_build_array(user.id))
-      })
+      .update({ read: true })
       .in('id', ids);
 
     // Update local state for immediate UI feedback
-    userNotifications = userNotifications.map(n => {
-      if (ids.includes(n.id)) {
-        const prev = Array.isArray(n.is_read_by) ? n.is_read_by : [];
-        if (!prev.includes(user.id)) prev.push(user.id);
-        return { ...n, is_read_by: prev };
-      }
-      return n;
-    });
+    userNotifications = userNotifications.map(n =>
+      ids.includes(n.id) ? { ...n, read: true } : n
+    );
 
     updateNotifBadge();
     renderNotifications();
@@ -1197,117 +1244,6 @@ async function markAllRead() {
     console.error('markAllRead:', e);
   }
 }
-/* ══════════════════════════════════════════
-   POPULATE UI
-══════════════════════════════════════════ */
-function populateUI() {
-  const name =
-    userData?.display_name ||
-    userData?.full_name ||
-    userData?.username ||
-    user?.email?.split('@')[0] ||
-    'U';
-
-  const profileBtn = document.getElementById('profileBtn');
-  if (profileBtn && name) profileBtn.textContent = name[0].toUpperCase();
-
-  // Match DB columns exactly: public.users.balance, total_earned, pending_balance
-  const bal = parseFloat(userData?.balance ?? 0);
-  const earned = parseFloat(userData?.total_earned ?? 0);
-  const pending = parseFloat(userData?.pending_balance ?? 0);
-
-  // Assumes `txns` is withdrawals and has fields { status, amount }
-  const withdrawn = txns
-    .filter(t => ['completed', 'approved'].includes(t.status))
-    .reduce((s, t) => s + (parseFloat(t.amount) || 0), 0);
-
-  document.getElementById('balAmt').textContent = bal.toFixed(2);
-  document.getElementById('statTotal').textContent = '$' + earned.toFixed(2);
-  document.getElementById('statPending').textContent = '$' + pending.toFixed(2);
-  document.getElementById('statWithdrawn').textContent = '$' + withdrawn.toFixed(2);
-
-  document.getElementById('rTransfer').textContent = `(${(RATE_TRANSFER * 100).toFixed(2)}%)`;
-  document.getElementById('rService').textContent = `(${(RATE_SERVICE * 100).toFixed(2)}%)`;
-  document.getElementById('rTotal').textContent = `(${(RATE_TOTAL * 100).toFixed(2)}%)`;
-
-  const balQuick = document.getElementById('balQuick');
-  if (balQuick && bal > 0) {
-    balQuick.style.display = 'flex';
-    document.getElementById('quickBal').textContent = '$' + bal.toFixed(2);
-    document.getElementById('quickNet').textContent = '$' + (bal - bal * RATE_TOTAL).toFixed(2);
-  }
-
-  document.getElementById('panelSend').classList.remove('hidden');
-  document.getElementById('noSession').style.display = 'none';
-  document.getElementById('submitBtn').disabled = true;
-
-  prefillMpesaPhone();
-  prefillEmails();
-  refreshRef();
-}
-
-function prefillMpesaPhone() {
-  // Match DB column exactly: public.users.phone
-  let phone = userData?.phone || '';
-
-  const inp = document.getElementById('mpesaPhone');
-  const badge = document.getElementById('mpesaPhoneAutoBadge');
-  const alert = document.getElementById('mpesaPhoneAlert');
-
-  if (phone) {
-    phone = String(phone).replace(/\D/g, '');
-
-    // Keep your formatting rule
-    if (phone.startsWith('254')) phone = '0' + phone.slice(3);
-
-    inp.value = phone;
-
-    if (badge) badge.style.display = 'inline';
-    if (alert) alert.classList.remove('visible');
-  } else {
-    inp.value = '';
-    if (badge) badge.style.display = 'none';
-    if (alert) alert.classList.add('visible');
-  }
-
-  const nameInp = document.getElementById('mpesaName');
-  const fullName = userData?.full_name || userData?.display_name || userData?.username || '';
-  if (nameInp && fullName) nameInp.value = fullName;
-}
-
-function prefillEmails() {
-  const email = user?.email || '';
-  if (!email) return;
-
-  const ppEl = document.getElementById('ppEmail');
-  if (ppEl && !ppEl.value) {
-    ppEl.value = email;
-    const b = document.getElementById('ppEmailAutoBadge');
-    if (b) b.style.display = 'inline';
-  }
-
-  const binEl = document.getElementById('binEmail');
-  if (binEl && !binEl.value) {
-    binEl.value = email;
-    const b = document.getElementById('binEmailAutoBadge');
-    if (b) b.style.display = 'inline';
-  }
-}
-
-function showNoSession(msg) {
-  const profileBtn = document.getElementById('profileBtn');
-  if (profileBtn) profileBtn.textContent = '?';
-
-  document.getElementById('balAmt').textContent = '—';
-  document.getElementById('noSession').style.display = 'flex';
-  if (msg) document.getElementById('nsMsg').textContent = msg;
-
-  document.getElementById('panelSend').classList.add('hidden');
-  document.getElementById('panelHistory').classList.add('hidden');
-}
-
-
-
 /* ══════════════════════════════════════════
    FILL ALL BALANCE
 ══════════════════════════════════════════ */
@@ -1432,9 +1368,6 @@ function validateMethod() {
 }
 function isEmail(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
 
-/* ══════════════════════════════════════════
-   SUBMIT WITHDRAWAL (direct — no OTP)
-══════════════════════════════════════════ */
 /* ══════════════════════════════════════════
    POPULATE UI
 ══════════════════════════════════════════ */
@@ -1674,7 +1607,7 @@ async function submitWithdrawal() {
    USER NOTIFICATION SENDER
 ══════════════════════════════════════════ */
 async function sendUserNotification({ title, body, status, method, amount, reference, withdrawalId }) {
-  if (!user) return;
+  if (!user?.id) return;
   const meta = JSON.stringify({ status, method, amount, reference, withdrawal_id: withdrawalId });
   try {
     const { data: inserted } = await sb.from('notifications').insert({
@@ -1682,7 +1615,7 @@ async function sendUserNotification({ title, body, status, method, amount, refer
       is_admin_alert: false, read: false, created_at: new Date().toISOString(),
     }).select().single();
     if (inserted) { userNotifications.unshift(inserted); updateNotifBadge(); }
-  } catch(e) { console.warn('sendUserNotification failed:', e); }
+  } catch (e) { console.warn('sendUserNotification failed:', e); }
 }
 
 /* Subscribe to realtime status changes */
