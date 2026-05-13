@@ -2227,7 +2227,12 @@ async function openTicket(id){
   document.getElementById('ticket-bg').classList.add('open');
 }
 
-
+window.openTicket = openTicket;
+window.updateTicketStatus = updateTicketStatus;
+window.assignHuman = assignHuman;
+window.getAIReply = getAIReply;
+window.generateAISuggestion = generateAISuggestion; // if also called via inline handlers elsewhere
+  
 // ── FAQ ──────────────────────────────────────────────────────
 async function loadFAQs(){
   var{data:faqs}=await sb.from('faq_items').select('*').order('order_index',{ascending:true});
