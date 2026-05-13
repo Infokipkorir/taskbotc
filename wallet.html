@@ -1053,16 +1053,28 @@ async function loadUser() {
   let _taskEarned = 0, _commEarned = 0, _pendingEarned = 0;
 
   try {
-    // 1. Load profile — source of truth for balance, phone, name
-    const { data: profile, error: profileErr } = await sb
+    // 1. Load profile — try profiles table, fall back to users table
+    let profile = null;
+    const { data: profileData, error: profileErr } = await sb
       .from('profiles')
       .select('*')
       .eq('id', currentUserId)
       .maybeSingle();
 
-    if (profileErr) console.warn('profiles fetch:', profileErr.message);
+    if (profileErr || !profileData) {
+      // Fall back to users table (some deployments store user data there)
+      const { data: userData2 } = await sb
+        .from('users')
+        .select('*')
+        .eq('id', currentUserId)
+        .maybeSingle();
+      profile = userData2 || null;
+      if (profileErr) console.warn('profiles fetch failed, used users table:', profileErr.message);
+    } else {
+      profile = profileData;
+    }
 
-    // Merge: profile column values win over stale userData
+    // Merge: DB values win over stale in-memory userData
     userData = { ...(userData || {}), ...(profile || {}) };
 
     // 2. Completed task earnings
@@ -1479,11 +1491,14 @@ async function submitWithdrawal() {
   const amt = parseFloat(document.getElementById('amount').value);
   const bal = parseFloat(userData?.balance ?? 0);
 
-  if (Number.isNaN(amt) || amt <= 0) {
+  if (!Number.isFinite(amt) || amt <= 0) {
     toast('Enter a valid withdrawal amount.', 'error');
     return;
   }
-
+  if (amt < MIN_AMOUNT) {
+    toast(`Minimum withdrawal is $${MIN_AMOUNT.toFixed(2)}`, 'error');
+    return;
+  }
   if (amt > bal) {
     toast(`Insufficient balance. Available: $${bal.toFixed(2)}`, 'error');
     return;
@@ -1491,35 +1506,46 @@ async function submitWithdrawal() {
 
   if (!currentRef) refreshRef();
 
-  const fee = amt * RATE_TOTAL;      // fee amount
-  const net = amt - fee;             // amount stored in withdrawals.amount
+  const fee = amt * RATE_TOTAL;
+  const net = amt - fee;
   const ref = currentRef;
-
   const walletAddr = buildWalletAddress();
-  const methodLabel = PM_CONFIG[selectedMethod]?.label || selectedMethod;
+  if (!walletAddr) {
+    toast('Please fill in recipient details.', 'error');
+    return;
+  }
 
-  const userName =
-    userData?.display_name ||
-    userData?.full_name ||
-    userData?.username ||
-    user?.email;
+  const methodLabel = PM_CONFIG[selectedMethod]?.label || selectedMethod;
+  const userName = userData?.display_name || userData?.full_name || userData?.username || user?.email || 'User';
 
   btn.disabled = true;
-  btn.innerHTML =
-    '<span class="spin"><i class="bi bi-arrow-repeat"></i></span> Submitting…';
+  btn.innerHTML = '<span class="spin"><i class="bi bi-arrow-repeat"></i></span> Submitting…';
 
   try {
     const newBal = parseFloat(Math.max(0, bal - amt).toFixed(6));
 
-    // 1) Deduct balance from profiles table (same table loadUser reads from)
-    const { error: balErr } = await sb
+    // ── Step 1: Deduct balance ─────────────────────────────────────────────
+    // Try profiles first (primary table). If that row doesn't exist or errors,
+    // fall back to users table so the app works regardless of schema variant.
+    let balErr = null;
+
+    const { error: profileBalErr } = await sb
       .from('profiles')
       .update({ balance: newBal })
       .eq('id', user.id);
 
+    if (profileBalErr) {
+      console.warn('profiles update failed, trying users table:', profileBalErr.message);
+      const { error: usersBalErr } = await sb
+        .from('users')
+        .update({ balance: newBal })
+        .eq('id', user.id);
+      balErr = usersBalErr;
+    }
+
     if (balErr) throw new Error('Balance update failed: ' + balErr.message);
 
-    // 2) Insert withdrawal record
+    // ── Step 2: Insert withdrawal record ───────────────────────────────────
     const { data: wd, error: wErr } = await sb
       .from('withdrawals')
       .insert({
@@ -1538,55 +1564,52 @@ async function submitWithdrawal() {
 
     if (wErr) throw new Error('Withdrawal record failed: ' + wErr.message);
 
-    // 3) Notify user
+    // ── Step 3: User notification ──────────────────────────────────────────
     await sendUserNotification({
-      title: '⏳ Withdrawal Submitted',
-      body: `Your withdrawal of $${net.toFixed(2)} via ${methodLabel} is Pending review. Ref: ${ref}`,
-      status: 'pending',
-      method: selectedMethod,
-      amount: net.toFixed(2),
-      reference: ref,
+      title:       '⏳ Withdrawal Submitted',
+      body:        `Your withdrawal of $${net.toFixed(2)} via ${methodLabel} is pending review. Ref: ${ref}`,
+      status:      'pending',
+      method:      selectedMethod,
+      amount:      net.toFixed(2),
+      reference:   ref,
       withdrawalId: wd?.id,
     });
 
-    // 4) Notify admin (keep your notifications insert if your table supports these columns)
-    await sb
-      .from('notifications')
-      .insert({
-        user_id: null,
-        type: 'admin',
-        title: '💸 New Withdrawal Request',
-        body: `${userName} requested $${net.toFixed(2)} via ${methodLabel} (ref: ${ref})`,
-        meta: JSON.stringify({
-          withdrawal_id: wd?.id,
-          user_id: user.id,
-          user_name: userName,
-          user_email: user?.email,
-          method: selectedMethod,
-          wallet: walletAddr,
-          net_amount: net.toFixed(4),
-          gross_amount: amt.toFixed(4),
-          fee_amount: fee.toFixed(4),
-          reference: ref,
-          status: 'pending',
-        }),
-        is_admin_alert: true,
-        read: false,
-        created_at: new Date().toISOString(),
-      })
-      .catch(() => {});
+    // ── Step 4: Admin notification (silent fail if columns differ) ─────────
+    sb.from('notifications').insert({
+      user_id:        null,
+      type:           'admin',
+      title:          '💸 New Withdrawal Request',
+      body:           `${userName} requested $${net.toFixed(2)} via ${methodLabel} (ref: ${ref})`,
+      meta:           JSON.stringify({
+        withdrawal_id: wd?.id,
+        user_id:       user.id,
+        user_name:     userName,
+        user_email:    user?.email,
+        method:        selectedMethod,
+        wallet:        walletAddr,
+        net_amount:    net.toFixed(4),
+        gross_amount:  amt.toFixed(4),
+        fee_amount:    fee.toFixed(4),
+        reference:     ref,
+        status:        'pending',
+      }),
+      is_admin_alert: true,
+      read:           false,
+      created_at:     new Date().toISOString(),
+    }).then(() => {}).catch(() => {});
 
-    // 5) Subscribe to real-time updates
+    // ── Step 5: Subscribe to real-time status updates ──────────────────────
     if (wd?.id) subscribeToWithdrawalUpdates(wd.id);
 
-    // 6) Update local state immediately — no flicker before reload
+    // ── Step 6: Update UI immediately (no waiting for reload) ─────────────
     if (userData) userData.balance = newBal;
     document.getElementById('balAmt').textContent = newBal.toFixed(2);
-    // Also update the quick-fill "available" display
+
     const qb = document.getElementById('quickBal');
     const qn = document.getElementById('quickNet');
     if (qb) qb.textContent = '$' + newBal.toFixed(2);
-    if (qn) qn.textContent = '$' + (newBal - newBal * RATE_TOTAL).toFixed(2);
+    if (qn) qn.textContent = '$' + Math.max(0, newBal - newBal * RATE_TOTAL).toFixed(2);
     if (newBal <= 0) {
       const bq = document.getElementById('balQuick');
       if (bq) bq.style.display = 'none';
@@ -1601,11 +1624,13 @@ async function submitWithdrawal() {
     refreshRef();
     resetForm();
 
-    // Reload fresh data from DB to confirm balance + new txn in history
+    // ── Step 7: Re-fetch DB to sync balance + txn history ─────────────────
     await loadUser();
     populateUI();
+
   } catch (e) {
-    toast('Error: ' + e.message, 'error');
+    console.error('submitWithdrawal error:', e);
+    toast('Error: ' + (e?.message || String(e)), 'error');
     btn.disabled = false;
     validate();
   }
