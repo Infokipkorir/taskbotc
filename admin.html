@@ -1327,55 +1327,152 @@ function canAccess(feature){
 function destroyChart(id){if(chartInstances[id]){chartInstances[id].destroy();delete chartInstances[id];}}
 
 // ── AUTH ─────────────────────────────────────────────────────
-async function hashPassword(pw){const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(pw));return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');}
+let __authDashInitRunning = false; // prevents re-entrant dashboard init
+
+async function hashPassword(pw){
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
+  return Array.from(new Uint8Array(buf))
+    .map(b => b.toString(16).padStart(2,'0'))
+    .join('');
+}
 
 async function doLogin(){
-  var em=(document.getElementById('login-email').value||'').trim().toLowerCase();
-  var pw=document.getElementById('login-pw').value;
+  const em = (document.getElementById('login-email').value || '').trim().toLowerCase();
+  const pw = document.getElementById('login-pw').value;
+
   sal('login-alert','');
-  if(!em||!pw){sal('login-alert','Please enter email and password.');return;}
-  var btn=document.getElementById('login-btn');btn.textContent='Signing in…';btn.disabled=true;
-  try{
-    if(em===SUPER_EMAIL){
-      var{data:sadmins}=await sb.from('admin_accounts').select('*').eq('email',em);
-      if(!sadmins||!sadmins.length){
-        var{data:created,error:ce}=await sb.from('admin_accounts').insert({display_name:'Super Admin',email:SUPER_EMAIL,password_hash:pw,role:'super_admin'}).select().single();
-        if(ce){sal('login-alert','Setup error: '+ce.message);return;}
-        if(created){CA=created;localStorage.setItem('tb_admin',created.id);showDash();return;}
+  if(!em || !pw){
+    sal('login-alert','Please enter email and password.');
+    return;
+  }
+
+  const btn = document.getElementById('login-btn');
+  btn.textContent = 'Signing in…';
+  btn.disabled = true;
+
+  try {
+    const pwHash = await hashPassword(pw);
+
+    // Ensure super admin exists
+    if (em === SUPER_EMAIL) {
+      const { data: sadmins } = await sb
+        .from('admin_accounts')
+        .select('*')
+        .eq('email', em);
+
+      if (!sadmins || !sadmins.length) {
+        const { data: created, error: ce } = await sb
+          .from('admin_accounts')
+          .insert({
+            display_name: 'Super Admin',
+            email: SUPER_EMAIL,
+            // ✅ store hash, not plaintext
+            password_hash: pwHash,
+            role: 'super_admin'
+          })
+          .select()
+          .single();
+
+        if (ce) {
+          sal('login-alert','Setup error: ' + ce.message);
+          return;
+        }
+
+        if (created) {
+          CA = created;
+          localStorage.setItem('tb_admin', created.id);
+          showDash();
+          return;
+        }
       }
     }
-    var{data:admins}=await sb.from('admin_accounts').select('*').eq('email',em);
-    var admin=admins&&admins.length?admins[0]:null;
-    if(!admin){sal('login-alert','Invalid email or password.');return;}
-    var pwHash=await hashPassword(pw);
-    var stored=admin.password_hash||'';
-    var valid=(stored===pw)||(stored===pwHash)||(stored.length===0&&pw.length>0);
-    if(!valid){sal('login-alert','Invalid email or password.');return;}
-    CA=admin;localStorage.setItem('tb_admin',admin.id);showDash();
-  }catch(e){sal('login-alert','Login error: '+(e.message||e));}
-  finally{btn.textContent='Sign in to Dashboard';btn.disabled=false;}
+
+    // Login for normal admins
+    const { data: admins } = await sb
+      .from('admin_accounts')
+      .select('*')
+      .eq('email', em);
+
+    const admin = admins && admins.length ? admins[0] : null;
+    if (!admin){
+      sal('login-alert','Invalid email or password.');
+      return;
+    }
+
+    const stored = admin.password_hash || '';
+    // ✅ consistent hash check (you can remove plaintext fallback if you already migrated)
+    const valid =
+      stored === pw ||
+      stored === pwHash ||
+      (stored.length === 0 && pw.length > 0);
+
+    if (!valid){
+      sal('login-alert','Invalid email or password.');
+      return;
+    }
+
+    CA = admin;
+    localStorage.setItem('tb_admin', admin.id);
+    showDash();
+
+  } catch (e) {
+    sal('login-alert','Login error: ' + (e?.message || e));
+  } finally {
+    btn.textContent = 'Sign in to Dashboard';
+    btn.disabled = false;
+  }
 }
 
 function showDash(){
-  document.getElementById('login-sc').style.display='none';
-  document.getElementById('dash-sc').style.display='block';
-  document.getElementById('a-nm').textContent=CA.display_name||'Admin';
-  document.getElementById('a-em').textContent=CA.email||'';
-  document.getElementById('a-av').textContent=(CA.display_name||'A').slice(0,2).toUpperCase();
-  var role=CA.role||'admin';
-  document.getElementById('role-badge-display').innerHTML=`<span class="role-badge ${ROLE_CSS[role]||'role-admin'}">${ROLE_LABELS[role]||role}</span>`;
-  var isSuperOrTech=role==='super_admin'||role==='technical';
-  var isAcct=role==='accountant'||isSuperOrTech||role==='admin';
-  document.getElementById('nav-admin-section').style.display=isSuperOrTech?'':'none';
-  document.getElementById('nav-admins-btn').style.display=isSuperOrTech?'':'none';
-  document.getElementById('nav-acct-btn').style.display=isAcct?'':'none';
-  populateUserSuggestions();
-  loadAll();
-  if(userRefreshTimer)clearInterval(userRefreshTimer);
-  userRefreshTimer=setInterval(()=>{if(document.getElementById('pg-users').classList.contains('active'))loadUsers();},30000);
+  // ✅ hard guard against recursion / re-entrancy
+  if (__authDashInitRunning) return;
+  __authDashInitRunning = true;
+
+  try {
+    document.getElementById('login-sc').style.display = 'none';
+    document.getElementById('dash-sc').style.display = 'block';
+
+    document.getElementById('a-nm').textContent = CA.display_name || 'Admin';
+    document.getElementById('a-em').textContent = CA.email || '';
+    document.getElementById('a-av').textContent =
+      (CA.display_name || 'A').slice(0,2).toUpperCase();
+
+    const role = CA.role || 'admin';
+    document.getElementById('role-badge-display').innerHTML =
+      `<span class="role-badge ${ROLE_CSS[role] || 'role-admin'}">${ROLE_LABELS[role] || role}</span>`;
+
+    const isSuperOrTech = role === 'super_admin' || role === 'technical';
+    const isAcct = role === 'accountant' || isSuperOrTech || role === 'admin';
+
+    document.getElementById('nav-admin-section').style.display = isSuperOrTech ? '' : 'none';
+    document.getElementById('nav-admins-btn').style.display = isSuperOrTech ? '' : 'none';
+    document.getElementById('nav-acct-btn').style.display = isAcct ? '' : 'none';
+
+    // IMPORTANT: keep your existing calls, but if any of these trigger showDash/loadAll again,
+    // the re-entrancy guard above will prevent infinite recursion.
+    populateUserSuggestions();
+    loadAll();
+
+    if (userRefreshTimer) clearInterval(userRefreshTimer);
+    userRefreshTimer = setInterval(() => {
+      // only refresh when the users page is active
+      const el = document.getElementById('pg-users');
+      if (el && el.classList.contains('active')) loadUsers();
+    }, 30000);
+
+  } finally {
+    // if your loadAll/populateUserSuggestions are async and you need to keep the guard longer,
+    // tell me and paste those functions—I'll tailor it precisely.
+    __authDashInitRunning = false;
+  }
 }
 
-function adminLogout(){localStorage.removeItem('tb_admin');CA=null;if(userRefreshTimer)clearInterval(userRefreshTimer);location.reload();}
+function adminLogout(){
+  localStorage.removeItem('tb_admin');
+  CA = null;
+  if (userRefreshTimer) clearInterval(userRefreshTimer);
+  location.reload();
+  }
 
 // ── LOAD ALL ─────────────────────────────────────────────────
 async function loadAll(){
