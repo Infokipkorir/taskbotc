@@ -1374,6 +1374,17 @@ function showDash(){
   if(userRefreshTimer)clearInterval(userRefreshTimer);
   userRefreshTimer=setInterval(()=>{if(document.getElementById('pg-users').classList.contains('active'))loadUsers();},30000);
 }
+  let loginInFlight = false;
+
+async function adminLogin() {
+  if (loginInFlight) return;
+  loginInFlight = true;
+  try {
+    // your existing login logic...
+  } finally {
+    loginInFlight = false;
+  }
+  }
 
 function adminLogout(){localStorage.removeItem('tb_admin');CA=null;if(userRefreshTimer)clearInterval(userRefreshTimer);location.reload();}
 
