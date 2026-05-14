@@ -1327,6 +1327,9 @@ function canAccess(feature){
 function destroyChart(id){if(chartInstances[id]){chartInstances[id].destroy();delete chartInstances[id];}}
 
 // ── AUTH ─────────────────────────────────────────────────────
+  function guardTrace(name){
+  console.log('[ENTER]', name, 'at', new Error().stack.split('\n')[2]);
+  }
 let __authDashInitRunning = false; // prevents re-entrant dashboard init
 
 async function hashPassword(pw){
