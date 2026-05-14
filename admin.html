@@ -46,6 +46,23 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--tx);min-h
 .mfield textarea{min-height:80px;resize:vertical}
 .frow2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .frow3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+
+/* ── ACTION CARDS ───────────────────── */
+.action-card{background:var(--bg3);border:1px solid var(--b);border-radius:var(--r2);padding:14px;display:flex;flex-direction:column;gap:4px}
+.action-icon{font-size:22px}
+.action-name{font-size:12px;font-weight:700;color:var(--tx)}
+.action-desc{font-size:11px;color:var(--mu);line-height:1.4}
+
+/* ── INVOICE ─────────────────────────── */
+.invoice-item{background:var(--card);border:1px solid var(--b);border-radius:var(--r2);padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;gap:12px;box-shadow:var(--shadow)}
+.invoice-item:hover{background:#f8faff}
+.inv-num{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--blue);font-weight:700;min-width:130px}
+.inv-meta{flex:1;min-width:0}
+.inv-total{font-size:16px;font-weight:800;color:var(--green)}
+.pay-row{display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--b2)}
+.pay-row:last-child{border-bottom:none}
+.pay-check{width:16px;height:16px;cursor:pointer}
+
 .pw-wrap{position:relative}
 .pw-wrap input{padding-right:40px}
 .pw-eye{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--mu);padding:0;display:flex;align-items:center}
@@ -404,7 +421,8 @@ canvas{display:block}
         <div class="s-grp">Community</div>
         <button class="sitem" onclick="goPage('users',this)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>Users<span class="scnt bl" id="sc-u">0</span></button>
         <button class="sitem" onclick="goPage('notifications',this)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>Notifications</button>
-        <button class="sitem" onclick="goPage('community',this)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>Community Hub<span class="scnt gr" id="sc-comm">0</span></button>
+        <button class="sitem" onclick="goPage('referrals',this)" id="nav-referrals-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>Referral System</button>
+        <button class="sitem" onclick="window.open('admin_community.html','_blank')" style="border:1px dashed var(--b)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg>Community Hub ↗</button>
         <div class="s-grp">Support</div>
         <button class="sitem" onclick="goPage('support',this)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>Tickets<span class="scnt rd" id="sc-tk">0</span></button>
         <button class="sitem" onclick="goPage('faq',this)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M11 18h2v-2h-2v2zm1-16C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-2.21 0-4 1.79-4 4h2c0-1.1.9-2 2-2s2 .9 2 2c0 2-3 1.75-3 5h2c0-2.25 3-2.5 3-5 0-2.21-1.79-4-4-4z"/></svg>FAQ</button>
@@ -413,6 +431,7 @@ canvas{display:block}
         <button class="sitem" id="nav-acct-btn" style="display:none" onclick="goPage('accountant',this)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg>Accountant</button>
         <div class="s-grp" id="nav-admin-section" style="display:none">Admin</div>
         <button class="sitem" id="nav-admins-btn" style="display:none" onclick="goPage('admins',this)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>Admins</button>
+        <button class="sitem" id="nav-admin-actions-btn" style="display:none" onclick="goPage('admin-actions',this)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l-5.5 9h11L12 2zm0 3.84L13.93 9h-3.87L12 5.84zM17.5 13c-2.49 0-4.5 2.01-4.5 4.5S15.01 22 17.5 22s4.5-2.01 4.5-4.5-2.01-4.5-4.5-4.5zm0 7c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5zM3 21.5h8v-8H3v8zm2-6h4v4H5v-4z"/></svg>Admin Actions</button>
       </nav>
       <div class="s-user">
         <div class="s-av" id="a-av">A</div>
@@ -639,26 +658,45 @@ canvas{display:block}
             <div class="fin-card"><div class="icon-bg">↩</div><div class="sl">Total Chargebacks</div><div class="sv" id="ac-chargebacks" style="color:var(--red)">—</div><div class="ss">Reversed payments</div></div>
             <div class="fin-card"><div class="icon-bg">🏦</div><div class="sl">Total User Balances</div><div class="sv" id="ac-balances">—</div><div class="ss">Combined wallet value</div></div>
           </div>
-          <!-- Chargebacks -->
-          <div class="acct-section">
-            <div class="acct-section-head"><span class="acct-section-title">⚡ Chargeback Management</span><button class="btn bd" onclick="openChargebackModal()"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>Issue Chargeback</button></div>
-            <div id="chargeback-list"><div class="ldr">Loading…</div></div>
+
+          <!-- Action Buttons Row -->
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
+            <button class="btn bp" onclick="openInvoiceBatchModal()"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm-1 7V3.5L18.5 9H13z"/></svg>Create Invoice Batch</button>
+            <button class="btn bs" onclick="openMassPayModal()"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/></svg>Mass Payment</button>
+            <button class="btn bd" onclick="openChargebackModal()"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>Issue Chargeback</button>
+            <button class="btn bg" onclick="exportCSV()"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>Export CSV</button>
           </div>
-          <!-- Recent transactions -->
+
+          <!-- All Members Earnings -->
           <div class="acct-section">
-            <div class="acct-section-head"><span class="acct-section-title">💳 Recent Withdrawal Activity</span>
-              <div style="display:flex;gap:6px">
-                <button class="btn bg" onclick="exportCSV()"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>Export CSV</button>
+            <div class="acct-section-head">
+              <span class="acct-section-title">👥 All Members Earnings</span>
+              <div style="display:flex;gap:6px;align-items:center">
+                <input id="ac-search" placeholder="Search member…" style="padding:6px 10px;border:1.5px solid var(--b);border-radius:var(--r);font-size:12px;background:var(--bg3);color:var(--tx);outline:none;width:200px" oninput="filterAccountantMembers(this.value)"/>
+                <button class="btn bg" onclick="loadAccountant()"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.65 6.35A7.958 7.958 0 0012 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0112 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>Refresh</button>
               </div>
             </div>
+            <table><thead><tr><th><input type="checkbox" id="ac-check-all" onchange="toggleAllMemberChecks(this.checked)" style="cursor:pointer"/></th><th>Member</th><th>Country</th><th>Balance</th><th>Total Earned</th><th>Withdrawals</th><th>Last Activity</th><th>Actions</th></tr></thead>
+            <tbody id="ac-members-tbody"><tr><td colspan="8" class="ldr">Loading…</td></tr></tbody></table>
+          </div>
+
+          <!-- Invoice Batches -->
+          <div class="acct-section">
+            <div class="acct-section-head"><span class="acct-section-title">🧾 Invoice Batches</span></div>
+            <div id="invoice-batches-list"><div class="ldr">Loading…</div></div>
+          </div>
+
+          <!-- Chargebacks -->
+          <div class="acct-section">
+            <div class="acct-section-head"><span class="acct-section-title">⚡ Chargeback Management</span></div>
+            <div id="chargeback-list"><div class="ldr">Loading…</div></div>
+          </div>
+
+          <!-- Recent transactions -->
+          <div class="acct-section">
+            <div class="acct-section-head"><span class="acct-section-title">💳 Recent Withdrawal Activity</span></div>
             <table><thead><tr><th>User</th><th>Amount</th><th>Method</th><th>Status</th><th>Date</th><th>Note</th></tr></thead>
             <tbody id="ac-wd-tbody"><tr><td colspan="6" class="ldr">Loading…</td></tr></tbody></table>
-          </div>
-          <!-- Earnings summary -->
-          <div class="acct-section">
-            <div class="acct-section-head"><span class="acct-section-title">📊 Top Earners</span></div>
-            <table><thead><tr><th>User</th><th>Country</th><th>Balance</th><th>Total Earned</th><th>Withdrawals</th></tr></thead>
-            <tbody id="ac-top-tbody"><tr><td colspan="5" class="ldr">Loading…</td></tr></tbody></table>
           </div>
         </div>
 
@@ -671,88 +709,76 @@ canvas{display:block}
           <tbody id="admins-tbody"><tr><td colspan="5" class="ldr">Loading…</td></tr></tbody></table></div>
         </div>
 
-        <!-- ══ COMMUNITY HUB ADMIN ══ -->
-        <div class="pg" id="pg-community">
-          <!-- Stats Row -->
-          <div class="comm-stats">
-            <div class="sc" style="--accent-c:var(--purple)"><div class="sc-accent"></div><div class="sl">Total Posts</div><div class="sv" id="comm-total-posts">—</div><div class="ss">All types</div></div>
-            <div class="sc" style="--accent-c:var(--green)"><div class="sc-accent"></div><div class="sl">Community Earnings</div><div class="sv" id="comm-total-earned" style="color:var(--green)">$—</div><div class="ss">All-time paid out</div></div>
-            <div class="sc" style="--accent-c:var(--red)"><div class="sc-accent"></div><div class="sl">Video Views</div><div class="sv" id="comm-video-views">—</div><div class="ss">Total video watches</div></div>
-            <div class="sc" style="--accent-c:var(--blue)"><div class="sc-accent"></div><div class="sl">Ad Clicks</div><div class="sv" id="comm-ad-clicks">—</div><div class="ss">Total ad interactions</div></div>
+        <!-- ══ REFERRAL SYSTEM ══ -->
+        <div class="pg" id="pg-referrals">
+          <div class="stats">
+            <div class="sc" style="--accent-c:var(--blue)"><div class="sc-accent"></div><div class="sl">Total Referrals</div><div class="sv" id="ref-total">—</div><div class="ss">All time</div></div>
+            <div class="sc" style="--accent-c:var(--green)"><div class="sc-accent"></div><div class="sl">Successful</div><div class="sv" id="ref-success" style="color:var(--green)">—</div><div class="ss">Converted referrals</div></div>
+            <div class="sc" style="--accent-c:var(--orange)"><div class="sc-accent"></div><div class="sl">Referral Earnings</div><div class="sv" id="ref-earnings" style="color:var(--orange)">—</div><div class="ss">Total paid out</div></div>
+            <div class="sc" style="--accent-c:var(--purple)"><div class="sc-accent"></div><div class="sl">Top Referrers</div><div class="sv" id="ref-top-count">—</div><div class="ss">Active referrers</div></div>
           </div>
 
-          <div class="comm-grid">
-            <!-- Left: Posts Feed -->
-            <div>
-              <!-- Header + Actions -->
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">
-                <div>
-                  <div class="filter-tabs" style="margin-bottom:0">
-                    <button class="ftab active" onclick="filterCommPosts('all',this)">All Posts</button>
-                    <button class="ftab" onclick="filterCommPosts('text',this)">Text</button>
-                    <button class="ftab" onclick="filterCommPosts('video',this)">Video</button>
-                    <button class="ftab" onclick="filterCommPosts('announce',this)">Announcements</button>
-                  </div>
-                </div>
-                <div style="display:flex;gap:6px">
-                  <button class="btn bpur" onclick="openCommPostModal('announce')"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18 11v2h4v-2h-4zm-2 6.61c.96.71 2.21 1.65 3.2 2.39.4-.53.8-1.07 1.2-1.6-.99-.74-2.24-1.68-3.2-2.4-.4.54-.8 1.08-1.2 1.61zM20.4 5.6c-.4-.53-.8-1.07-1.2-1.6-.99.74-2.24 1.68-3.2 2.39.4.53.8 1.07 1.2 1.6.96-.71 2.21-1.65 3.2-2.39zM4 9c-1.1 0-2 .9-2 2v2c0 1.1.9 2 2 2h1v4h2v-4h1l5 3V6L8 9H4zm11.5 3c0-1.33-.58-2.53-1.5-3.35v6.69c.92-.81 1.5-2.01 1.5-3.34z"/></svg>Announce</button>
-                  <button class="btn bp" onclick="openCommPostModal('text')"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>New Post</button>
-                  <button class="btn" style="background:var(--red);color:#fff" onclick="openCommPostModal('video')"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/></svg>Embed Video</button>
-                </div>
+          <!-- Referral Settings -->
+          <div class="card" style="margin-bottom:14px">
+            <div class="card-head"><span class="card-title">⚙️ Referral Program Settings</span><button class="btn bp" onclick="saveReferralSettings()">Save Settings</button></div>
+            <div style="padding:16px">
+              <div class="frow3">
+                <div class="mfield"><label>Referral Bonus ($)</label><input id="ref-bonus" type="number" step="0.01" placeholder="e.g. 0.50" value="0.50"/></div>
+                <div class="mfield"><label>Referred User Bonus ($)</label><input id="ref-referred-bonus" type="number" step="0.01" placeholder="e.g. 0.20" value="0.20"/></div>
+                <div class="mfield"><label>Min Withdrawal to Qualify ($)</label><input id="ref-min-wd" type="number" step="0.01" placeholder="e.g. 2.00" value="2.00"/></div>
               </div>
-
-              <!-- Posts Feed -->
-              <div class="comm-feed-card">
-                <div id="comm-posts-list"><div class="ldr">Loading community posts…</div></div>
-              </div>
-            </div>
-
-            <!-- Right: Sidebar Widgets -->
-            <div>
-              <!-- Earn Settings Card -->
-              <div class="card" style="margin-bottom:14px">
-                <div class="card-head"><span class="card-title">⚙️ Earn Rate Settings</span><button class="btn bg" onclick="saveEarnSettings()">Save</button></div>
-                <div style="padding:14px;display:flex;flex-direction:column;gap:10px">
-                  <div class="mfield" style="margin-bottom:0">
-                    <label>Per Minute (time on page) $</label>
-                    <input id="earn-per-min" type="number" step="0.001" value="0.010" min="0"/>
-                  </div>
-                  <div class="mfield" style="margin-bottom:0">
-                    <label>Per Ad Click $</label>
-                    <input id="earn-per-ad" type="number" step="0.001" value="0.020" min="0"/>
-                  </div>
-                  <div class="mfield" style="margin-bottom:0">
-                    <label>Per Video View (full watch) $</label>
-                    <input id="earn-per-video" type="number" step="0.001" value="0.050" min="0"/>
-                  </div>
-                  <div class="mfield" style="margin-bottom:0">
-                    <label>Per Minute Watching Video $</label>
-                    <input id="earn-per-video-min" type="number" step="0.001" value="0.005" min="0"/>
-                  </div>
-                  <div id="earn-settings-msg" style="font-size:11px;color:var(--green);display:none">✓ Settings saved</div>
-                </div>
-              </div>
-
-              <!-- Active Ads Card -->
-              <div class="card" style="margin-bottom:14px">
-                <div class="card-head"><span class="card-title">📢 Ad Campaigns</span><button class="btn bp" onclick="openAdModal(null)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>New Ad</button></div>
-                <div id="ads-list"><div class="ldr">Loading ads…</div></div>
-              </div>
-
-              <!-- Top Community Earners -->
-              <div class="card">
-                <div class="card-head"><span class="card-title">🏆 Top Earners</span></div>
-                <div id="comm-leaderboard"><div class="ldr">Loading…</div></div>
-              </div>
+              <div class="toggle-wrap"><div style="font-size:13px;font-weight:600">Referral Program Active</div><label class="tog"><input type="checkbox" id="ref-active" checked/><span class="tsl"></span></label></div>
+              <div id="ref-settings-msg" style="font-size:11px;color:var(--green);display:none;margin-top:6px">✓ Settings saved</div>
             </div>
           </div>
 
-          <!-- Video Watch Sessions Table -->
-          <div class="card" style="margin-top:4px">
-            <div class="card-head"><span class="card-title">🎬 Recent Video Watch Sessions</span></div>
-            <table><thead><tr><th>User</th><th>Post Title</th><th>Duration</th><th>Earned</th><th>Completed</th><th>Date</th></tr></thead>
-            <tbody id="video-sessions-tbody"><tr><td colspan="6" class="ldr">Loading…</td></tr></tbody></table>
+          <!-- Top Referrers Leaderboard -->
+          <div class="card" style="margin-bottom:14px">
+            <div class="card-head"><span class="card-title">🏆 Top Referrers</span><button class="btn bg" onclick="loadReferrals()"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.65 6.35A7.958 7.958 0 0012 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0112 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>Refresh</button></div>
+            <table><thead><tr><th>Rank</th><th>Referrer</th><th>Referral Code</th><th>Referrals</th><th>Converted</th><th>Earned</th><th>Actions</th></tr></thead>
+            <tbody id="ref-leaderboard-tbody"><tr><td colspan="7" class="ldr">Loading…</td></tr></tbody></table>
           </div>
+
+          <!-- All Referral Relationships -->
+          <div class="card">
+            <div class="card-head">
+              <span class="card-title">🔗 All Referral Relationships</span>
+              <input id="ref-search" placeholder="Search user…" style="padding:6px 10px;border:1.5px solid var(--b);border-radius:var(--r);font-size:12px;background:var(--bg3);color:var(--tx);outline:none;width:220px" oninput="filterReferrals(this.value)"/>
+            </div>
+            <table><thead><tr><th>Referred By</th><th>New User</th><th>Date Joined</th><th>Status</th><th>Bonus Paid</th></tr></thead>
+            <tbody id="ref-tbody"><tr><td colspan="5" class="ldr">Loading…</td></tr></tbody></table>
+          </div>
+        </div>
+
+        <!-- ══ ADMIN ACTIONS ══ -->
+        <div class="pg" id="pg-admin-actions">
+          <div style="background:var(--orange-bg);border:1px solid #fde68a;border-radius:var(--r2);padding:14px 18px;margin-bottom:16px;display:flex;align-items:center;gap:10px">
+            <span style="font-size:22px">🔐</span>
+            <div>
+              <div style="font-size:13px;font-weight:700;color:var(--orange)">Super Admin Only Section</div>
+              <div style="font-size:11px;color:var(--mu)">Admin Actions are restricted to Super Admin by default. Super Admin can delegate specific actions to other admins.</div>
+            </div>
+          </div>
+
+          <!-- Action Delegation -->
+          <div class="card" style="margin-bottom:14px">
+            <div class="card-head"><span class="card-title">👥 Delegate Actions to Admins</span><button class="btn bp" id="btn-delegate-actions" onclick="openDelegateModal()"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>Assign Actions</button></div>
+            <table><thead><tr><th>Admin</th><th>Role</th><th>Assigned Actions</th><th>Last Modified</th><th>Actions</th></tr></thead>
+            <tbody id="admin-perms-tbody"><tr><td colspan="5" class="ldr">Loading…</td></tr></tbody></table>
+          </div>
+
+          <!-- Available Actions Library -->
+          <div class="card">
+            <div class="card-head"><span class="card-title">📋 Available Admin Actions</span></div>
+            <div style="padding:16px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px" id="actions-library">
+              <div class="action-card"><div class="action-icon">💳</div><div class="action-name">Process Withdrawals</div><div class="action-desc">Approve or reject withdrawal requests</div></div>
+              <div class="action-card"><div class="action-icon">🧾</div><div class="action-name">Create Invoices</div><div class="action-desc">Generate invoice batches and send to users</div></div>
+              <div class="action-card"><div class="action-icon">💸</div><div class="action-name">Issue Payments</div><div class="action-desc">Send individual or mass payments</div></div>
+              <div class="action-card"><div class="action-icon">↩</div><div class="action-name">Issue Chargebacks</div><div class="action-desc">Reverse payments and deduct balances</div></div>
+              <div class="action-card"><div class="action-icon">🚫</div><div class="action-name">Ban/Unban Users</div><div class="action-desc">Restrict or restore user access</div></div>
+              <div class="action-card"><div class="action-icon">🗑️</div><div class="action-name">Delete Users</div><div class="action-desc">Permanently remove user accounts</div></div>
+              <div class="action-card"><div class="action-icon">✅</div><div class="action-name">Approve Submissions</div><div class="action-desc">Review and approve task submissions</div></div>
+              <div class="action-card"><div class="action-icon">📢</div><div class="action-name">Send Notifications</div><div class="action-desc">Broadcast or targeted notifications</div></div>
         </div>
 
       </div>
@@ -1077,6 +1103,150 @@ canvas{display:block}
   </div>
 </div>
 
+<!-- INVOICE BATCH MODAL -->
+<div class="mbg" id="invoice-batch-bg">
+  <div class="modal modal-xl">
+    <div class="mhead"><span class="mtitle">Create Invoice Batch</span><button class="mclose" onclick="closeMod('invoice-batch-bg')">×</button></div>
+    <div class="mbody">
+      <div id="inv-alert"></div>
+      <div style="background:var(--blue-bg);border:1px solid #bfdbfe;border-radius:var(--r);padding:11px 14px;font-size:12px;color:var(--blue);margin-bottom:14px">
+        📋 Creating an invoice batch will generate a PDF invoice and automatically notify each user with their invoice number and payment method.
+      </div>
+      <div class="frow3">
+        <div class="mfield"><label>Batch Number</label><input id="inv-batch-num" placeholder="e.g. BATCH-2025-001" readonly style="background:var(--bg);color:var(--mu)"/></div>
+        <div class="mfield"><label>Invoice Date</label><input id="inv-date" type="date"/></div>
+        <div class="mfield"><label>Payment Method</label>
+          <select id="inv-method">
+            <option value="M-Pesa">📱 M-Pesa</option>
+            <option value="Binance">🟡 Binance</option>
+            <option value="PayPal">🔵 PayPal</option>
+            <option value="MiniPay">💜 MiniPay</option>
+            <option value="Bank Transfer">🏦 Bank Transfer</option>
+          </select>
+        </div>
+      </div>
+      <div class="mfield"><label>Description / Notes</label><textarea id="inv-notes" placeholder="Invoice description or payment notes…" style="min-height:60px"></textarea></div>
+
+      <!-- User Selection for Invoice -->
+      <div style="font-size:12px;font-weight:700;color:var(--tx);margin-bottom:8px;padding-top:8px;border-top:1px solid var(--b)">👥 Select Users to Include</div>
+      <div style="display:flex;gap:8px;margin-bottom:10px">
+        <button class="btn bg" onclick="inv_selectAll()">Select All Pending</button>
+        <button class="btn bg" onclick="inv_clearAll()">Clear All</button>
+        <span id="inv-selected-count" style="font-size:12px;color:var(--mu);align-self:center">0 selected</span>
+      </div>
+      <div id="inv-users-list" style="max-height:280px;overflow-y:auto;border:1px solid var(--b);border-radius:var(--r);background:var(--bg3)">
+        <div class="ldr">Loading users…</div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-top:1px solid var(--b);margin-top:10px">
+        <span style="font-size:12px;color:var(--mu)">Total Amount:</span>
+        <strong style="font-size:18px;color:var(--green)" id="inv-total-amount">$0.00</strong>
+      </div>
+    </div>
+    <div class="mfoot">
+      <button class="btn bg" onclick="closeMod('invoice-batch-bg')">Cancel</button>
+      <button class="btn bp" onclick="previewInvoicePDF()"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm-1 7V3.5L18.5 9H13z"/></svg>Preview PDF</button>
+      <button class="btn bs" onclick="createInvoiceBatch()"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>Create &amp; Notify Users</button>
+    </div>
+  </div>
+</div>
+
+<!-- MASS PAYMENT MODAL -->
+<div class="mbg" id="mass-pay-bg">
+  <div class="modal modal-xl">
+    <div class="mhead"><span class="mtitle">Mass Payment Dispatch</span><button class="mclose" onclick="closeMod('mass-pay-bg')">×</button></div>
+    <div class="mbody">
+      <div id="mass-pay-alert"></div>
+      <div style="background:var(--green-bg);border:1px solid #bbf7d0;border-radius:var(--r);padding:11px 14px;font-size:12px;color:var(--green);margin-bottom:14px">
+        💸 Select users and dispatch payments. Each user will receive an automatic notification when payment is dispatched.
+      </div>
+      <div class="frow2">
+        <div class="mfield"><label>Payment Method</label>
+          <select id="mp-method">
+            <option value="M-Pesa">📱 M-Pesa</option>
+            <option value="Binance">🟡 Binance</option>
+            <option value="PayPal">🔵 PayPal</option>
+            <option value="MiniPay">💜 MiniPay</option>
+          </select>
+        </div>
+        <div class="mfield"><label>Transaction / Batch Reference</label><input id="mp-ref" placeholder="e.g. TXN-20250601…"/></div>
+      </div>
+      <div class="mfield"><label>Payment Note</label><textarea id="mp-note" placeholder="Note shown to users in their notification…" style="min-height:60px"></textarea></div>
+      <div style="display:flex;gap:8px;margin-bottom:10px">
+        <button class="btn bg" onclick="mp_selectAll()">Select All</button>
+        <button class="btn bg" onclick="mp_clearAll()">Clear All</button>
+        <span id="mp-selected-count" style="font-size:12px;color:var(--mu);align-self:center">0 selected</span>
+      </div>
+      <div id="mp-users-list" style="max-height:320px;overflow-y:auto;border:1px solid var(--b);border-radius:var(--r);background:var(--bg3)">
+        <div class="ldr">Loading pending withdrawals…</div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-top:1px solid var(--b);margin-top:10px">
+        <span style="font-size:12px;color:var(--mu)">Total Dispatch Amount:</span>
+        <strong style="font-size:18px;color:var(--green)" id="mp-total-amount">$0.00</strong>
+      </div>
+    </div>
+    <div class="mfoot">
+      <button class="btn bg" onclick="closeMod('mass-pay-bg')">Cancel</button>
+      <button class="btn bs" onclick="dispatchMassPayment()"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>Dispatch Payments &amp; Notify</button>
+    </div>
+  </div>
+</div>
+
+<!-- INDIVIDUAL PAY MODAL -->
+<div class="mbg" id="indiv-pay-bg">
+  <div class="modal">
+    <div class="mhead"><span class="mtitle">Pay Individual User</span><button class="mclose" onclick="closeMod('indiv-pay-bg')">×</button></div>
+    <div class="mbody">
+      <div id="indiv-pay-alert"></div>
+      <div id="indiv-pay-user-info" style="background:var(--bg3);border:1px solid var(--b);border-radius:var(--r);padding:12px;margin-bottom:14px"></div>
+      <div class="frow2">
+        <div class="mfield"><label>Amount ($)</label><input id="ip-amount" type="number" step="0.01" placeholder="0.00"/></div>
+        <div class="mfield"><label>Payment Method</label>
+          <select id="ip-method">
+            <option value="M-Pesa">📱 M-Pesa</option>
+            <option value="Binance">🟡 Binance</option>
+            <option value="PayPal">🔵 PayPal</option>
+            <option value="MiniPay">💜 MiniPay</option>
+          </select>
+        </div>
+      </div>
+      <div class="mfield"><label>Transaction Reference</label><input id="ip-ref" placeholder="TXN-…"/></div>
+      <div class="mfield"><label>Note to User</label><textarea id="ip-note" placeholder="Payment note shown in notification…"></textarea></div>
+    </div>
+    <div class="mfoot">
+      <button class="btn bg" onclick="closeMod('indiv-pay-bg')">Cancel</button>
+      <button class="btn bs" onclick="dispatchIndivPayment()"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>Pay &amp; Notify</button>
+    </div>
+  </div>
+</div>
+
+<!-- DELEGATE ACTIONS MODAL -->
+<div class="mbg" id="delegate-bg">
+  <div class="modal modal-wide">
+    <div class="mhead"><span class="mtitle">Assign Admin Actions</span><button class="mclose" onclick="closeMod('delegate-bg')">×</button></div>
+    <div class="mbody">
+      <div id="delegate-alert"></div>
+      <div class="mfield"><label>Select Admin</label>
+        <select id="delegate-admin-select" onchange="loadAdminCurrentActions()">
+          <option value="">Choose admin…</option>
+        </select>
+      </div>
+      <div style="font-size:12px;font-weight:700;color:var(--tx);margin-bottom:10px">Assign Actions</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px" id="delegate-actions-grid">
+        <label style="display:flex;align-items:center;gap:8px;padding:10px;background:var(--bg3);border:1px solid var(--b);border-radius:var(--r);cursor:pointer"><input type="checkbox" value="process_withdrawals"/> <div><div style="font-size:12px;font-weight:600">💳 Process Withdrawals</div><div style="font-size:10px;color:var(--mu)">Approve or reject withdrawal requests</div></div></label>
+        <label style="display:flex;align-items:center;gap:8px;padding:10px;background:var(--bg3);border:1px solid var(--b);border-radius:var(--r);cursor:pointer"><input type="checkbox" value="create_invoices"/> <div><div style="font-size:12px;font-weight:600">🧾 Create Invoices</div><div style="font-size:10px;color:var(--mu)">Generate invoice batches</div></div></label>
+        <label style="display:flex;align-items:center;gap:8px;padding:10px;background:var(--bg3);border:1px solid var(--b);border-radius:var(--r);cursor:pointer"><input type="checkbox" value="issue_payments"/> <div><div style="font-size:12px;font-weight:600">💸 Issue Payments</div><div style="font-size:10px;color:var(--mu)">Send individual or mass payments</div></div></label>
+        <label style="display:flex;align-items:center;gap:8px;padding:10px;background:var(--bg3);border:1px solid var(--b);border-radius:var(--r);cursor:pointer"><input type="checkbox" value="issue_chargebacks"/> <div><div style="font-size:12px;font-weight:600">↩ Issue Chargebacks</div><div style="font-size:10px;color:var(--mu)">Reverse payments and deduct balances</div></div></label>
+        <label style="display:flex;align-items:center;gap:8px;padding:10px;background:var(--bg3);border:1px solid var(--b);border-radius:var(--r);cursor:pointer"><input type="checkbox" value="ban_users"/> <div><div style="font-size:12px;font-weight:600">🚫 Ban/Unban Users</div><div style="font-size:10px;color:var(--mu)">Restrict or restore user access</div></div></label>
+        <label style="display:flex;align-items:center;gap:8px;padding:10px;background:var(--bg3);border:1px solid var(--b);border-radius:var(--r);cursor:pointer"><input type="checkbox" value="delete_users"/> <div><div style="font-size:12px;font-weight:600">🗑️ Delete Users</div><div style="font-size:10px;color:var(--mu)">Permanently remove user accounts</div></div></label>
+        <label style="display:flex;align-items:center;gap:8px;padding:10px;background:var(--bg3);border:1px solid var(--b);border-radius:var(--r);cursor:pointer"><input type="checkbox" value="approve_submissions"/> <div><div style="font-size:12px;font-weight:600">✅ Approve Submissions</div><div style="font-size:10px;color:var(--mu)">Review and approve task submissions</div></div></label>
+        <label style="display:flex;align-items:center;gap:8px;padding:10px;background:var(--bg3);border:1px solid var(--b);border-radius:var(--r);cursor:pointer"><input type="checkbox" value="send_notifications"/> <div><div style="font-size:12px;font-weight:600">📢 Send Notifications</div><div style="font-size:10px;color:var(--mu)">Broadcast or targeted notifications</div></div></label>
+        <label style="display:flex;align-items:center;gap:8px;padding:10px;background:var(--bg3);border:1px solid var(--b);border-radius:var(--r);cursor:pointer"><input type="checkbox" value="manage_referrals"/> <div><div style="font-size:12px;font-weight:600">🏆 Manage Referrals</div><div style="font-size:10px;color:var(--mu)">View and manage referral system</div></div></label>
+      </div>
+    </div>
+    <div class="mfoot"><button class="btn bg" onclick="closeMod('delegate-bg')">Cancel</button><button class="btn bp" onclick="saveDelegation()">Save Permissions</button></div>
+  </div>
+</div>
+
 <script>
 // ── CONFIG ──────────────────────────────────────────────────
 const SU='https://lwnbfjjsstxkyexeojcl.supabase.co';
@@ -1208,26 +1378,21 @@ function showDash(){
 function adminLogout(){localStorage.removeItem('tb_admin');CA=null;if(userRefreshTimer)clearInterval(userRefreshTimer);location.reload();}
 
 // ── LOAD ALL ─────────────────────────────────────────────────
-async function loadAll() {
-  const tasks = [
-    loadOverview,
-    loadTasks,
-    loadSubs,
-    loadUsers,
-    loadNotifications,
-    loadTickets,
-    loadFAQs,
-    loadWDs,
-    loadAdmins,
-    loadAccountant
-  ];
-
-  await Promise.allSettled(
-    tasks.map(fn => fn().catch(e => {
-      console.warn(fn.name || 'loader', e);
-    }))
-  );
-  }
+async function loadAll(){
+  // Run all loaders independently so one failure doesn't block others
+  await Promise.allSettled([
+    loadOverview().catch(e=>console.warn('overview:',e)),
+    loadTasks().catch(e=>console.warn('tasks:',e)),
+    loadSubs().catch(e=>console.warn('subs:',e)),
+    loadUsers().catch(e=>console.warn('users:',e)),
+    loadNotifications().catch(e=>console.warn('notifs:',e)),
+    loadTickets().catch(e=>console.warn('tickets:',e)),
+    loadFAQs().catch(e=>console.warn('faqs:',e)),
+    loadWDs().catch(e=>console.warn('wds:',e)),
+    loadAdmins().catch(e=>console.warn('admins:',e)),
+    loadAccountant().catch(e=>console.warn('accountant:',e))
+  ]);
+}
 
 // ── OVERVIEW ─────────────────────────────────────────────────
 async function countUsers(){
@@ -2227,12 +2392,7 @@ async function openTicket(id){
   document.getElementById('ticket-bg').classList.add('open');
 }
 
-window.openTicket = openTicket;
-window.updateTicketStatus = updateTicketStatus;
-window.assignHuman = assignHuman;
-window.getAIReply = getAIReply;
-window.generateAISuggestion = generateAISuggestion; // if also called via inline handlers elsewhere
-  
+
 // ── FAQ ──────────────────────────────────────────────────────
 async function loadFAQs(){
   var{data:faqs}=await sb.from('faq_items').select('*').order('order_index',{ascending:true});
@@ -2954,6 +3114,621 @@ function goPage(n,btn){
   if(n==='accountant')loadAccountant();
   if(n==='community')loadCommunity();
 }
+// ── ACCOUNTANT ENHANCED ─────────────────────────────────────
+var allMembersCache=[];
+
+async function loadAccountant(){
+  var[wds,users,chargebacks]=await Promise.all([
+    sb.from('withdrawals').select('*,users(email,country,balance,total_earned,username,wallet_address)').order('created_at',{ascending:false}),
+    sb.from('admin_users_view').select('id,email,username,country,balance,total_earned,created_at,referral_code').order('total_earned',{ascending:false}),
+    sb.from('chargebacks').select('*,users(email)').order('created_at',{ascending:false}).catch(()=>({data:[]}))
+  ]);
+  var wList=wds.data||[];var uList=users.data||[];chargebacksCache=chargebacks.data||[];allMembersCache=uList;
+  var totalPaid=wList.filter(w=>w.status==='completed').reduce((a,w)=>a+parseFloat(w.amount||0),0);
+  var pending=wList.filter(w=>w.status==='pending');
+  var pendingAmt=pending.reduce((a,w)=>a+parseFloat(w.amount||0),0);
+  var totalBal=uList.reduce((a,u)=>a+parseFloat(u.balance||0),0);
+  document.getElementById('ac-total-paid').textContent='$'+totalPaid.toFixed(2);
+  document.getElementById('ac-pending').textContent='$'+pendingAmt.toFixed(2);
+  document.getElementById('ac-chargebacks').textContent=chargebacksCache.length;
+  document.getElementById('ac-balances').textContent='$'+totalBal.toFixed(2);
+
+  // All Members Earnings table
+  renderAccountantMembers(uList, wds.data||[]);
+
+  // Invoice batches
+  loadInvoiceBatches();
+
+  // Chargebacks
+  var cbEl=document.getElementById('chargeback-list');
+  if(!chargebacksCache.length){cbEl.innerHTML='<div class="empty">No chargebacks recorded.</div>';}
+  else{cbEl.innerHTML=chargebacksCache.map(cb=>`<div class="chargeback-row">
+    <div style="flex:1"><strong style="font-size:12px">${cb.users?cb.users.email||'—':'—'}</strong><div style="font-size:10px;color:var(--mu)">Reason: ${cb.reason||'—'} · ${fd(cb.created_at)}</div></div>
+    <strong style="color:var(--red)">-$${parseFloat(cb.amount||0).toFixed(2)}</strong>
+    <span class="badge brd" style="margin-left:8px">Chargeback</span>
+  </div>`).join('');}
+
+  // WD table
+  var wTb=document.getElementById('ac-wd-tbody');
+  wTb.innerHTML=wList.slice(0,30).map(w=>`<tr>
+    <td style="font-size:11px">${w.users?w.users.email||'—':'—'}</td>
+    <td><strong style="color:${w.status==='completed'?'var(--green)':'var(--red)'}">$${parseFloat(w.amount||0).toFixed(2)}</strong></td>
+    <td>${w.method||'—'}</td>
+    <td>${stbadge(w.status)}</td>
+    <td style="font-size:11px">${fd(w.created_at)}</td>
+    <td style="font-size:11px;color:var(--mu)">${w.admin_note||'—'}</td></tr>`).join('');
+}
+
+function renderAccountantMembers(members, allWds){
+  var tb=document.getElementById('ac-members-tbody');
+  if(!(members||[]).length){tb.innerHTML='<tr><td colspan="8"><div class="empty">No members found.</div></td></tr>';return;}
+  var wdMap={};(allWds||[]).forEach(w=>{if(!wdMap[w.user_id])wdMap[w.user_id]={count:0,completed:0,total:0};wdMap[w.user_id].count++;if(w.status==='completed'){wdMap[w.user_id].completed++;wdMap[w.user_id].total+=parseFloat(w.amount||0);}});
+  tb.innerHTML=members.map(u=>{
+    var wd=wdMap[u.id]||{count:0,completed:0,total:0};
+    return`<tr>
+      <td><input type="checkbox" class="pay-check ac-member-check" data-id="${u.id}" onchange="updateAcSelCount()"/></td>
+      <td>
+        <div style="font-size:12px;font-weight:700">${u.email||'—'}</div>
+        <div style="font-size:10px;color:var(--mu)">@${u.username||'—'}</div>
+      </td>
+      <td><div class="country-badge">${countryFlag(u.country||'—')} ${u.country||'—'}</div></td>
+      <td><strong style="color:var(--green)">$${parseFloat(u.balance||0).toFixed(4)}</strong></td>
+      <td>$${parseFloat(u.total_earned||0).toFixed(4)}</td>
+      <td><span class="badge bgn">${wd.completed}✓</span> <span style="font-size:9px;color:var(--mu)">${wd.count} total</span></td>
+      <td style="font-size:11px">${fd(u.created_at)}</td>
+      <td><button class="btn bp" style="padding:4px 10px;font-size:11px" onclick="openIndivPay('${u.id}')">Pay</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function filterAccountantMembers(q){
+  q=(q||'').toLowerCase().trim();
+  if(!q){renderAccountantMembers(allMembersCache,[]);return;}
+  var filtered=allMembersCache.filter(u=>(u.email||'').toLowerCase().includes(q)||(u.username||'').toLowerCase().includes(q)||(u.country||'').toLowerCase().includes(q));
+  renderAccountantMembers(filtered,[]);
+}
+
+function updateAcSelCount(){
+  var count=document.querySelectorAll('.ac-member-check:checked').length;
+  document.getElementById('ac-check-all').checked=count===allMembersCache.length;
+}
+
+function toggleAllMemberChecks(val){
+  document.querySelectorAll('.ac-member-check').forEach(c=>c.checked=val);
+}
+
+// ── INVOICE BATCH ────────────────────────────────────────────
+var invUsersData=[];
+
+async function openInvoiceBatchModal(){
+  if(!canDoAction('create_invoices')){showToast('❌ You do not have permission to create invoices.');return;}
+  var batchNum='BATCH-'+new Date().getFullYear()+'-'+String(Date.now()).slice(-6);
+  document.getElementById('inv-batch-num').value=batchNum;
+  document.getElementById('inv-date').value=new Date().toISOString().slice(0,10);
+  document.getElementById('inv-notes').value='';
+  sal('inv-alert','');
+  // Load users with balance > 0 and pending withdrawals
+  var{data:wds}=await sb.from('withdrawals').select('*,users(id,email,username,country,balance,total_earned,wallet_address)').eq('status','pending').order('created_at',{ascending:false});
+  invUsersData=wds||[];
+  renderInvUsersList();
+  document.getElementById('invoice-batch-bg').classList.add('open');
+}
+
+function renderInvUsersList(){
+  var container=document.getElementById('inv-users-list');
+  if(!invUsersData.length){container.innerHTML='<div class="empty" style="padding:20px">No pending withdrawals found.</div>';return;}
+  container.innerHTML=invUsersData.map((w,i)=>{
+    var u=w.users||{};
+    return`<div class="pay-row" style="padding:10px 12px">
+      <input type="checkbox" class="pay-check inv-user-check" data-amount="${w.amount||0}" data-idx="${i}" onchange="calcInvTotal()"/>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12px;font-weight:700">${u.email||'—'}</div>
+        <div style="font-size:10px;color:var(--mu)">${u.country||'—'} · ${w.method||'—'} · ${w.wallet_address||'—'}</div>
+      </div>
+      <strong style="color:var(--green);font-size:13px">$${parseFloat(w.amount||0).toFixed(2)}</strong>
+    </div>`;
+  }).join('');
+}
+
+function calcInvTotal(){
+  var checks=document.querySelectorAll('.inv-user-check:checked');
+  var total=0;checks.forEach(c=>total+=parseFloat(c.dataset.amount||0));
+  document.getElementById('inv-total-amount').textContent='$'+total.toFixed(2);
+  document.getElementById('inv-selected-count').textContent=checks.length+' selected';
+}
+
+function inv_selectAll(){document.querySelectorAll('.inv-user-check').forEach(c=>c.checked=true);calcInvTotal();}
+function inv_clearAll(){document.querySelectorAll('.inv-user-check').forEach(c=>c.checked=false);calcInvTotal();}
+
+async function createInvoiceBatch(){
+  var batchNum=document.getElementById('inv-batch-num').value;
+  var date=document.getElementById('inv-date').value;
+  var method=document.getElementById('inv-method').value;
+  var notes=document.getElementById('inv-notes').value;
+  var checks=[...document.querySelectorAll('.inv-user-check:checked')];
+  sal('inv-alert','');
+  if(!checks.length){sal('inv-alert','Please select at least one user.');return;}
+  var selectedWDs=checks.map(c=>invUsersData[parseInt(c.dataset.idx)]);
+  var totalAmount=selectedWDs.reduce((a,w)=>a+parseFloat(w.amount||0),0);
+  var invoiceId='INV-'+batchNum+'-'+Date.now().toString(36).toUpperCase().slice(-4);
+
+  // Save invoice batch to Supabase
+  var batchPayload={
+    batch_number:batchNum,
+    invoice_id:invoiceId,
+    date:date,
+    payment_method:method,
+    notes,
+    total_amount:totalAmount,
+    user_count:selectedWDs.length,
+    status:'created',
+    created_by:CA?CA.id:null,
+    items:selectedWDs.map(w=>({withdrawal_id:w.id,user_id:w.user_id,user_email:w.users?w.users.email:'',amount:w.amount,wallet:w.wallet_address})),
+    created_at:new Date().toISOString()
+  };
+  await sb.from('invoice_batches').insert(batchPayload).catch(()=>{});
+
+  // Send notification to each selected user
+  for(var w of selectedWDs){
+    if(!w.user_id)continue;
+    await sb.from('notifications').insert({
+      title:'📄 Payment Invoice Created',
+      message:`Your payment invoice ${invoiceId} has been created. Amount: $${parseFloat(w.amount||0).toFixed(2)} via ${method}. Invoice Date: ${date}. Your payment will be processed shortly.`,
+      type:'info',
+      target:'specific',
+      target_user_id:w.user_id,
+      created_by:CA?CA.id:null
+    }).catch(()=>{});
+  }
+
+  // Generate and download PDF
+  generateInvoicePDF(batchPayload, selectedWDs);
+  closeMod('invoice-batch-bg');
+  loadAccountant();
+  showToast('✅ Invoice '+invoiceId+' created & users notified!');
+}
+
+function previewInvoicePDF(){
+  var method=document.getElementById('inv-method').value;
+  var checks=[...document.querySelectorAll('.inv-user-check:checked')];
+  var selectedWDs=checks.map(c=>invUsersData[parseInt(c.dataset.idx)]);
+  var batchNum=document.getElementById('inv-batch-num').value;
+  var date=document.getElementById('inv-date').value;
+  var total=selectedWDs.reduce((a,w)=>a+parseFloat(w.amount||0),0);
+  var batchPayload={batch_number:batchNum,invoice_id:'INV-PREVIEW',date,payment_method:method,notes:document.getElementById('inv-notes').value,total_amount:total,user_count:selectedWDs.length};
+  generateInvoicePDF(batchPayload,selectedWDs);
+}
+
+function generateInvoicePDF(batch, wds){
+  var rows=wds.map((w,i)=>{
+    var u=w.users||{};
+    return`<tr>
+      <td>${i+1}</td>
+      <td>${u.email||'—'}</td>
+      <td>${u.country||'—'}</td>
+      <td>${w.wallet_address||'—'}</td>
+      <td>${w.method||batch.payment_method}</td>
+      <td style="text-align:right;font-weight:700">$${parseFloat(w.amount||0).toFixed(2)}</td>
+    </tr>`;
+  }).join('');
+
+  var html=`<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8"/>
+<title>Invoice ${batch.invoice_id}</title>
+<style>
+  body{font-family:Arial,sans-serif;color:#1a2332;margin:0;padding:0}
+  .page{padding:40px;max-width:800px;margin:0 auto}
+  .header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:32px;padding-bottom:20px;border-bottom:3px solid #2563eb}
+  .logo{font-size:24px;font-weight:800;color:#2563eb}
+  .inv-title{font-size:28px;font-weight:800;color:#1a2332;text-align:right}
+  .inv-meta{font-size:12px;color:#6b7a99;text-align:right;margin-top:4px}
+  .section{margin-bottom:24px}
+  .section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#6b7a99;margin-bottom:8px}
+  .info-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:24px}
+  .info-box{background:#f0f4f8;border-radius:8px;padding:12px 14px}
+  .info-box-label{font-size:10px;color:#6b7a99;font-weight:700;text-transform:uppercase;margin-bottom:4px}
+  .info-box-val{font-size:14px;font-weight:700;color:#1a2332}
+  table{width:100%;border-collapse:collapse;font-size:12px}
+  th{background:#2563eb;color:#fff;padding:10px 12px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px}
+  td{padding:10px 12px;border-bottom:1px solid #dde3ec;vertical-align:middle}
+  tr:hover td{background:#f0f4f8}
+  .total-row{background:#f0fdf4;font-weight:700}
+  .total-row td{font-size:14px;border-top:2px solid #16a34a;border-bottom:none}
+  .footer{margin-top:32px;padding-top:16px;border-top:1px solid #dde3ec;font-size:10px;color:#6b7a99;text-align:center}
+  .status-badge{display:inline-block;padding:2px 10px;border-radius:20px;font-size:10px;font-weight:700;background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="header">
+    <div>
+      <div class="logo">Amulytask</div>
+      <div style="font-size:12px;color:#6b7a99;margin-top:4px">admin@amulytask.co.ke</div>
+    </div>
+    <div>
+      <div class="inv-title">PAYMENT INVOICE</div>
+      <div class="inv-meta">Invoice #: <strong>${batch.invoice_id}</strong></div>
+      <div class="inv-meta">Batch: ${batch.batch_number}</div>
+      <div class="inv-meta">Date: ${batch.date}</div>
+    </div>
+  </div>
+
+  <div class="info-grid">
+    <div class="info-box"><div class="info-box-label">Payment Method</div><div class="info-box-val">${batch.payment_method}</div></div>
+    <div class="info-box"><div class="info-box-label">Total Recipients</div><div class="info-box-val">${batch.user_count} users</div></div>
+    <div class="info-box"><div class="info-box-label">Total Amount</div><div class="info-box-val" style="color:#16a34a">$${parseFloat(batch.total_amount||0).toFixed(2)}</div></div>
+  </div>
+
+  ${batch.notes?`<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:12px 14px;margin-bottom:20px;font-size:12px;color:#92400e"><strong>Notes:</strong> ${batch.notes}</div>`:''}
+
+  <table>
+    <thead>
+      <tr><th>#</th><th>User Email</th><th>Country</th><th>Wallet / Account</th><th>Method</th><th style="text-align:right">Amount</th></tr>
+    </thead>
+    <tbody>
+      ${rows}
+      <tr class="total-row">
+        <td colspan="5" style="text-align:right">TOTAL PAYOUT</td>
+        <td style="text-align:right;color:#16a34a">$${parseFloat(batch.total_amount||0).toFixed(2)}</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="footer">
+    <p>This invoice was generated by Amulytask Admin Dashboard · ${new Date().toLocaleString()}</p>
+    <p>All payments are processed according to our payment policy. For queries contact admin@amulytask.co.ke</p>
+  </div>
+</div>
+</body>
+</html>`;
+
+  var blob=new Blob([html],{type:'text/html'});
+  var url=URL.createObjectURL(blob);
+  var win=window.open(url,'_blank');
+  if(win)setTimeout(()=>win.print(),800);
+}
+
+async function loadInvoiceBatches(){
+  var container=document.getElementById('invoice-batches-list');
+  if(!container)return;
+  var{data:batches}=await sb.from('invoice_batches').select('*').order('created_at',{ascending:false}).limit(20).catch(()=>({data:[]}));
+  if(!(batches||[]).length){container.innerHTML='<div class="empty">No invoice batches yet.</div>';return;}
+  container.innerHTML=(batches||[]).map(b=>`
+    <div class="invoice-item">
+      <div>
+        <div class="inv-num">${b.invoice_id||b.batch_number}</div>
+        <div style="font-size:10px;color:var(--mu)">${fd(b.created_at)} · ${b.payment_method}</div>
+      </div>
+      <div class="inv-meta">
+        <div style="font-size:12px;font-weight:600">${b.user_count||0} users</div>
+        <div style="font-size:10px;color:var(--mu)">${b.notes||'—'}</div>
+      </div>
+      <div class="inv-total">$${parseFloat(b.total_amount||0).toFixed(2)}</div>
+      <span class="badge ${b.status==='paid'?'bgn':'bor'}">${b.status||'created'}</span>
+      <div class="acts">
+        <button class="btn bg" style="padding:4px 10px;font-size:11px" onclick="redownloadInvoice('${b.id}')">📄 Download</button>
+        ${b.status!=='paid'?`<button class="btn bs" style="padding:4px 10px;font-size:11px" onclick="markBatchPaid('${b.id}')">Mark Paid</button>`:''}
+      </div>
+    </div>`).join('');
+}
+
+async function redownloadInvoice(id){
+  var{data:b}=await sb.from('invoice_batches').select('*').eq('id',id).single().catch(()=>({data:null}));
+  if(!b){showToast('Invoice not found');return;}
+  generateInvoicePDF(b,b.items||[]);
+}
+
+async function markBatchPaid(id){
+  await sb.from('invoice_batches').update({status:'paid'}).eq('id',id).catch(()=>{});
+  // Notify users in batch
+  var{data:b}=await sb.from('invoice_batches').select('*').eq('id',id).single().catch(()=>({data:null}));
+  if(b&&b.items){
+    for(var item of b.items){
+      if(!item.user_id)continue;
+      await sb.from('notifications').insert({
+        title:'✅ Payment Dispatched',
+        message:`Your payment of $${parseFloat(item.amount||0).toFixed(2)} (Invoice: ${b.invoice_id}) has been dispatched via ${b.payment_method}. Please check your wallet.`,
+        type:'success',
+        target:'specific',
+        target_user_id:item.user_id,
+        created_by:CA?CA.id:null
+      }).catch(()=>{});
+    }
+  }
+  loadInvoiceBatches();
+  showToast('✅ Batch marked as paid & users notified!');
+}
+
+// ── MASS PAYMENT ─────────────────────────────────────────────
+var mpWDsData=[];
+
+async function openMassPayModal(){
+  if(!canDoAction('issue_payments')){showToast('❌ You do not have permission to issue payments.');return;}
+  sal('mass-pay-alert','');
+  document.getElementById('mp-ref').value='';
+  document.getElementById('mp-note').value='';
+  var{data:wds}=await sb.from('withdrawals').select('*,users(id,email,country,wallet_address)').eq('status','pending').order('created_at',{ascending:false});
+  mpWDsData=wds||[];
+  renderMPList();
+  document.getElementById('mass-pay-bg').classList.add('open');
+}
+
+function renderMPList(){
+  var container=document.getElementById('mp-users-list');
+  if(!mpWDsData.length){container.innerHTML='<div class="empty" style="padding:20px">No pending withdrawals.</div>';return;}
+  container.innerHTML=mpWDsData.map((w,i)=>{
+    var u=w.users||{};
+    return`<div class="pay-row" style="padding:10px 12px">
+      <input type="checkbox" class="pay-check mp-user-check" data-amount="${w.amount||0}" data-idx="${i}" onchange="calcMPTotal()"/>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12px;font-weight:700">${u.email||'—'}</div>
+        <div style="font-size:10px;color:var(--mu)">${u.country||'—'} · ${w.method||'—'} · <span class="mono">${w.wallet_address||'—'}</span></div>
+      </div>
+      <strong style="color:var(--green);font-size:13px">$${parseFloat(w.amount||0).toFixed(2)}</strong>
+    </div>`;
+  }).join('');
+}
+
+function calcMPTotal(){
+  var checks=document.querySelectorAll('.mp-user-check:checked');
+  var total=0;checks.forEach(c=>total+=parseFloat(c.dataset.amount||0));
+  document.getElementById('mp-total-amount').textContent='$'+total.toFixed(2);
+  document.getElementById('mp-selected-count').textContent=checks.length+' selected';
+}
+
+function mp_selectAll(){document.querySelectorAll('.mp-user-check').forEach(c=>c.checked=true);calcMPTotal();}
+function mp_clearAll(){document.querySelectorAll('.mp-user-check').forEach(c=>c.checked=false);calcMPTotal();}
+
+async function dispatchMassPayment(){
+  var method=document.getElementById('mp-method').value;
+  var ref=document.getElementById('mp-ref').value.trim();
+  var note=document.getElementById('mp-note').value.trim();
+  var checks=[...document.querySelectorAll('.mp-user-check:checked')];
+  sal('mass-pay-alert','');
+  if(!checks.length){sal('mass-pay-alert','Select at least one user.');return;}
+  if(!ref){sal('mass-pay-alert','Enter a transaction reference.');return;}
+  var selected=checks.map(c=>mpWDsData[parseInt(c.dataset.idx)]);
+
+  for(var w of selected){
+    // Update withdrawal status
+    await sb.from('withdrawals').update({status:'completed',admin_note:ref,processed_at:new Date().toISOString()}).eq('id',w.id).catch(()=>{});
+    // Notify user
+    if(w.user_id){
+      await sb.from('notifications').insert({
+        title:'✅ Payment Sent!',
+        message:`Your payment of $${parseFloat(w.amount||0).toFixed(2)} has been dispatched via ${method}. Reference: ${ref}. ${note?'Note: '+note:''}`,
+        type:'success',
+        target:'specific',
+        target_user_id:w.user_id,
+        created_by:CA?CA.id:null
+      }).catch(()=>{});
+    }
+  }
+
+  closeMod('mass-pay-bg');
+  loadWDs();loadAccountant();loadOverview();
+  showToast('✅ '+selected.length+' payments dispatched & users notified!');
+}
+
+// ── INDIVIDUAL PAY ───────────────────────────────────────────
+var cIndivPayUser=null;
+
+function openIndivPay(uid){
+  if(!canDoAction('issue_payments')){showToast('❌ You do not have permission to issue payments.');return;}
+  var user=allMembersCache.find(u=>u.id===uid);
+  if(!user)return;
+  cIndivPayUser=user;
+  document.getElementById('indiv-pay-user-info').innerHTML=`
+    <div style="font-size:13px;font-weight:700">${user.email||'—'}</div>
+    <div style="font-size:11px;color:var(--mu)">@${user.username||'—'} · ${user.country||'—'}</div>
+    <div style="font-size:12px;color:var(--green);font-weight:700;margin-top:4px">Balance: $${parseFloat(user.balance||0).toFixed(4)}</div>`;
+  document.getElementById('ip-amount').value='';
+  document.getElementById('ip-ref').value='';
+  document.getElementById('ip-note').value='';
+  sal('indiv-pay-alert','');
+  document.getElementById('indiv-pay-bg').classList.add('open');
+}
+
+async function dispatchIndivPayment(){
+  if(!cIndivPayUser)return;
+  var amount=parseFloat(document.getElementById('ip-amount').value)||0;
+  var method=document.getElementById('ip-method').value;
+  var ref=document.getElementById('ip-ref').value.trim();
+  var note=document.getElementById('ip-note').value.trim();
+  sal('indiv-pay-alert','');
+  if(!amount){sal('indiv-pay-alert','Enter a payment amount.');return;}
+  if(!ref){sal('indiv-pay-alert','Enter a transaction reference.');return;}
+
+  // Notify user
+  await sb.from('notifications').insert({
+    title:'✅ Payment Sent!',
+    message:`Your payment of $${amount.toFixed(2)} has been dispatched via ${method}. Reference: ${ref}. ${note?'Note: '+note:''}`,
+    type:'success',
+    target:'specific',
+    target_user_id:cIndivPayUser.id,
+    created_by:CA?CA.id:null
+  }).catch(()=>{});
+
+  // Record as completed withdrawal if needed
+  await sb.from('withdrawals').insert({
+    user_id:cIndivPayUser.id,
+    amount,
+    method,
+    wallet_address:ref,
+    status:'completed',
+    admin_note:'Individual payment: '+ref+(note?'. '+note:''),
+    processed_at:new Date().toISOString(),
+    created_at:new Date().toISOString()
+  }).catch(()=>{});
+
+  closeMod('indiv-pay-bg');
+  loadAccountant();
+  showToast('✅ Payment of $'+amount.toFixed(2)+' dispatched to '+cIndivPayUser.email+'!');
+}
+
+// ── ADMIN ACTIONS & DELEGATION ───────────────────────────────
+const ALL_ACTIONS=['process_withdrawals','create_invoices','issue_payments','issue_chargebacks','ban_users','delete_users','approve_submissions','send_notifications','manage_referrals'];
+
+function canDoAction(action){
+  if(!CA)return false;
+  var role=CA.role||'admin';
+  if(role==='super_admin'||role==='technical')return true;
+  var assigned=CA.assigned_actions||[];
+  if(typeof assigned==='string'){try{assigned=JSON.parse(assigned);}catch(e){assigned=[];}}
+  return Array.isArray(assigned)&&assigned.includes(action);
+}
+
+async function loadAdminActionsPage(){
+  // Load admins with their assigned actions
+  var{data:admins}=await sb.from('admin_accounts').select('*').order('created_at',{ascending:true});
+  var tb=document.getElementById('admin-perms-tbody');
+  if(!tb)return;
+  var role=CA&&CA.role||'admin';
+  var canDelegate=role==='super_admin'||role==='technical';
+  if(!canDelegate){
+    document.getElementById('btn-delegate-actions').style.display='none';
+    document.getElementById('admin-perms-tbody').closest('.card').insertAdjacentHTML('afterbegin','<div style="padding:12px 16px;background:var(--orange-bg);border-bottom:1px solid #fde68a;font-size:12px;color:var(--orange)">👁️ View only — only Super Admin can assign actions.</div>');
+  }
+  tb.innerHTML=(admins||[]).map(a=>{
+    var r=a.role||'admin';
+    var isSelf=CA&&a.id===CA.id;
+    var actions=a.assigned_actions||[];
+    if(typeof actions==='string'){try{actions=JSON.parse(actions);}catch(e){actions=[];}}
+    var isSuper=r==='super_admin'||r==='technical';
+    var actionsDisplay=isSuper?'<span class="badge bgn">All Actions</span>':
+      (actions.length?actions.slice(0,3).map(ac=>`<span class="badge bbl" style="margin:1px">${ac.replace(/_/g,' ')}</span>`).join('')+(actions.length>3?`<span class="badge bgr">+${actions.length-3} more</span>`:''): '<span class="badge bgr">None assigned</span>');
+    return`<tr>
+      <td><div style="display:flex;align-items:center;gap:8px"><div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--purple));display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff">${(a.display_name||'A').slice(0,2).toUpperCase()}</div><strong>${a.display_name||'—'}${isSelf?' (You)':''}</strong></div></td>
+      <td><span class="role-badge ${ROLE_CSS[r]||'role-admin'}">${ROLE_LABELS[r]||r}</span></td>
+      <td>${actionsDisplay}</td>
+      <td style="font-size:11px">${fd(a.updated_at||a.created_at)}</td>
+      <td>${canDelegate&&!isSuper?`<button class="btn bg" style="padding:4px 10px;font-size:11px" onclick="openDelegateForAdmin('${a.id}')">Edit</button>`:'—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+async function openDelegateModal(){
+  var{data:admins}=await sb.from('admin_accounts').select('id,display_name,role,assigned_actions').order('created_at',{ascending:true});
+  var select=document.getElementById('delegate-admin-select');
+  select.innerHTML='<option value="">Choose admin…</option>';
+  (admins||[]).filter(a=>{var r=a.role||'admin';return r!=='super_admin'&&r!=='technical';}).forEach(a=>{
+    var opt=document.createElement('option');opt.value=a.id;opt.textContent=a.display_name+' ('+a.role+')';select.appendChild(opt);
+  });
+  document.querySelectorAll('#delegate-actions-grid input[type=checkbox]').forEach(c=>c.checked=false);
+  sal('delegate-alert','');
+  document.getElementById('delegate-bg').classList.add('open');
+}
+
+async function openDelegateForAdmin(adminId){
+  await openDelegateModal();
+  document.getElementById('delegate-admin-select').value=adminId;
+  await loadAdminCurrentActions();
+}
+
+async function loadAdminCurrentActions(){
+  var adminId=document.getElementById('delegate-admin-select').value;
+  if(!adminId)return;
+  var{data:a}=await sb.from('admin_accounts').select('assigned_actions').eq('id',adminId).single();
+  var actions=a?a.assigned_actions||[]:[];
+  if(typeof actions==='string'){try{actions=JSON.parse(actions);}catch(e){actions=[];}}
+  document.querySelectorAll('#delegate-actions-grid input[type=checkbox]').forEach(c=>{c.checked=Array.isArray(actions)&&actions.includes(c.value);});
+}
+
+async function saveDelegation(){
+  var adminId=document.getElementById('delegate-admin-select').value;
+  sal('delegate-alert','');
+  if(!adminId){sal('delegate-alert','Select an admin.');return;}
+  var actions=[...document.querySelectorAll('#delegate-actions-grid input[type=checkbox]:checked')].map(c=>c.value);
+  var{error}=await sb.from('admin_accounts').update({assigned_actions:actions,updated_at:new Date().toISOString()}).eq('id',adminId);
+  if(error){sal('delegate-alert','Error: '+error.message);return;}
+  closeMod('delegate-bg');
+  loadAdminActionsPage();
+  showToast('✅ Admin permissions updated!');
+}
+
+// ── REFERRAL SYSTEM ──────────────────────────────────────────
+async function loadReferrals(){
+  var{data:users}=await sb.from('admin_users_view').select('id,email,username,country,referral_code,created_at').order('created_at',{ascending:false});
+  var{data:refs}=await sb.from('referrals').select('*,referrer:referrer_id(email,username),referred:referred_id(email,username,created_at)').order('created_at',{ascending:false}).catch(()=>({data:[]}));
+  var refList=refs||[];var userList=users||[];
+
+  // Stats
+  document.getElementById('ref-total').textContent=refList.length;
+  var successful=refList.filter(r=>r.status==='converted'||r.bonus_paid);
+  document.getElementById('ref-success').textContent=successful.length;
+  var totalEarnings=refList.reduce((a,r)=>a+parseFloat(r.bonus_amount||0),0);
+  document.getElementById('ref-earnings').textContent='$'+totalEarnings.toFixed(2);
+
+  // Build referrer map
+  var refMap={};refList.forEach(r=>{if(!refMap[r.referrer_id])refMap[r.referrer_id]={count:0,converted:0,earned:0,email:r.referrer?r.referrer.email:'—'};refMap[r.referrer_id].count++;if(r.status==='converted'||r.bonus_paid){refMap[r.referrer_id].converted++;refMap[r.referrer_id].earned+=parseFloat(r.bonus_amount||0);}});
+  var topReferrers=Object.entries(refMap).sort((a,b)=>b[1].count-a[1].count).slice(0,20);
+  document.getElementById('ref-top-count').textContent=topReferrers.length;
+
+  // Leaderboard
+  var lb=document.getElementById('ref-leaderboard-tbody');
+  lb.innerHTML=topReferrers.length?topReferrers.map(([uid,d],i)=>`<tr>
+    <td style="font-weight:700">${i+1}</td>
+    <td style="font-size:12px">${d.email}</td>
+    <td class="mono">${userList.find(u=>u.id===uid)?.referral_code||'—'}</td>
+    <td><span class="badge bbl">${d.count}</span></td>
+    <td><span class="badge bgn">${d.converted}✓</span></td>
+    <td><strong style="color:var(--green)">$${d.earned.toFixed(2)}</strong></td>
+    <td><button class="btn bg" style="padding:4px 10px;font-size:11px" onclick="viewUserRefs('${uid}')">View</button></td>
+  </tr>`).join(''):'<tr><td colspan="7"><div class="empty">No referrals yet.</div></td></tr>';
+
+  // All referrals table
+  var tb=document.getElementById('ref-tbody');
+  tb.innerHTML=refList.length?refList.map(r=>`<tr>
+    <td style="font-size:11px">${r.referrer?r.referrer.email||'—':'—'}</td>
+    <td style="font-size:11px">${r.referred?r.referred.email||'—':'—'}</td>
+    <td style="font-size:11px">${fd(r.created_at)}</td>
+    <td>${stbadge(r.status||'pending')}</td>
+    <td><strong style="color:var(--green)">$${parseFloat(r.bonus_amount||0).toFixed(2)}</strong></td>
+  </tr>`).join(''):'<tr><td colspan="5"><div class="empty">No referral records yet.</div></td></tr>';
+}
+
+function filterReferrals(q){showToast('Search: '+q);}
+function viewUserRefs(uid){showToast('Filtering by referrer: '+uid);}
+
+async function saveReferralSettings(){
+  var bonus=parseFloat(document.getElementById('ref-bonus').value)||0;
+  var refBonus=parseFloat(document.getElementById('ref-referred-bonus').value)||0;
+  var minWd=parseFloat(document.getElementById('ref-min-wd').value)||0;
+  var active=document.getElementById('ref-active').checked;
+  await sb.from('platform_settings').upsert({key:'referral_settings',value:{bonus,refBonus,minWd,active}}).catch(()=>{});
+  var msg=document.getElementById('ref-settings-msg');msg.style.display='block';
+  setTimeout(()=>{msg.style.display='none';},3000);
+  showToast('✅ Referral settings saved!');
+}
+
+// ── ENHANCED showDash to show new nav items ───────────────────
+const _origShowDash=showDash;
+function showDash(){
+  _origShowDash();
+  var role=CA?CA.role||'admin':'admin';
+  var isSuper=role==='super_admin'||role==='technical';
+  // Always show referrals to all admins
+  var refBtn=document.getElementById('nav-referrals-btn');
+  if(refBtn)refBtn.style.display='';
+  // Admin actions only for super
+  var aaBtn=document.getElementById('nav-admin-actions-btn');
+  if(aaBtn)aaBtn.style.display=isSuper?'':'none';
+  if(isSuper&&document.getElementById('nav-admin-section'))document.getElementById('nav-admin-section').style.display='';
+}
+
+// ── ENHANCED goPage ───────────────────────────────────────────
+const _origGoPage=goPage;
+function goPage(n,btn){
+  _origGoPage(n,btn);
+  var titles2={referrals:'Referral System','admin-actions':'Admin Actions'};
+  var subs2={referrals:'Manage referrals and track performance','admin-actions':'Super admin actions and permission delegation'};
+  if(titles2[n]){document.getElementById('tb-title').textContent=titles2[n];document.getElementById('tb-sub').textContent=subs2[n];}
+  if(n==='referrals')loadReferrals();
+  if(n==='admin-actions')loadAdminActionsPage();
+}
+
   window.addEventListener('DOMContentLoaded', boot);
 </script>
 </body>
