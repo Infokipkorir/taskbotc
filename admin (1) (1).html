@@ -1046,7 +1046,82 @@ canvas{display:block}
     </div>
   </div>
 </div>
+<!-- ══ REFERRAL SYSTEM ══ -->
+        <div class="pg" id="pg-referrals">
+          <div class="stats">
+            <div class="sc" style="--accent-c:var(--blue)"><div class="sc-accent"></div><div class="sl">Total Referrals</div><div class="sv" id="ref-total">—</div><div class="ss">All time</div></div>
+            <div class="sc" style="--accent-c:var(--green)"><div class="sc-accent"></div><div class="sl">Successful</div><div class="sv" id="ref-success" style="color:var(--green)">—</div><div class="ss">Converted referrals</div></div>
+            <div class="sc" style="--accent-c:var(--orange)"><div class="sc-accent"></div><div class="sl">Referral Earnings</div><div class="sv" id="ref-earnings" style="color:var(--orange)">—</div><div class="ss">Total paid out</div></div>
+            <div class="sc" style="--accent-c:var(--purple)"><div class="sc-accent"></div><div class="sl">Top Referrers</div><div class="sv" id="ref-top-count">—</div><div class="ss">Active referrers</div></div>
+          </div>
 
+          <!-- Referral Settings -->
+          <div class="card" style="margin-bottom:14px">
+            <div class="card-head"><span class="card-title">⚙️ Referral Program Settings</span><button class="btn bp" onclick="saveReferralSettings()">Save Settings</button></div>
+            <div style="padding:16px">
+              <div class="frow3">
+                <div class="mfield"><label>Referral Bonus ($)</label><input id="ref-bonus" type="number" step="0.01" placeholder="e.g. 0.50" value="0.50"/></div>
+                <div class="mfield"><label>Referred User Bonus ($)</label><input id="ref-referred-bonus" type="number" step="0.01" placeholder="e.g. 0.20" value="0.20"/></div>
+                <div class="mfield"><label>Min Withdrawal to Qualify ($)</label><input id="ref-min-wd" type="number" step="0.01" placeholder="e.g. 2.00" value="2.00"/></div>
+              </div>
+              <div class="toggle-wrap"><div style="font-size:13px;font-weight:600">Referral Program Active</div><label class="tog"><input type="checkbox" id="ref-active" checked/><span class="tsl"></span></label></div>
+              <div id="ref-settings-msg" style="font-size:11px;color:var(--green);display:none;margin-top:6px">✓ Settings saved</div>
+            </div>
+          </div>
+
+          <!-- Top Referrers Leaderboard -->
+          <div class="card" style="margin-bottom:14px">
+            <div class="card-head"><span class="card-title">🏆 Top Referrers</span><button class="btn bg" onclick="loadReferrals()"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.65 6.35A7.958 7.958 0 0012 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0112 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>Refresh</button></div>
+            <table><thead><tr><th>Rank</th><th>Referrer</th><th>Referral Code</th><th>Referrals</th><th>Converted</th><th>Earned</th><th>Actions</th></tr></thead>
+            <tbody id="ref-leaderboard-tbody"><tr><td colspan="7" class="ldr">Loading…</td></tr></tbody></table>
+          </div>
+
+          <!-- All Referral Relationships -->
+          <div class="card">
+            <div class="card-head">
+              <span class="card-title">🔗 All Referral Relationships</span>
+              <input id="ref-search" placeholder="Search user…" style="padding:6px 10px;border:1.5px solid var(--b);border-radius:var(--r);font-size:12px;background:var(--bg3);color:var(--tx);outline:none;width:220px" oninput="filterReferrals(this.value)"/>
+            </div>
+            <table><thead><tr><th>Referred By</th><th>New User</th><th>Date Joined</th><th>Status</th><th>Bonus Paid</th></tr></thead>
+            <tbody id="ref-tbody"><tr><td colspan="5" class="ldr">Loading…</td></tr></tbody></table>
+          </div>
+        </div>
+
+        <!-- ══ ADMIN ACTIONS ══ -->
+        <div class="pg" id="pg-admin-actions">
+          <div style="background:var(--orange-bg);border:1px solid #fde68a;border-radius:var(--r2);padding:14px 18px;margin-bottom:16px;display:flex;align-items:center;gap:10px">
+            <span style="font-size:22px">🔐</span>
+            <div>
+              <div style="font-size:13px;font-weight:700;color:var(--orange)">Super Admin Only Section</div>
+              <div style="font-size:11px;color:var(--mu)">Admin Actions are restricted to Super Admin by default. Super Admin can delegate specific actions to other admins.</div>
+            </div>
+          </div>
+
+          <!-- Action Delegation -->
+          <div class="card" style="margin-bottom:14px">
+            <div class="card-head"><span class="card-title">👥 Delegate Actions to Admins</span><button class="btn bp" id="btn-delegate-actions" onclick="openDelegateModal()"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>Assign Actions</button></div>
+            <table><thead><tr><th>Admin</th><th>Role</th><th>Assigned Actions</th><th>Last Modified</th><th>Actions</th></tr></thead>
+            <tbody id="admin-perms-tbody"><tr><td colspan="5" class="ldr">Loading…</td></tr></tbody></table>
+          </div>
+
+          <!-- Available Actions Library -->
+          <div class="card">
+            <div class="card-head"><span class="card-title">📋 Available Admin Actions</span></div>
+            <div style="padding:16px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px" id="actions-library">
+              <div class="action-card"><div class="action-icon">💳</div><div class="action-name">Process Withdrawals</div><div class="action-desc">Approve or reject withdrawal requests</div></div>
+              <div class="action-card"><div class="action-icon">🧾</div><div class="action-name">Create Invoices</div><div class="action-desc">Generate invoice batches and send to users</div></div>
+              <div class="action-card"><div class="action-icon">💸</div><div class="action-name">Issue Payments</div><div class="action-desc">Send individual or mass payments</div></div>
+              <div class="action-card"><div class="action-icon">↩</div><div class="action-name">Issue Chargebacks</div><div class="action-desc">Reverse payments and deduct balances</div></div>
+              <div class="action-card"><div class="action-icon">🚫</div><div class="action-name">Ban/Unban Users</div><div class="action-desc">Restrict or restore user access</div></div>
+              <div class="action-card"><div class="action-icon">🗑️</div><div class="action-name">Delete Users</div><div class="action-desc">Permanently remove user accounts</div></div>
+              <div class="action-card"><div class="action-icon">✅</div><div class="action-name">Approve Submissions</div><div class="action-desc">Review and approve task submissions</div></div>
+              <div class="action-card"><div class="action-icon">📢</div><div class="action-name">Send Notifications</div><div class="action-desc">Broadcast or targeted notifications</div></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+                </div>
 <!-- ADMIN MODAL -->
 <div class="mbg" id="admin-bg">
   <div class="modal">
