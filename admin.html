@@ -1477,6 +1477,31 @@ function adminLogout(){
   location.reload();
   }
 
+  // ── ENHANCED showDash to show new nav items ───────────────────
+const _origShowDash = showDash;
+showDash = function() {       // <-- Changed to function expression
+  _origShowDash();
+  var role=CA?CA.role||'admin':'admin';
+  var isSuper=role==='super_admin'||role==='technical';
+  // Always show referrals to all admins
+  var refBtn=document.getElementById('nav-referrals-btn');
+  if(refBtn)refBtn.style.display='';
+  // Admin actions only for super
+  var aaBtn=document.getElementById('nav-admin-actions-btn');
+  if(aaBtn)aaBtn.style.display=isSuper?'':'none';
+  if(isSuper&&document.getElementById('nav-admin-section'))document.getElementById('nav-admin-section').style.display='';
+};
+
+// ── ENHANCED goPage ───────────────────────────────────────────
+const _origGoPage = goPage;
+goPage = function(n, btn) {   // <-- Changed to function expression
+  _origGoPage(n,btn);
+  var titles2={referrals:'Referral System','admin-actions':'Admin Actions'};
+  var subs2={referrals:'Manage referrals and track performance','admin-actions':'Super admin actions and permission delegation'};
+  if(titles2[n]){document.getElementById('tb-title').textContent=titles2[n];document.getElementById('tb-sub').textContent=subs2[n];}
+  if(n==='referrals')loadReferrals();
+  if(n==='admin-actions')loadAdminActionsPage();
+};
 // ── LOAD ALL ─────────────────────────────────────────────────
 async function loadAll(){
   // Run all loaders independently so one failure doesn't block others
