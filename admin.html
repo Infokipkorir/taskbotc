@@ -763,8 +763,28 @@ canvas{display:block}
 
 </div>
 
+          <!-- All Users Balance Table -->
+          <div class="acct-section" style="margin-bottom:14px">
+            <div class="acct-section-head">
+              <span class="acct-section-title"><i class="bi bi-people-fill"></i> All Users — Balances &amp; Payout Eligibility</span>
+              <div style="display:flex;gap:6px;align-items:center">
+                <span id="wd-min-payout-display" style="font-size:11px;color:var(--mu)">Min payout: $1.00</span>
+                <button class="btn bg" onclick="loadWDs()"><i class="bi bi-arrow-clockwise"></i> Refresh</button>
+              </div>
+            </div>
+            <table>
+              <thead>
+                <tr><th>User</th><th>Balance</th><th>Eligible</th><th>Withdrawals</th><th>Total Paid</th><th>Action</th></tr>
+              </thead>
+              <tbody id="wd-users-tbody">
+                <tr><td colspan="6" class="ldr">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+
           <!-- Action Buttons Row -->
           <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
+            <button class="btn bpur" onclick="openPaymentSettings()"><i class="bi bi-gear-fill"></i> Payment Channels</button>
             <button class="btn bp" onclick="openInvoiceBatchModal()"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm-1 7V3.5L18.5 9H13z"/></svg>Create Invoice Batch</button>
             <button class="btn bs" onclick="openMassPayModal()"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/></svg>Mass Payment</button>
             <button class="btn bd" onclick="openChargebackModal()"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>Issue Chargeback</button>
@@ -4009,5 +4029,103 @@ goPage=function(n,btn){
 
   window.addEventListener('DOMContentLoaded', boot);
 </script>
+
+<!-- ══ PAYMENT SETTINGS MODAL ══ -->
+<div class="mbg" id="payment-settings-bg">
+  <div class="modal modal-wide">
+    <div class="mhead">
+      <span class="mtitle"><i class="bi bi-gear-fill"></i> Payment Channel Settings</span>
+      <button class="mclose" onclick="closeMod('payment-settings-bg')">×</button>
+    </div>
+    <div class="mbody">
+      <div style="background:var(--blue-bg);border:1px solid #bfdbfe;border-radius:var(--r);padding:12px 14px;margin-bottom:16px">
+        <div style="font-size:12px;font-weight:700;color:var(--blue);margin-bottom:8px"><i class="bi bi-sliders"></i> Minimum Payout Threshold</div>
+        <div class="frow2">
+          <div class="mfield">
+            <label>Minimum Withdrawal Amount ($)</label>
+            <input id="ps-min-payout" type="number" step="0.01" min="0" value="1.00" placeholder="e.g. 1.00"/>
+          </div>
+          <div style="display:flex;align-items:flex-end;padding-bottom:14px;font-size:11px;color:var(--mu)">
+            Users with balance below this amount will see the Pay button disabled.
+          </div>
+        </div>
+      </div>
+      <div style="border:1px solid var(--b);border-radius:var(--r2);padding:14px;margin-bottom:12px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div style="font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px">
+            <img src="https://raw.githubusercontent.com/Infokipkorir/taskbotc/main/mpesa_logo.png" style="height:18px"/> M-Pesa
+          </div>
+          <label class="tog"><input type="checkbox" id="ps-mpesa-enabled"/><span class="tsl"></span></label>
+        </div>
+        <div class="frow2">
+          <div class="mfield">
+            <label>Account Type</label>
+            <select id="ps-mpesa-type" onchange="updateMpesaLabel()">
+              <option value="till">Till Number</option>
+              <option value="paybill">Paybill Number</option>
+              <option value="phone">Phone Number</option>
+            </select>
+          </div>
+          <div class="mfield">
+            <label id="ps-mpesa-value-label">Till Number</label>
+            <input id="ps-mpesa-value" placeholder="e.g. 123456 or 0712345678"/>
+          </div>
+        </div>
+      </div>
+      <div style="border:1px solid var(--b);border-radius:var(--r2);padding:14px;margin-bottom:12px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div style="font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px">
+            <img src="https://www.paypalobjects.com/webstatic/icon/pp258.png" style="height:18px"/> PayPal
+          </div>
+          <label class="tog"><input type="checkbox" id="ps-paypal-enabled"/><span class="tsl"></span></label>
+        </div>
+        <div class="mfield">
+          <label>PayPal Email / Me Link</label>
+          <input id="ps-paypal-value" placeholder="e.g. payments@yourdomain.com"/>
+        </div>
+      </div>
+      <div style="border:1px solid var(--b);border-radius:var(--r2);padding:14px;margin-bottom:12px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div style="font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px">
+            <img src="https://raw.githubusercontent.com/Infokipkorir/taskbotc/main/Binance_logo.png" style="height:18px"/> Binance
+          </div>
+          <label class="tog"><input type="checkbox" id="ps-binance-enabled"/><span class="tsl"></span></label>
+        </div>
+        <div class="frow2">
+          <div class="mfield">
+            <label>Binance Email / UID</label>
+            <input id="ps-binance-value" placeholder="e.g. pay@yourdomain.com"/>
+          </div>
+          <div class="mfield">
+            <label>Network</label>
+            <select id="ps-binance-network">
+              <option value="BEP20">BEP20 (BSC)</option>
+              <option value="TRC20">TRC20 (Tron)</option>
+              <option value="ERC20">ERC20 (Ethereum)</option>
+              <option value="BTC">Bitcoin</option>
+              <option value="Pay">Binance Pay (Email/UID)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div style="border:1px solid var(--b);border-radius:var(--r2);padding:14px;margin-bottom:4px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div style="font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px">
+            <img src="https://minipay.opera.com/favicon.ico" style="height:18px"/> MiniPay
+          </div>
+          <label class="tog"><input type="checkbox" id="ps-minipay-enabled"/><span class="tsl"></span></label>
+        </div>
+        <div class="mfield">
+          <label>MiniPay / Celo Address or Email</label>
+          <input id="ps-minipay-value" placeholder="e.g. 0xAbc… or email@domain.com"/>
+        </div>
+      </div>
+    </div>
+    <div class="mfoot">
+      <button class="btn bg" onclick="closeMod('payment-settings-bg')">Cancel</button>
+      <button class="btn bp" onclick="savePaymentSettings()"><i class="bi bi-floppy-fill"></i> Save Settings</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
