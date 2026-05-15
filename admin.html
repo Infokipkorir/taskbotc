@@ -800,7 +800,7 @@ canvas{display:block}
                 <button class="btn bg" onclick="loadAccountant()"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.65 6.35A7.958 7.958 0 0012 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0112 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>Refresh</button>
               </div>
             </div>
-            <table><thead><tr><th><input type="checkbox" id="ac-check-all" onchange="toggleAllMemberChecks(this.checked)" style="cursor:pointer"/></th><th>Member</th><th>Country</th><th>Balance</th><th>Total Earned</th><th>Withdrawals</th><th>Last Activity</th><th>Actions</th></tr></thead>
+            <table><thead><tr><th><input type="checkbox" id="ac-check-all" onchange="toggleAllMemberChecks(this.checked)" style="cursor:pointer"/></th><th>Member</th><th>Country</th><th>Balance</th><th>Total Earned</th><th>Paid Out</th><th>Joined</th><th>Actions</th></tr></thead>
             <tbody id="ac-members-tbody"><tr><td colspan="8" class="ldr">Loading…</td></tr></tbody></table>
           </div>
 
@@ -2578,28 +2578,28 @@ async function loadPaymentSettings() {
 
 // ── SAVE PAYMENT SETTINGS TO DB ──────────────────────────────
 async function savePaymentSettings() {
-  // Read min payout
   minPayoutAmount = parseFloat(document.getElementById('ps-min-payout').value) || 1.00;
-
-  // Read each channel
   ['mpesa','paypal','binance','minipay'].forEach(ch => {
     paymentChannels[ch].enabled = document.getElementById('ps-'+ch+'-enabled').checked;
     paymentChannels[ch].value   = (document.getElementById('ps-'+ch+'-value').value || '').trim();
-    if (ch === 'mpesa') {
-      paymentChannels.mpesa.type = document.getElementById('ps-mpesa-type').value;
-    }
-    if (ch === 'binance') {
-      paymentChannels.binance.network = document.getElementById('ps-binance-network').value;
-    }
+    if (ch === 'mpesa') paymentChannels.mpesa.type = document.getElementById('ps-mpesa-type').value;
+    if (ch === 'binance') paymentChannels.binance.network = document.getElementById('ps-binance-network').value;
   });
-
+  var missing = [];
+  if (paymentChannels.mpesa.enabled && !paymentChannels.mpesa.value) missing.push('M-Pesa account');
+  if (paymentChannels.paypal.enabled && !paymentChannels.paypal.value) missing.push('PayPal email');
+  if (paymentChannels.binance.enabled && !paymentChannels.binance.value) missing.push('Binance UID/email');
+  if (paymentChannels.minipay.enabled && !paymentChannels.minipay.value) missing.push('MiniPay address');
+  if (missing.length) { showToast('⚠️ Fill in: ' + missing.join(', ')); return; }
   await Promise.all([
-    sb.from('platform_settings').upsert({ key: 'payment_channels',   value: paymentChannels }),
-    sb.from('platform_settings').upsert({ key: 'min_payout_amount',  value: minPayoutAmount })
+    sb.from('platform_settings').upsert({ key: 'payment_channels',  value: JSON.stringify(paymentChannels) }),
+    sb.from('platform_settings').upsert({ key: 'min_payout_amount', value: String(minPayoutAmount) })
   ]).catch(() => {});
-
+  var disp = document.getElementById('wd-min-payout-display');
+  if (disp) disp.textContent = 'Min payout: $' + minPayoutAmount.toFixed(2);
+  var active = ['mpesa','paypal','binance','minipay'].filter(ch => paymentChannels[ch].enabled).map(ch => paymentChannels[ch].name);
   closeMod('payment-settings-bg');
-  showToast('✅ Payment settings saved!');
+  showToast('✅ Saved! Active: ' + (active.length ? active.join(', ') : 'None'));
   loadWDs();
 }
 
@@ -3414,7 +3414,7 @@ var allMembersCache=[];
 async function loadAccountant(){
   var[wds,users,chargebacks]=await Promise.all([
     sb.from('withdrawals').select('*,users(email,country,balance,total_earned,username,wallet_address)').order('created_at',{ascending:false}),
-    sb.from('admin_users_view').select('id,email,username,country,balance,total_earned,created_at,referral_code').order('total_earned',{ascending:false}),
+    sb.from('admin_users_view').select('id,email,username,country,balance,total_earned,hold_balance,hold_reason,created_at,referral_code').order('total_earned',{ascending:false}),
     sb.from('chargebacks').select('*,users(email)').order('created_at',{ascending:false}).catch(()=>({data:[]}))
   ]);
   var wList=wds.data||[];var uList=users.data||[];chargebacksCache=chargebacks.data||[];allMembersCache=uList;
@@ -3455,29 +3455,43 @@ async function loadAccountant(){
 
 function renderAccountantMembers(members, allWds){
   var tb=document.getElementById('ac-members-tbody');
-  if(!(members||[]).length){tb.innerHTML='<tr><td colspan="8"><div class="empty">No members found.</div></td></tr>';return;}
+  if(!(members||[]).length){tb.innerHTML='<tr><td colspan="11"><div class="empty">No members found.</div></td></tr>';return;}
   var wdMap={};(allWds||[]).forEach(w=>{if(!wdMap[w.user_id])wdMap[w.user_id]={count:0,completed:0,total:0};wdMap[w.user_id].count++;if(w.status==='completed'){wdMap[w.user_id].completed++;wdMap[w.user_id].total+=parseFloat(w.amount||0);}});
   tb.innerHTML=members.map(u=>{
     var wd=wdMap[u.id]||{count:0,completed:0,total:0};
+    var bal=parseFloat(u.balance||0);
+    var held=parseFloat(u.hold_balance||0);
+    var isHeld=held>0;
     return`<tr>
       <td><input type="checkbox" class="pay-check ac-member-check" data-id="${u.id}" onchange="updateAcSelCount()"/></td>
       <td>
         <div style="font-size:12px;font-weight:700">${u.email||'—'}</div>
-        <div style="font-size:10px;color:var(--mu)">@${u.username||'—'}</div>
+        <div style="font-size:10px;color:var(--mu)">@${u.username||'—'} ${isHeld?'<span class="badge bor" style="font-size:9px">🔒 $'+held.toFixed(2)+' on hold</span>':''}</div>
       </td>
       <td><div class="country-badge">${countryFlag(u.country||'—')} ${u.country||'—'}</div></td>
-      <td><strong style="color:var(--green)">$${parseFloat(u.balance||0).toFixed(4)}</strong></td>
+      <td>
+        <strong style="color:var(--green)">$${bal.toFixed(4)}</strong>
+        ${isHeld?`<div style="font-size:9px;color:var(--orange)">🔒 $${held.toFixed(2)} held</div>`:''}
+      </td>
       <td>$${parseFloat(u.total_earned||0).toFixed(4)}</td>
-      <td><span class="badge bgn">${wd.completed}✓</span> <span style="font-size:9px;color:var(--mu)">${wd.count} total</span></td>
+      <td><span class="badge bgn">${wd.completed}✓</span> <span style="font-size:9px;color:var(--mu)">${wd.count} total · $${wd.total.toFixed(2)}</span></td>
       <td style="font-size:11px">${fd(u.created_at)}</td>
-      <td><button class="btn bp" style="padding:4px 10px;font-size:11px" onclick="openIndivPay('${u.id}')">Pay</button></td>
+      <td>
+        <div class="acts" style="flex-wrap:wrap;gap:3px">
+          <button class="btn bp" style="padding:3px 8px;font-size:10px" onclick="openIndivPay('${u.id}')" title="Pay this user"><i class="bi bi-send-fill"></i> Pay</button>
+          <button class="btn bpur" style="padding:3px 8px;font-size:10px" onclick="openChargebackForUserId('${u.id}','${(u.email||'').replace(/'/g,'')}')" title="Issue chargeback"><i class="bi bi-arrow-counterclockwise"></i> CB</button>
+          <button class="btn bo" style="padding:3px 8px;font-size:10px" onclick="openQuickInvoice('${u.id}')" title="Create invoice"><i class="bi bi-receipt"></i> Invoice</button>
+          <button class="btn bg" style="padding:3px 8px;font-size:10px;border-color:var(--blue);color:var(--blue)" onclick="openQuickNotify('${u.id}','${(u.email||'').replace(/'/g,'')}')" title="Send notification"><i class="bi bi-bell-fill"></i> Notify</button>
+          <button class="btn ${isHeld?'bs':'bd'}" style="padding:3px 8px;font-size:10px" onclick="openHoldModal('${u.id}','${(u.email||'').replace(/'/g,'')}',${bal},${held})" title="${isHeld?'Release hold':'Place hold'}"><i class="bi bi-${isHeld?'unlock':'lock'}-fill"></i> ${isHeld?'Unhold':'Hold'}</button>
+        </div>
+      </td>
     </tr>`;
   }).join('');
 }
 
 function filterAccountantMembers(q){
   q=(q||'').toLowerCase().trim();
-  if(!q){renderAccountantMembers(allMembersCache,[]);return;}
+  if(!q){renderAccountantMembers(allMembersCache,[]); return;}
   var filtered=allMembersCache.filter(u=>(u.email||'').toLowerCase().includes(q)||(u.username||'').toLowerCase().includes(q)||(u.country||'').toLowerCase().includes(q));
   renderAccountantMembers(filtered,[]);
 }
@@ -3490,6 +3504,93 @@ function updateAcSelCount(){
 
 function toggleAllMemberChecks(val){
   document.querySelectorAll('.ac-member-check').forEach(c=>c.checked=val);
+}
+
+// ── ACCOUNTANT QUICK ACTIONS ──────────────────────────────────
+function openChargebackForUserId(uid, email){
+  document.getElementById('cb-user').value=email||'';
+  document.getElementById('cb-amount').value='';
+  document.getElementById('cb-notes').value='';
+  sal('cb-alert','');
+  document.getElementById('chargeback-bg').classList.add('open');
+}
+
+function openQuickInvoice(uid){
+  // Pre-select this user in the invoice modal
+  openInvoiceBatchModal().then(()=>{
+    setTimeout(()=>{
+      var checks=document.querySelectorAll('.inv-user-check');
+      checks.forEach(c=>{
+        var idx=parseInt(c.dataset.idx);
+        if(invUsersData[idx]&&invUsersData[idx].user_id===uid) c.checked=true;
+      });
+      calcInvTotal();
+    },400);
+  });
+}
+
+function openQuickNotify(uid, email){
+  // Open notification modal pre-targeted to this user
+  sal('notif-alert','');
+  document.getElementById('nf-title').value='';
+  document.getElementById('nf-msg').value='';
+  document.getElementById('nf-type').value='info';
+  document.getElementById('nf-target').value='specific';
+  document.getElementById('nf-smtp-panel').style.display='block';
+  document.getElementById('nf-payment-panel').style.display='none';
+  notifRecipients=[email];
+  renderRecipients();
+  document.getElementById('notif-bg').classList.add('open');
+}
+
+// ── HOLD / UNHOLD MODAL ───────────────────────────────────────
+var cHoldUser=null;
+
+function openHoldModal(uid, email, balance, heldAmt){
+  cHoldUser={id:uid,email:email,balance:balance,hold_balance:heldAmt};
+  var isHeld=heldAmt>0;
+  document.getElementById('hold-modal-title').textContent=isHeld?'Release Hold':'Place Hold on Account';
+  document.getElementById('hold-user-info').innerHTML=`
+    <div style="font-size:13px;font-weight:700">${email}</div>
+    <div style="font-size:12px;color:var(--green);margin-top:4px">Balance: $${parseFloat(balance||0).toFixed(4)}</div>
+    ${isHeld?`<div style="font-size:12px;color:var(--orange);margin-top:2px">Currently held: $${parseFloat(heldAmt||0).toFixed(4)}</div>`:''}`;
+  document.getElementById('hold-amount-row').style.display=isHeld?'none':'block';
+  document.getElementById('hold-release-row').style.display=isHeld?'block':'none';
+  document.getElementById('hold-amount').value='';
+  document.getElementById('hold-reason').value='';
+  sal('hold-alert','');
+  document.getElementById('hold-bg').classList.add('open');
+}
+
+async function applyHold(){
+  if(!cHoldUser)return;
+  sal('hold-alert','');
+  var isHeld=parseFloat(cHoldUser.hold_balance||0)>0;
+  var reason=document.getElementById('hold-reason').value.trim();
+  if(isHeld){
+    // Release hold — restore balance from hold
+    var{error}=await sb.from('users').update({
+      balance: parseFloat(cHoldUser.balance||0)+parseFloat(cHoldUser.hold_balance||0),
+      hold_balance:0,
+      hold_reason:null
+    }).eq('id',cHoldUser.id);
+    if(error){sal('hold-alert','Error: '+error.message);return;}
+    await sb.from('notifications').insert({title:'Account Hold Released',message:'The hold on your account has been removed. Your balance is now fully accessible.',type:'success',target:'specific',target_user_id:cHoldUser.id,created_by:CA?CA.id:null}).catch(()=>{});
+    closeMod('hold-bg');showToast('✅ Hold released for '+cHoldUser.email);
+  } else {
+    var amount=parseFloat(document.getElementById('hold-amount').value)||0;
+    if(!amount){sal('hold-alert','Enter hold amount.');return;}
+    if(amount>parseFloat(cHoldUser.balance||0)){sal('hold-alert','Hold amount exceeds balance.');return;}
+    var{error}=await sb.from('users').update({
+      balance:parseFloat(cHoldUser.balance||0)-amount,
+      hold_balance:amount,
+      hold_reason:reason||'Admin hold'
+    }).eq('id',cHoldUser.id);
+    if(error){sal('hold-alert','Error: '+error.message);return;}
+    await sb.from('notifications').insert({title:'Account Hold Applied',message:`A hold of $${amount.toFixed(2)} has been placed on your account. Reason: ${reason||'Under review'}. Contact support for details.`,type:'warning',target:'specific',target_user_id:cHoldUser.id,created_by:CA?CA.id:null}).catch(()=>{});
+    closeMod('hold-bg');showToast('🔒 Hold of $'+amount.toFixed(2)+' placed on '+cHoldUser.email);
+  }
+  loadAccountant();
 }
 
 // ── INVOICE BATCH ────────────────────────────────────────────
@@ -3674,6 +3775,39 @@ function generateInvoicePDF(batch, wds){
   <div class="footer">
     <p>This invoice was generated by Amulytask Admin Dashboard · ${new Date().toLocaleString()}</p>
     <p>All payments are processed according to our payment policy. For queries contact admin@amulytask.co.ke</p>
+  </div>
+</div>
+
+<!-- ══ HOLD MODAL ══ -->
+<div class="mbg" id="hold-bg">
+  <div class="modal">
+    <div class="mhead">
+      <span class="mtitle" id="hold-modal-title">Place Hold</span>
+      <button class="mclose" onclick="closeMod('hold-bg')">×</button>
+    </div>
+    <div class="mbody">
+      <div id="hold-alert"></div>
+      <div id="hold-user-info" style="background:var(--bg3);border:1px solid var(--b);border-radius:var(--r);padding:12px;margin-bottom:14px"></div>
+      <div id="hold-amount-row">
+        <div class="mfield">
+          <label>Amount to Hold ($)</label>
+          <input id="hold-amount" type="number" step="0.0001" placeholder="0.0000"/>
+        </div>
+      </div>
+      <div id="hold-release-row" style="display:none">
+        <div style="padding:10px 12px;background:var(--orange-bg);border:1px solid #fde68a;border-radius:var(--r);font-size:12px;color:var(--orange);margin-bottom:12px">
+          <i class="bi bi-info-circle-fill"></i> This will release the full held amount back to the user's balance.
+        </div>
+      </div>
+      <div class="mfield">
+        <label>Reason (shown to user)</label>
+        <textarea id="hold-reason" placeholder="e.g. Under fraud review…" style="min-height:70px"></textarea>
+      </div>
+    </div>
+    <div class="mfoot">
+      <button class="btn bg" onclick="closeMod('hold-bg')">Cancel</button>
+      <button class="btn bo" onclick="applyHold()"><i class="bi bi-lock-fill"></i> Apply</button>
+    </div>
   </div>
 </div>
 </body>
@@ -4124,6 +4258,39 @@ goPage=function(n,btn){
     <div class="mfoot">
       <button class="btn bg" onclick="closeMod('payment-settings-bg')">Cancel</button>
       <button class="btn bp" onclick="savePaymentSettings()"><i class="bi bi-floppy-fill"></i> Save Settings</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ HOLD MODAL ══ -->
+<div class="mbg" id="hold-bg">
+  <div class="modal">
+    <div class="mhead">
+      <span class="mtitle" id="hold-modal-title">Place Hold</span>
+      <button class="mclose" onclick="closeMod('hold-bg')">×</button>
+    </div>
+    <div class="mbody">
+      <div id="hold-alert"></div>
+      <div id="hold-user-info" style="background:var(--bg3);border:1px solid var(--b);border-radius:var(--r);padding:12px;margin-bottom:14px"></div>
+      <div id="hold-amount-row">
+        <div class="mfield">
+          <label>Amount to Hold ($)</label>
+          <input id="hold-amount" type="number" step="0.0001" placeholder="0.0000"/>
+        </div>
+      </div>
+      <div id="hold-release-row" style="display:none">
+        <div style="padding:10px 12px;background:var(--orange-bg);border:1px solid #fde68a;border-radius:var(--r);font-size:12px;color:var(--orange);margin-bottom:12px">
+          <i class="bi bi-info-circle-fill"></i> This will release the full held amount back to the user's balance.
+        </div>
+      </div>
+      <div class="mfield">
+        <label>Reason (shown to user)</label>
+        <textarea id="hold-reason" placeholder="e.g. Under fraud review…" style="min-height:70px"></textarea>
+      </div>
+    </div>
+    <div class="mfoot">
+      <button class="btn bg" onclick="closeMod('hold-bg')">Cancel</button>
+      <button class="btn bo" onclick="applyHold()"><i class="bi bi-lock-fill"></i> Apply</button>
     </div>
   </div>
 </div>
