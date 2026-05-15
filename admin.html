@@ -650,14 +650,67 @@ canvas{display:block}
           <tbody id="w-tbody"><tr><td colspan="7" class="ldr">Loading…</td></tr></tbody></table></div>
         </div>
 
-        <!-- ══ ACCOUNTANT ══ -->
-        <div class="pg" id="pg-accountant">
-          <div class="fin-stats">
-            <div class="fin-card"><div class="icon-bg">💰</div><div class="sl">Total Paid Out</div><div class="sv" id="ac-total-paid">—</div><div class="ss">Completed withdrawals</div></div>
-            <div class="fin-card"><div class="icon-bg">⏳</div><div class="sl">Pending Payouts</div><div class="sv" id="ac-pending" style="color:var(--orange)">—</div><div class="ss">Awaiting processing</div></div>
-            <div class="fin-card"><div class="icon-bg">↩</div><div class="sl">Total Chargebacks</div><div class="sv" id="ac-chargebacks" style="color:var(--red)">—</div><div class="ss">Reversed payments</div></div>
-            <div class="fin-card"><div class="icon-bg">🏦</div><div class="sl">Total User Balances</div><div class="sv" id="ac-balances">—</div><div class="ss">Combined wallet value</div></div>
-          </div>
+        
+  <!-- ══ ACCOUNTANT ══ -->
+<div class="pg" id="pg-accountant">
+
+  <div class="fin-stats">
+
+    <!-- TOTAL PAID -->
+    <div class="fin-card">
+      <div class="icon-bg">
+        <i class="bi bi-cash-stack"></i>
+      </div>
+
+      <div class="sl">Total Paid Out</div>
+
+      <div class="sv" id="ac-total-paid">—</div>
+
+      <div class="ss">Completed withdrawals</div>
+    </div>
+
+    <!-- PENDING -->
+    <div class="fin-card">
+      <div class="icon-bg">
+        <i class="bi bi-hourglass-split"></i>
+      </div>
+
+      <div class="sl">Pending Payouts</div>
+
+      <div class="sv" id="ac-pending" style="color:var(--orange)">—</div>
+
+      <div class="ss">Awaiting processing</div>
+    </div>
+
+    <!-- CHARGEBACKS -->
+    <div class="fin-card">
+      <div class="icon-bg">
+        <i class="bi bi-arrow-counterclockwise"></i>
+      </div>
+
+      <div class="sl">Total Chargebacks</div>
+
+      <div class="sv" id="ac-chargebacks" style="color:var(--red)">—</div>
+
+      <div class="ss">Reversed payments</div>
+    </div>
+
+    <!-- USER BALANCES -->
+    <div class="fin-card">
+      <div class="icon-bg">
+        <i class="bi bi-bank"></i>
+      </div>
+
+      <div class="sl">Total User Balances</div>
+
+      <div class="sv" id="ac-balances">—</div>
+
+      <div class="ss">Combined wallet value</div>
+    </div>
+
+  </div>
+
+</div>
 
           <!-- Action Buttons Row -->
           <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
