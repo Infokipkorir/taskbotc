@@ -6,6 +6,7 @@
 <title>Amulytask Admin</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"/>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&family=JetBrains+Mono:wght@400;600&family=Syne:wght@700;800&display=swap');
 *{box-sizing:border-box;margin:0;padding:0}
@@ -616,9 +617,9 @@ canvas{display:block}
         <div class="pg" id="pg-support">
           <!-- Support tabs: Tickets / AI Conversations -->
           <div class="support-detail-tabs" style="margin-bottom:12px">
-            <button class="sdt active" onclick="switchSupportTab('tickets',this)">🎫 Support Tickets</button>
-            <button class="sdt" onclick="switchSupportTab('ai-convs',this)">🤖 AI Conversations</button>
-            <button class="sdt" onclick="switchSupportTab('task-actions',this)">⚡ Task Actions</button>
+            <button class="sdt active" onclick="switchSupportTab('tickets',this)"><i class="bi bi-ticket-fill"></i> Support Tickets</button>
+            <button class="sdt" onclick="switchSupportTab('ai-convs',this)"><i class="bi bi-robot"></i> AI Conversations</button>
+            <button class="sdt" onclick="switchSupportTab('task-actions',this)"><i class="bi bi-lightning-charge-fill"></i> Task Actions</button>
           </div>
 
           <!-- Tickets Tab -->
@@ -630,7 +631,7 @@ canvas{display:block}
                 <button class="ftab" onclick="fTickets('in_progress',this)">In Progress</button>
                 <button class="ftab" onclick="fTickets('resolved',this)">Resolved</button>
               </div>
-              <button class="btn bp" onclick="openCreateTicketModal()"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>Create ticket for user</button>
+              <button class="btn bp" onclick="openCreateTicketModal()"><i class="bi bi-plus-lg"></i> Create ticket for user</button>
             </div>
             <div class="card"><table><thead><tr><th>Ticket #</th><th>User</th><th>Subject</th><th>Category</th><th>Status</th><th>Handler</th><th>Created</th><th>Actions</th></tr></thead>
             <tbody id="tk-tbody"><tr><td colspan="8" class="ldr">Loading…</td></tr></tbody></table></div>
@@ -640,7 +641,7 @@ canvas{display:block}
           <div class="sdt-section" id="sdt-ai-convs">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
               <div style="font-size:12px;color:var(--mu)">User conversations with the AI support assistant</div>
-              <button class="btn bg" onclick="loadAIConversations()"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>Refresh</button>
+              <button class="btn bg" onclick="loadAIConversations()"><i class="bi bi-arrow-clockwise"></i> Refresh</button>
             </div>
             <div id="ai-convs-list"><div class="ldr">Loading AI conversations…</div></div>
           </div>
@@ -649,7 +650,7 @@ canvas{display:block}
           <div class="sdt-section" id="sdt-task-actions">
             <div style="margin-bottom:12px;font-size:12px;color:var(--mu)">Recent task submission actions — approvals, rejections and reviews</div>
             <div class="card">
-              <div class="card-head"><span class="card-title">⚡ Recent Submission Actions</span><button class="btn bg" onclick="loadSubmissionActions()"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>Refresh</button></div>
+              <div class="card-head"><span class="card-title"><i class="bi bi-lightning-charge-fill" style="color:var(--orange)"></i> Recent Submission Actions</span><button class="btn bg" onclick="loadSubmissionActions()"><i class="bi bi-arrow-clockwise"></i> Refresh</button></div>
               <table><thead><tr><th>User</th><th>Task</th><th>Action</th><th>Admin Note</th><th>Reviewed At</th></tr></thead>
               <tbody id="sub-actions-tbody"><tr><td colspan="5" class="ldr">Loading…</td></tr></tbody></table>
             </div>
@@ -988,7 +989,7 @@ canvas{display:block}
       <div id="tk-ai-typing" style="display:none;margin-bottom:8px"><div class="cm ai"><div class="cs"><span class="ai-badge">🤖 AI typing…</span></div><div class="ai-typing"><span></span><span></span><span></span></div></div></div>
       <div class="send-row">
         <textarea id="tk-reply" placeholder="Reply as admin (you're taking over from AI)…" rows="2"></textarea>
-        <button class="btn bp" onclick="adminReply()" style="align-self:flex-end"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>Send</button>
+        <button class="btn bp" onclick="adminReply()" style="align-self:flex-end"><i class="bi bi-send-fill"></i> Send</button>
       </div>
       <div id="tk-ai-reply-wrap" style="margin-top:10px;padding:10px;background:var(--purple-bg);border:1px solid #ddd6fe;border-radius:var(--r);display:none">
         <div style="font-size:10px;font-weight:700;color:var(--purple);margin-bottom:6px">🤖 AI SUGGESTED REPLY (click to use)</div>
@@ -2254,7 +2255,7 @@ async function loadAIConversations(){
         <div style="display:flex;gap:6px;align-items:center">
           <span class="ai-badge">🤖 ${aiCount} AI replies</span>
           <span class="badge bgr">${userCount} user msgs</span>
-          <button class="btn bg" style="padding:4px 10px;font-size:11px" onclick="openTicket('${tk.id}')">View Full</button>
+          <button class="btn bg" style="padding:4px 10px;font-size:11px" onclick="openTicket('${tk.id}')"><i class="bi bi-eye"></i> View</button>
         </div>
       </div>
       <div class="ai-conv-messages">${msgList.map(m=>{
@@ -2405,11 +2406,11 @@ async function resolveTicket(id){
 function buildTicketActions(ticket){
   var id=ticket.id;
   return`
-    ${ticket.status!=='in_progress'?`<button class="btn bo" onclick="updateTicketStatus('in_progress')">⏳ Mark In Progress</button>`:''}
-    ${ticket.status!=='resolved'?`<button class="btn bs" onclick="updateTicketStatus('resolved')">✅ Mark Resolved</button>`:''}
-    ${ticket.status!=='closed'?`<button class="btn bd" onclick="updateTicketStatus('closed')">🚫 End &amp; Close</button>`:'<span class="badge bgr">Closed</span>'}
-    ${ticket.is_ai_handled?`<button class="btn bpur" onclick="assignHuman('${id}')">👤 Assign to Human</button>`:''}
-    ${ticket.status!=='resolved'&&ticket.status!=='closed'?`<button class="btn bg" onclick="getAIReply('${id}')">🤖 AI Suggestion</button>`:''}`;
+    ${ticket.status!=='in_progress'?`<button class="btn bo" onclick="updateTicketStatus('in_progress')"><i class="bi bi-hourglass-split"></i> In Progress</button>`:''}
+    ${ticket.status!=='resolved'?`<button class="btn bs" onclick="updateTicketStatus('resolved')"><i class="bi bi-check-circle-fill"></i> Mark Resolved</button>`:''}
+    ${ticket.status!=='closed'?`<button class="btn bd" onclick="updateTicketStatus('closed')"><i class="bi bi-x-circle-fill"></i> End &amp; Close</button>`:'<span class="badge bgr"><i class="bi bi-lock-fill"></i> Closed</span>'}
+    ${ticket.is_ai_handled?`<button class="btn bpur" onclick="assignHuman('${id}')"><i class="bi bi-person-fill"></i> Assign Human</button>`:''}
+    ${ticket.status!=='resolved'&&ticket.status!=='closed'?`<button class="btn bg" onclick="getAIReply('${id}')"><i class="bi bi-robot"></i> AI Suggestion</button>`:''}`;
 }
 
 async function assignHuman(id){
@@ -2458,7 +2459,7 @@ function renderTickets(list){
     <td>${stbadge(t.status)}</td>
     <td>${t.is_ai_handled?'<span class="ai-badge">🤖 AI</span>':'<span class="badge bgn">Human</span>'}</td>
     <td style="font-size:11px">${fd(t.created_at)}</td>
-    <td><button class="ibtn" style="color:var(--blue)" onclick="openTicket('${t.id}')"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg></button></td>
+    <td><button class="ibtn" style="color:var(--blue)" onclick="openTicket('${t.id}')"><i class="bi bi-eye"></i></button></td>
   </tr>`).join('');
 }
 function fTickets(f,btn){
@@ -2532,8 +2533,24 @@ async function delFAQ(id){if(!confirm('Delete this FAQ?'))return;await sb.from('
 // ── WITHDRAWALS ──────────────────────────────────────────────
 var allWDs=[], wdMethodFilter='all', wdStatusOverride=null;
 
-async function loadWDs(){
-  var{data:wds}=await sb.from('withdrawals').select('*,users(email)').order('created_at',{ascending:false});
+async function loadWDs(methodFilter){
+  methodFilter=methodFilter||wdMethodFilter||'all';
+  var m=(methodFilter||'').toLowerCase();
+
+  var query=sb
+    .from('withdrawals')
+    .select('id,user_id,method,amount,wallet_address,status,created_at,admin_note,processed_at,users:user_id(id,email)')
+    .order('created_at',{ascending:false});
+
+  if(m!=='all'){
+    if(m==='mpesa')      query=query.or('method.ilike.%mpesa%,method.ilike.%m-pesa%');
+    else if(m==='binance')query=query.ilike('method','%binance%');
+    else if(m==='paypal') query=query.ilike('method','%paypal%');
+    else if(m==='minipay')query=query.or('method.ilike.%minipay%,method.ilike.%mini pay%');
+  }
+
+  var{data:wds,error}=await query;
+  if(error){console.error('loadWDs error:',error.message);return;}
   allWDs=wds||[];
 
   // Stats
@@ -2547,49 +2564,47 @@ async function loadWDs(){
   if(el('wd-stat-rejected'))el('wd-stat-rejected').textContent=rejected.length;
   if(el('wd-stat-volume'))el('wd-stat-volume').textContent='$'+volume.toFixed(2);
 
-  // Method breakdown
-  var mpesa=allWDs.filter(w=>(w.method||'').toLowerCase().includes('mpesa')||((w.method||'').toLowerCase().includes('m-pesa')));
+  // Method breakdown (counts from full unfiltered local data)
+  var mpesa=allWDs.filter(w=>{var x=(w.method||'').toLowerCase();return x.includes('mpesa')||x.includes('m-pesa');});
   var binance=allWDs.filter(w=>(w.method||'').toLowerCase().includes('binance'));
   var paypal=allWDs.filter(w=>(w.method||'').toLowerCase().includes('paypal'));
-  if(el('wd-mpesa-count'))el('wd-mpesa-count').textContent=mpesa.length+' requests · $'+mpesa.reduce((s,w)=>s+parseFloat(w.amount||0),0).toFixed(2);
+  var minipay=allWDs.filter(w=>{var x=(w.method||'').toLowerCase();return x.includes('minipay')||x.includes('mini pay');});
+  var el=id=>document.getElementById(id);
+  if(el('wd-mpesa-count'))  el('wd-mpesa-count').textContent=mpesa.length+' requests · $'+mpesa.reduce((s,w)=>s+parseFloat(w.amount||0),0).toFixed(2);
   if(el('wd-binance-count'))el('wd-binance-count').textContent=binance.length+' requests · $'+binance.reduce((s,w)=>s+parseFloat(w.amount||0),0).toFixed(2);
-  if(el('wd-paypal-count'))el('wd-paypal-count').textContent=paypal.length+' requests · $'+paypal.reduce((s,w)=>s+parseFloat(w.amount||0),0).toFixed(2);
+  if(el('wd-paypal-count')) el('wd-paypal-count').textContent=paypal.length+' requests · $'+paypal.reduce((s,w)=>s+parseFloat(w.amount||0),0).toFixed(2);
+  if(el('wd-minipay-count'))el('wd-minipay-count').textContent=minipay.length+' requests · $'+minipay.reduce((s,w)=>s+parseFloat(w.amount||0),0).toFixed(2);
 
   _wdCache={};allWDs.forEach(w=>{_wdCache[w.id]=w;});
   renderWDs();
+}
+
+async function filterWDs(method,btn){
+  wdMethodFilter=method; wdStatusOverride=null;
+  document.querySelectorAll('#pg-withdrawals .ftab').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  await loadWDs(method);
 }
 
 function renderWDs(){
   var tb=document.getElementById('w-tbody');if(!tb)return;
   var list=allWDs;
   if(wdStatusOverride)list=list.filter(w=>w.status===wdStatusOverride);
-  if(wdMethodFilter!=='all'){
-    list=list.filter(w=>{
-      var m=(w.method||'').toLowerCase();
-      if(wdMethodFilter==='mpesa')return m.includes('mpesa')||m.includes('m-pesa');
-      if(wdMethodFilter==='binance')return m.includes('binance');
-      if(wdMethodFilter==='paypal')return m.includes('paypal');
-      if(wdMethodFilter==='minipay')return m.includes('minipay')||m.includes('mini pay');
-      return true;
-    });
-  }
   if(!list.length){tb.innerHTML='<tr><td colspan="7"><div class="empty">No withdrawals found.</div></td></tr>';return;}
-  tb.innerHTML=list.map(w=>`<tr>
-    <td style="font-size:11px">${w.users?w.users.email||'—':'—'}</td>
+  tb.innerHTML=list.map(w=>{
+    var email=w.users&&(Array.isArray(w.users)?w.users[0]&&w.users[0].email:w.users.email)||'—';
+    return`<tr>
+    <td style="font-size:11px">${email}</td>
     <td><strong style="color:var(--red)">$${parseFloat(w.amount||0).toFixed(2)}</strong></td>
     <td>${pmBadge(w.method)}</td>
     <td class="mono" style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${w.wallet_address||''}">${w.wallet_address||'—'}</td>
     <td>${stbadge(w.status)}</td>
     <td style="font-size:11px">${fd(w.created_at)}</td>
-    <td>${w.status==='pending'?`<button class="ibtn" style="color:var(--blue)" title="Process" onclick="openWDM(_wdCache['${w.id}'])"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/></svg></button>`:'—'}</td></tr>`).join('');
+    <td>${w.status==='pending'?`<button class="ibtn" style="color:var(--blue)" title="Process" onclick="openWDM(_wdCache['${w.id}'])"><i class="bi bi-credit-card"></i></button>`:'<i class="bi bi-check-circle" style="color:var(--green);font-size:14px"></i>'}</td>
+    </tr>`;
+  }).join('');
 }
 
-function filterWDs(method, btn){
-  wdMethodFilter=method; wdStatusOverride=null;
-  document.querySelectorAll('#pg-withdrawals .ftab').forEach(b=>b.classList.remove('active'));
-  if(btn)btn.classList.add('active');
-  renderWDs();
-}
 function filterWDsByStatus(status){
   wdStatusOverride=wdStatusOverride===status?null:status;
   renderWDs();
