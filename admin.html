@@ -2630,7 +2630,8 @@ async function processWD(status){
 // ── ACCOUNTANT ───────────────────────────────────────────────
 async function loadAccountant(){
   var[wds,users,chargebacks]=await Promise.all([
-    sb.from('withdrawals').select('*,users(email,country,balance,total_earned)').order('created_at',{ascending:false}),
+    sb.from('withdrawals')
+  .select('*,users(email,country,balance,total_earned)')
     sb.from('admin_users_view').select('id,email,username,country,balance,total_earned').order('total_earned',{ascending:false}).limit(20),
     sb.from('chargebacks').select('*,users(email)').order('created_at',{ascending:false}).catch(()=>({data:[]}))
   ]);
