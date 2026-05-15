@@ -2531,158 +2531,349 @@ async function saveFAQ(){
 async function delFAQ(id){if(!confirm('Delete this FAQ?'))return;await sb.from('faq_items').delete().eq('id',id);loadFAQs();}
 
 // ── WITHDRAWALS ──────────────────────────────────────────────
-var allWDs=[], wdMethodFilter='all', wdStatusOverride=null;
+  // ── PAYMENT CHANNELS CONFIG (stored in platform_settings) ────
+var paymentChannels = {
+  mpesa:   { enabled:false, type:'till', value:'', name:'M-Pesa' },
+  paypal:  { enabled:false, value:'', name:'PayPal' },
+  binance: { enabled:false, value:'', name:'Binance' },
+  minipay: { enabled:false, value:'', name:'MiniPay' }
+};
+var minPayoutAmount = 1.00; // default, loaded from DB
 
-async function loadWDs(methodFilter){
-  methodFilter=methodFilter||wdMethodFilter||'all';
-  var m=(methodFilter||'').toLowerCase();
+// ── LOAD PAYMENT SETTINGS FROM DB ────────────────────────────
+async function loadPaymentSettings() {
+  var { data } = await sb.from('platform_settings')
+    .select('key,value')
+    .in('key', ['payment_channels', 'min_payout_amount'])
+    .catch(() => ({ data: [] }));
+  (data || []).forEach(row => {
+    if (row.key === 'payment_channels' && row.value) {
+      try { paymentChannels = { ...paymentChannels, ...(typeof row.value === 'string' ? JSON.parse(row.value) : row.value) }; } catch(e) {}
+    }
+    if (row.key === 'min_payout_amount') {
+      minPayoutAmount = parseFloat(row.value) || 1.00;
+    }
+  });
+}
 
-  var query=sb
-    .from('withdrawals')
-    .select('id,user_id,method,amount,wallet_address,status,created_at,admin_note,processed_at,users:user_id(id,email)')
-    .order('created_at',{ascending:false});
+// ── SAVE PAYMENT SETTINGS TO DB ──────────────────────────────
+async function savePaymentSettings() {
+  // Read min payout
+  minPayoutAmount = parseFloat(document.getElementById('ps-min-payout').value) || 1.00;
 
-  if(m!=='all'){
-    if(m==='mpesa')      query=query.or('method.ilike.%mpesa%,method.ilike.%m-pesa%');
-    else if(m==='binance')query=query.ilike('method','%binance%');
-    else if(m==='paypal') query=query.ilike('method','%paypal%');
-    else if(m==='minipay')query=query.or('method.ilike.%minipay%,method.ilike.%mini pay%');
-  }
+  // Read each channel
+  ['mpesa','paypal','binance','minipay'].forEach(ch => {
+    paymentChannels[ch].enabled = document.getElementById('ps-'+ch+'-enabled').checked;
+    paymentChannels[ch].value   = (document.getElementById('ps-'+ch+'-value').value || '').trim();
+    if (ch === 'mpesa') {
+      paymentChannels.mpesa.type = document.getElementById('ps-mpesa-type').value;
+    }
+    if (ch === 'binance') {
+      paymentChannels.binance.network = document.getElementById('ps-binance-network').value;
+    }
+  });
 
-  var{data:wds,error}=await query;
-  if(error){console.error('loadWDs error:',error.message);return;}
-  allWDs=wds||[];
+  await Promise.all([
+    sb.from('platform_settings').upsert({ key: 'payment_channels',   value: paymentChannels }),
+    sb.from('platform_settings').upsert({ key: 'min_payout_amount',  value: minPayoutAmount })
+  ]).catch(() => {});
 
-  // Stats
-  var pending=allWDs.filter(w=>w.status==='pending');
-  var completed=allWDs.filter(w=>w.status==='completed');
-  var rejected=allWDs.filter(w=>w.status==='rejected');
-  var volume=allWDs.reduce((s,w)=>s+parseFloat(w.amount||0),0);
-  var el=id=>document.getElementById(id);
-  if(el('wd-stat-pending'))el('wd-stat-pending').textContent=pending.length;
-  if(el('wd-stat-completed'))el('wd-stat-completed').textContent='$'+completed.reduce((s,w)=>s+parseFloat(w.amount||0),0).toFixed(2);
-  if(el('wd-stat-rejected'))el('wd-stat-rejected').textContent=rejected.length;
-  if(el('wd-stat-volume'))el('wd-stat-volume').textContent='$'+volume.toFixed(2);
+  closeMod('payment-settings-bg');
+  showToast('✅ Payment settings saved!');
+  loadWDs();
+}
 
-  // Method breakdown (counts from full unfiltered local data)
-  var mpesa=allWDs.filter(w=>{var x=(w.method||'').toLowerCase();return x.includes('mpesa')||x.includes('m-pesa');});
-  var binance=allWDs.filter(w=>(w.method||'').toLowerCase().includes('binance'));
-  var paypal=allWDs.filter(w=>(w.method||'').toLowerCase().includes('paypal'));
-  var minipay=allWDs.filter(w=>{var x=(w.method||'').toLowerCase();return x.includes('minipay')||x.includes('mini pay');});
-  var el=id=>document.getElementById(id);
-  if(el('wd-mpesa-count'))  el('wd-mpesa-count').textContent=mpesa.length+' requests · $'+mpesa.reduce((s,w)=>s+parseFloat(w.amount||0),0).toFixed(2);
-  if(el('wd-binance-count'))el('wd-binance-count').textContent=binance.length+' requests · $'+binance.reduce((s,w)=>s+parseFloat(w.amount||0),0).toFixed(2);
-  if(el('wd-paypal-count')) el('wd-paypal-count').textContent=paypal.length+' requests · $'+paypal.reduce((s,w)=>s+parseFloat(w.amount||0),0).toFixed(2);
-  if(el('wd-minipay-count'))el('wd-minipay-count').textContent=minipay.length+' requests · $'+minipay.reduce((s,w)=>s+parseFloat(w.amount||0),0).toFixed(2);
+// ── OPEN PAYMENT SETTINGS MODAL ──────────────────────────────
+async function openPaymentSettings() {
+  await loadPaymentSettings();
+  document.getElementById('ps-min-payout').value = minPayoutAmount.toFixed(2);
 
-  _wdCache={};allWDs.forEach(w=>{_wdCache[w.id]=w;});
+  // M-Pesa
+  document.getElementById('ps-mpesa-enabled').checked = !!paymentChannels.mpesa.enabled;
+  document.getElementById('ps-mpesa-type').value       = paymentChannels.mpesa.type || 'till';
+  document.getElementById('ps-mpesa-value').value      = paymentChannels.mpesa.value || '';
+  updateMpesaLabel();
+
+  // PayPal
+  document.getElementById('ps-paypal-enabled').checked = !!paymentChannels.paypal.enabled;
+  document.getElementById('ps-paypal-value').value     = paymentChannels.paypal.value || '';
+
+  // Binance
+  document.getElementById('ps-binance-enabled').checked  = !!paymentChannels.binance.enabled;
+  document.getElementById('ps-binance-value').value      = paymentChannels.binance.value || '';
+  document.getElementById('ps-binance-network').value    = paymentChannels.binance.network || 'BEP20';
+
+  // MiniPay
+  document.getElementById('ps-minipay-enabled').checked = !!paymentChannels.minipay.enabled;
+  document.getElementById('ps-minipay-value').value     = paymentChannels.minipay.value || '';
+
+  document.getElementById('payment-settings-bg').classList.add('open');
+}
+
+function updateMpesaLabel() {
+  var t = document.getElementById('ps-mpesa-type').value;
+  var labels = { till:'Till Number', paybill:'Paybill Number', phone:'Phone Number (07…)' };
+  document.getElementById('ps-mpesa-value-label').textContent = labels[t] || 'Account Number';
+}
+
+// ── WITHDRAWALS ──────────────────────────────────────────────
+var allWDs = [], wdMethodFilter = 'all', wdStatusOverride = null;
+
+async function loadWDs(methodFilter) {
+  methodFilter = methodFilter || wdMethodFilter || 'all';
+  var m = (methodFilter || '').toLowerCase();
+
+  // Always fetch ALL users with balance >= 0 from admin_users_view
+  var [wdsRes, usersRes] = await Promise.all([
+    (async () => {
+      var q = sb
+        .from('withdrawals')
+        .select('id,user_id,method,amount,wallet_address,status,created_at,admin_note,processed_at,users:user_id(id,email)')
+        .order('created_at', { ascending: false });
+      if (m !== 'all') {
+        if (m === 'mpesa')       q = q.or('method.ilike.%mpesa%,method.ilike.%m-pesa%');
+        else if (m === 'binance') q = q.ilike('method', '%binance%');
+        else if (m === 'paypal')  q = q.ilike('method', '%paypal%');
+        else if (m === 'minipay') q = q.or('method.ilike.%minipay%,method.ilike.%mini pay%');
+      }
+      return q;
+    })(),
+    sb.from('admin_users_view')
+      .select('id,email,username,balance,country')
+      .order('balance', { ascending: false })
+  ]);
+
+  if (wdsRes.error) console.error('loadWDs error:', wdsRes.error.message);
+  allWDs = wdsRes.data || [];
+
+  // Load min payout setting
+  await loadPaymentSettings();
+
+  // ── Stats ─────────────────────────────────────────────────
+  var el = id => document.getElementById(id);
+  var pending   = allWDs.filter(w => w.status === 'pending');
+  var completed = allWDs.filter(w => w.status === 'completed');
+  var rejected  = allWDs.filter(w => w.status === 'rejected');
+  var volume    = allWDs.reduce((s, w) => s + parseFloat(w.amount || 0), 0);
+  if (el('wd-stat-pending'))   el('wd-stat-pending').textContent   = pending.length;
+  if (el('wd-stat-completed')) el('wd-stat-completed').textContent = '$' + completed.reduce((s,w) => s+parseFloat(w.amount||0), 0).toFixed(2);
+  if (el('wd-stat-rejected'))  el('wd-stat-rejected').textContent  = rejected.length;
+  if (el('wd-stat-volume'))    el('wd-stat-volume').textContent    = '$' + volume.toFixed(2);
+
+  // ── Method breakdown ──────────────────────────────────────
+  var mpesa   = allWDs.filter(w => { var x=(w.method||'').toLowerCase(); return x.includes('mpesa')||x.includes('m-pesa'); });
+  var binance = allWDs.filter(w => (w.method||'').toLowerCase().includes('binance'));
+  var paypal  = allWDs.filter(w => (w.method||'').toLowerCase().includes('paypal'));
+  var minipay = allWDs.filter(w => { var x=(w.method||'').toLowerCase(); return x.includes('minipay')||x.includes('mini pay'); });
+  if (el('wd-mpesa-count'))   el('wd-mpesa-count').textContent   = mpesa.length   + ' requests · $' + mpesa.reduce((s,w)=>s+parseFloat(w.amount||0),0).toFixed(2);
+  if (el('wd-binance-count')) el('wd-binance-count').textContent = binance.length + ' requests · $' + binance.reduce((s,w)=>s+parseFloat(w.amount||0),0).toFixed(2);
+  if (el('wd-paypal-count'))  el('wd-paypal-count').textContent  = paypal.length  + ' requests · $' + paypal.reduce((s,w)=>s+parseFloat(w.amount||0),0).toFixed(2);
+  if (el('wd-minipay-count')) el('wd-minipay-count').textContent = minipay.length + ' requests · $' + minipay.reduce((s,w)=>s+parseFloat(w.amount||0),0).toFixed(2);
+
+  _wdCache = {};
+  allWDs.forEach(w => { _wdCache[w.id] = w; });
+
+  // ── Users with balance (All Users section) ────────────────
+  renderAllUsersBalances(usersRes.data || []);
   renderWDs();
 }
 
-async function filterWDs(method,btn){
-  wdMethodFilter=method; wdStatusOverride=null;
-  document.querySelectorAll('#pg-withdrawals .ftab').forEach(b=>b.classList.remove('active'));
-  if(btn)btn.classList.add('active');
-  await loadWDs(method);
-}
+// ── RENDER ALL USERS WITH BALANCE (including $0.00) ──────────
+function renderAllUsersBalances(users) {
+  var tb = document.getElementById('wd-users-tbody');
+  if (!tb) return;
+  if (!users.length) {
+    tb.innerHTML = '<tr><td colspan="6"><div class="empty">No users found.</div></td></tr>';
+    return;
+  }
+  // Build a quick withdrawal count map
+  var wdMap = {};
+  allWDs.forEach(w => {
+    if (!wdMap[w.user_id]) wdMap[w.user_id] = { pending: 0, completed: 0, total: 0 };
+    if (w.status === 'pending')   wdMap[w.user_id].pending++;
+    if (w.status === 'completed') { wdMap[w.user_id].completed++; wdMap[w.user_id].total += parseFloat(w.amount||0); }
+  });
 
-function renderWDs(){
-  var tb=document.getElementById('w-tbody');if(!tb)return;
-  var list=allWDs;
-  if(wdStatusOverride)list=list.filter(w=>w.status===wdStatusOverride);
-  if(!list.length){tb.innerHTML='<tr><td colspan="7"><div class="empty">No withdrawals found.</div></td></tr>';return;}
-  tb.innerHTML=list.map(w=>{
-    var email=w.users&&(Array.isArray(w.users)?w.users[0]&&w.users[0].email:w.users.email)||'—';
-    return`<tr>
-    <td style="font-size:11px">${email}</td>
-    <td><strong style="color:var(--red)">$${parseFloat(w.amount||0).toFixed(2)}</strong></td>
-    <td>${pmBadge(w.method)}</td>
-    <td class="mono" style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${w.wallet_address||''}">${w.wallet_address||'—'}</td>
-    <td>${stbadge(w.status)}</td>
-    <td style="font-size:11px">${fd(w.created_at)}</td>
-    <td>${w.status==='pending'?`<button class="ibtn" style="color:var(--blue)" title="Process" onclick="openWDM(_wdCache['${w.id}'])"><i class="bi bi-credit-card"></i></button>`:'<i class="bi bi-check-circle" style="color:var(--green);font-size:14px"></i>'}</td>
+  tb.innerHTML = users.map(u => {
+    var bal     = parseFloat(u.balance || 0);
+    var wd      = wdMap[u.id] || { pending:0, completed:0, total:0 };
+    var eligible = bal >= minPayoutAmount;
+    return `<tr>
+      <td style="font-size:12px">
+        <strong>${u.email || '—'}</strong>
+        <div style="font-size:10px;color:var(--mu)">@${u.username||'—'} · ${u.country||'—'}</div>
+      </td>
+      <td>
+        <strong style="color:${bal > 0 ? 'var(--green)' : 'var(--mu)'}">$${bal.toFixed(4)}</strong>
+      </td>
+      <td>
+        ${eligible
+          ? '<span class="badge bgn"><i class="bi bi-check-circle-fill"></i> Eligible</span>'
+          : `<span class="badge bgr" title="Min $${minPayoutAmount.toFixed(2)}"><i class="bi bi-dash-circle"></i> Below min</span>`}
+      </td>
+      <td>
+        <span class="badge bor">${wd.pending} pending</span>
+        <span class="badge bgn" style="margin-left:3px">${wd.completed} done</span>
+      </td>
+      <td style="font-size:11px;color:var(--mu)">$${wd.total.toFixed(2)} paid</td>
+      <td>
+        ${eligible
+          ? `<button class="btn bp" style="padding:4px 10px;font-size:11px" onclick="openIndivPay('${u.id}')"><i class="bi bi-send-fill"></i> Pay</button>`
+          : `<button class="btn bg" style="padding:4px 10px;font-size:11px;opacity:.5" disabled title="Balance below minimum $${minPayoutAmount.toFixed(2)}"><i class="bi bi-lock-fill"></i> Pay</button>`}
+      </td>
     </tr>`;
   }).join('');
 }
 
-function filterWDsByStatus(status){
-  wdStatusOverride=wdStatusOverride===status?null:status;
+async function filterWDs(method, btn) {
+  wdMethodFilter = method; wdStatusOverride = null;
+  document.querySelectorAll('#pg-withdrawals .ftab').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  await loadWDs(method);
+}
+
+function renderWDs() {
+  var tb = document.getElementById('w-tbody'); if (!tb) return;
+  var list = allWDs;
+  if (wdStatusOverride) list = list.filter(w => w.status === wdStatusOverride);
+  if (!list.length) { tb.innerHTML = '<tr><td colspan="7"><div class="empty">No withdrawals found.</div></td></tr>'; return; }
+  tb.innerHTML = list.map(w => {
+    var email = w.users && (Array.isArray(w.users) ? (w.users[0] && w.users[0].email) : w.users.email) || '—';
+    return `<tr>
+      <td style="font-size:11px">${email}</td>
+      <td><strong style="color:var(--red)">$${parseFloat(w.amount||0).toFixed(2)}</strong></td>
+      <td>${pmBadge(w.method)}</td>
+      <td class="mono" style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${w.wallet_address||''}">${w.wallet_address||'—'}</td>
+      <td>${stbadge(w.status)}</td>
+      <td style="font-size:11px">${fd(w.created_at)}</td>
+      <td>${w.status === 'pending'
+        ? `<button class="ibtn" style="color:var(--blue)" title="Process" onclick="openWDM(_wdCache['${w.id}'])"><i class="bi bi-credit-card"></i></button>`
+        : '<i class="bi bi-check-circle" style="color:var(--green);font-size:14px"></i>'}</td>
+    </tr>`;
+  }).join('');
+}
+
+function filterWDsByStatus(status) {
+  wdStatusOverride = wdStatusOverride === status ? null : status;
   renderWDs();
 }
-function pmBadge(method){
-  if(!method)return '<span class="pm-badge pm-other">Unknown</span>';
-  var m=(method||'').toLowerCase();
-  if(m.includes('mpesa')||m.includes('m-pesa'))return'<span class="pm-badge pm-mpesa"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/M-PESA_LOGO-01.svg/80px-M-PESA_LOGO-01.svg.png" alt="M-Pesa" style="height:12px;vertical-align:middle;margin-right:3px"/>M-Pesa</span>';
-  if(m.includes('binance'))return'<span class="pm-badge pm-binance"><img src="https://bin.bnbstatic.com/image/admin_mgs_image_upload/20201110/87496d50-2408-43e1-ad4c-78b47b448a6a.png" alt="Binance" style="height:12px;vertical-align:middle;margin-right:3px"/>Binance</span>';
-  if(m.includes('paypal'))return'<span class="pm-badge pm-paypal"><img src="https://www.paypalobjects.com/webstatic/icon/pp258.png" alt="PayPal" style="height:12px;vertical-align:middle;margin-right:3px"/>PayPal</span>';
-  if(m.includes('minipay')||m.includes('mini pay'))return'<span class="pm-badge pm-minipay"><img src="https://minipay.opera.com/favicon.ico" alt="MiniPay" style="height:12px;vertical-align:middle;margin-right:3px"/>MiniPay</span>';
-  return`<span class="pm-badge pm-other">${method}</span>`;
+
+function pmBadge(method) {
+  if (!method) return '<span class="pm-badge pm-other">Unknown</span>';
+  var m = (method || '').toLowerCase();
+  if (m.includes('mpesa') || m.includes('m-pesa'))
+    return '<span class="pm-badge pm-mpesa"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/M-PESA_LOGO-01.svg/80px-M-PESA_LOGO-01.svg.png" alt="M-Pesa" style="height:12px;vertical-align:middle;margin-right:3px"/>M-Pesa</span>';
+  if (m.includes('binance'))
+    return '<span class="pm-badge pm-binance"><img src="https://bin.bnbstatic.com/image/admin_mgs_image_upload/20201110/87496d50-2408-43e1-ad4c-78b47b448a6a.png" alt="Binance" style="height:12px;vertical-align:middle;margin-right:3px"/>Binance</span>';
+  if (m.includes('paypal'))
+    return '<span class="pm-badge pm-paypal"><img src="https://www.paypalobjects.com/webstatic/icon/pp258.png" alt="PayPal" style="height:12px;vertical-align:middle;margin-right:3px"/>PayPal</span>';
+  if (m.includes('minipay') || m.includes('mini pay'))
+    return '<span class="pm-badge pm-minipay"><img src="https://minipay.opera.com/favicon.ico" alt="MiniPay" style="height:12px;vertical-align:middle;margin-right:3px"/>MiniPay</span>';
+  return `<span class="pm-badge pm-other">${method}</span>`;
 }
-function pmLabel(method){
-  var m=(method||'').toLowerCase();
-  if(m.includes('mpesa')||m.includes('m-pesa'))return'Phone Number (M-Pesa)';
-  if(m.includes('binance'))return'Binance UID / Wallet Address';
-  if(m.includes('paypal'))return'PayPal Email';
-  if(m.includes('minipay')||m.includes('mini pay'))return'MiniPay Address';
-  return'Wallet / Account';
+
+function pmLabel(method) {
+  var m = (method || '').toLowerCase();
+  if (m.includes('mpesa') || m.includes('m-pesa')) return 'Phone Number (M-Pesa)';
+  if (m.includes('binance'))  return 'Binance UID / Wallet Address';
+  if (m.includes('paypal'))   return 'PayPal Email';
+  if (m.includes('minipay') || m.includes('mini pay')) return 'MiniPay Address';
+  return 'Wallet / Account';
 }
-function openWDM(wd){
-  cWD=wd;
-  document.getElementById('wd-body').innerHTML=`
+
+function openWDM(wd) {
+  cWD = wd;
+  var email = wd.users && (Array.isArray(wd.users) ? (wd.users[0] && wd.users[0].email) : wd.users.email) || '—';
+  // Show admin's configured channel info for this method
+  var chInfo = getChannelInfo(wd.method);
+  document.getElementById('wd-body').innerHTML = `
     <div class="wallet-info-grid">
       <div class="wallet-info-box"><div class="wib-label">Amount</div><div class="wib-val" style="font-size:22px;color:var(--red)">$${parseFloat(wd.amount||0).toFixed(2)}</div></div>
       <div class="wallet-info-box"><div class="wib-label">Payment Method</div><div class="wib-val">${pmBadge(wd.method)}</div></div>
       <div class="wallet-info-box"><div class="wib-label">Status</div><div class="wib-val">${stbadge(wd.status)}</div></div>
     </div>
+    ${chInfo ? `<div style="background:var(--blue-bg);border:1px solid #bfdbfe;border-radius:var(--r);padding:10px 14px;margin-bottom:12px;font-size:12px">
+      <div style="font-weight:700;color:var(--blue);margin-bottom:4px"><i class="bi bi-building"></i> Admin Send-To Channel</div>
+      <div style="color:var(--tx)">${chInfo}</div>
+    </div>` : ''}
     <div class="mfield"><label>${pmLabel(wd.method)}</label><div class="proof-box">${wd.wallet_address||'—'}</div></div>
-    ${wd.users?`<div class="mfield"><label>User Email</label><div class="proof-box">${wd.users.email||'—'}</div></div>`:''}
+    <div class="mfield"><label>User Email</label><div class="proof-box">${email}</div></div>
     <div class="mfield"><label>Requested</label><div class="proof-box">${fd(wd.created_at)}</div></div>
-    <div class="mfield"><label>Admin note / Transaction ID</label><textarea id="wd-note" placeholder="Enter transaction ID or reason…" style="width:100%;padding:9px;border:1.5px solid var(--b);border-radius:var(--r);font-size:12px;background:var(--bg3);color:var(--tx);font-family:'DM Sans',sans-serif;resize:vertical">${wd.admin_note||''}</textarea></div>`;
+    <div class="mfield"><label>Admin note / Transaction ID</label>
+      <textarea id="wd-note" placeholder="Enter transaction ID or reason…" style="width:100%;padding:9px;border:1.5px solid var(--b);border-radius:var(--r);font-size:12px;background:var(--bg3);color:var(--tx);font-family:'DM Sans',sans-serif;resize:vertical">${wd.admin_note||''}</textarea>
+    </div>`;
   document.getElementById('wd-bg').classList.add('open');
 }
-async function processWD(status){
-  if(!cWD)return;
-  var note=document.getElementById('wd-note').value;
-  await sb.from('withdrawals').update({status,admin_note:note,processed_at:new Date().toISOString()}).eq('id',cWD.id);
-  if(status==='rejected'){var{data:u}=await sb.from('users').select('balance,hold_balance').eq('id',cWD.user_id).single();if(u)await sb.from('users').update({balance:parseFloat(u.balance||0)+parseFloat(cWD.amount||0),hold_balance:Math.max(0,parseFloat(u.hold_balance||0)-parseFloat(cWD.amount||0))}).eq('id',cWD.user_id);}
-  closeMod('wd-bg');loadWDs();loadOverview();loadAccountant();
+
+// Returns a human-readable string of admin's configured outgoing channel
+function getChannelInfo(method) {
+  var m = (method || '').toLowerCase();
+  if ((m.includes('mpesa') || m.includes('m-pesa')) && paymentChannels.mpesa.enabled && paymentChannels.mpesa.value) {
+    var t = { till:'Till No', paybill:'Paybill No', phone:'Phone' }[paymentChannels.mpesa.type] || 'Account';
+    return `M-Pesa ${t}: <strong>${paymentChannels.mpesa.value}</strong>`;
+  }
+  if (m.includes('paypal') && paymentChannels.paypal.enabled && paymentChannels.paypal.value)
+    return `PayPal: <strong>${paymentChannels.paypal.value}</strong>`;
+  if (m.includes('binance') && paymentChannels.binance.enabled && paymentChannels.binance.value) {
+    var net = paymentChannels.binance.network || 'BEP20';
+    return `Binance UID/Email: <strong>${paymentChannels.binance.value}</strong> · Network: <strong>${net}</strong>`;
+  }
+  if ((m.includes('minipay') || m.includes('mini pay')) && paymentChannels.minipay.enabled && paymentChannels.minipay.value)
+    return `MiniPay: <strong>${paymentChannels.minipay.value}</strong>`;
+  return null;
+}
+
+async function processWD(status) {
+  if (!cWD) return;
+  var note = document.getElementById('wd-note').value;
+  await sb.from('withdrawals').update({ status, admin_note: note, processed_at: new Date().toISOString() }).eq('id', cWD.id);
+  if (status === 'rejected') {
+    var { data: u } = await sb.from('users').select('balance,hold_balance').eq('id', cWD.user_id).single();
+    if (u) await sb.from('users').update({
+      balance:       parseFloat(u.balance||0) + parseFloat(cWD.amount||0),
+      hold_balance:  Math.max(0, parseFloat(u.hold_balance||0) - parseFloat(cWD.amount||0))
+    }).eq('id', cWD.user_id);
+  }
+  closeMod('wd-bg'); loadWDs(); loadOverview(); loadAccountant();
 }
 
 // ── CHARGEBACK + EXPORT (standalone helpers) ─────────────────
-function openChargebackModal(){
-  sal('cb-alert','');
+function openChargebackModal() {
+  sal('cb-alert', '');
   document.getElementById('chargeback-bg').classList.add('open');
 }
 
-async function issueChargeback(){
-  var em=document.getElementById('cb-user').value.trim();
-  var amount=parseFloat(document.getElementById('cb-amount').value)||0;
-  var reason=document.getElementById('cb-reason').value;
-  var notes=document.getElementById('cb-notes').value.trim();
-  sal('cb-alert','');
-  if(!em||!amount){sal('cb-alert','Enter user email and amount.');return;}
-  var{data:u}=await sb.from('users').select('id,email,balance').eq('email',em).single();
-  if(!u){sal('cb-alert','User not found.');return;}
-  if(parseFloat(u.balance||0)<amount){sal('cb-alert','User balance is lower than chargeback amount. Balance: $'+parseFloat(u.balance||0).toFixed(2),'mwarn');return;}
-  // Deduct from balance
-  var{error:be}=await sb.from('users').update({balance:parseFloat(u.balance||0)-amount}).eq('id',u.id);
-  if(be){sal('cb-alert','Balance update error: '+be.message);return;}
-  // Record chargeback (try chargebacks table, log to notifications if table doesn't exist)
-  var{error:cbe}=await sb.from('chargebacks').insert({user_id:u.id,amount,reason,notes,issued_by:CA?CA.id:null,created_at:new Date().toISOString()}).catch(e=>({error:e}));
-  // Also send notification to user
-  await sb.from('notifications').insert({title:'Account Chargeback',message:`A chargeback of $${amount.toFixed(2)} has been applied to your account. Reason: ${reason}. ${notes?'Notes: '+notes:''}`,type:'urgent',target:'specific',target_user_id:u.id,created_by:CA?CA.id:null}).catch(()=>{});
-  sal('cb-alert',`✓ Chargeback of $${amount.toFixed(2)} issued for ${u.email}.`,'mok');
-  setTimeout(()=>{closeMod('chargeback-bg');loadAccountant();loadUsers();},1800);
+async function issueChargeback() {
+  var em     = document.getElementById('cb-user').value.trim();
+  var amount = parseFloat(document.getElementById('cb-amount').value) || 0;
+  var reason = document.getElementById('cb-reason').value;
+  var notes  = document.getElementById('cb-notes').value.trim();
+  sal('cb-alert', '');
+  if (!em || !amount) { sal('cb-alert', 'Enter user email and amount.'); return; }
+  var { data: u } = await sb.from('users').select('id,email,balance').eq('email', em).single();
+  if (!u) { sal('cb-alert', 'User not found.'); return; }
+  if (parseFloat(u.balance||0) < amount) { sal('cb-alert', 'User balance is lower than chargeback amount. Balance: $'+parseFloat(u.balance||0).toFixed(2), 'mwarn'); return; }
+  var { error: be } = await sb.from('users').update({ balance: parseFloat(u.balance||0) - amount }).eq('id', u.id);
+  if (be) { sal('cb-alert', 'Balance update error: '+be.message); return; }
+  await sb.from('chargebacks').insert({ user_id:u.id, amount, reason, notes, issued_by:CA?CA.id:null, created_at:new Date().toISOString() }).catch(() => {});
+  await sb.from('notifications').insert({ title:'Account Chargeback', message:`A chargeback of $${amount.toFixed(2)} has been applied. Reason: ${reason}. ${notes?'Notes: '+notes:''}`, type:'urgent', target:'specific', target_user_id:u.id, created_by:CA?CA.id:null }).catch(() => {});
+  sal('cb-alert', `✓ Chargeback of $${amount.toFixed(2)} issued for ${u.email}.`, 'mok');
+  setTimeout(() => { closeMod('chargeback-bg'); loadAccountant(); loadUsers(); }, 1800);
 }
 
-function exportCSV(){
-  sb.from('withdrawals').select('*,users(email)').order('created_at',{ascending:false}).then(({data})=>{
-    var rows=[['User Email','Amount','Method','Wallet','Status','Date','Admin Note']];
-    (data||[]).forEach(w=>{rows.push([w.users?w.users.email||'':'',w.amount,w.method,w.wallet_address,w.status,w.created_at||'',w.admin_note||'']);});
-    var csv=rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n');
-    var a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download='withdrawals_export.csv';a.click();
-  });
-}
+function exportCSV() {
+  sb.from('withdrawals').select('id,amount,method,wallet_address,status,created_at,admin_note,users:user_id(email)')
+    .order('created_at', { ascending: false })
+    .then(({ data }) => {
+      var rows = [['User Email','Amount','Method','Wallet','Status','Date','Admin Note']];
+      (data||[]).forEach(w => {
+        var em = w.users && (Array.isArray(w.users) ? (w.users[0]&&w.users[0].email) : w.users.email) || '';
+        rows.push([em, w.amount, w.method, w.wallet_address, w.status, w.created_at||'', w.admin_note||'']);
+      });
+      var csv = rows.map(r => r.map(c => '"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n');
+      var a = document.createElement('a'); a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv); a.download='withdrawals_export.csv'; a.click();
+    });
+  }
 
 // ── TASK CRUD ────────────────────────────────────────────────
 function openTM(task){
