@@ -2401,6 +2401,17 @@ async function resolveTicket(id){
   await sb.from('support_tickets').update({status:'resolved',updated_at:new Date().toISOString()}).eq('id',id);
   closeMod('ticket-bg');loadTickets();loadOverview();
 }
+
+function buildTicketActions(ticket){
+  var id=ticket.id;
+  return`
+    ${ticket.status!=='in_progress'?`<button class="btn bo" onclick="updateTicketStatus('in_progress')">⏳ Mark In Progress</button>`:''}
+    ${ticket.status!=='resolved'?`<button class="btn bs" onclick="updateTicketStatus('resolved')">✅ Mark Resolved</button>`:''}
+    ${ticket.status!=='closed'?`<button class="btn bd" onclick="updateTicketStatus('closed')">🚫 End &amp; Close</button>`:'<span class="badge bgr">Closed</span>'}
+    ${ticket.is_ai_handled?`<button class="btn bpur" onclick="assignHuman('${id}')">👤 Assign to Human</button>`:''}
+    ${ticket.status!=='resolved'&&ticket.status!=='closed'?`<button class="btn bg" onclick="getAIReply('${id}')">🤖 AI Suggestion</button>`:''}`;
+}
+
 async function assignHuman(id){
   await sb.from('support_tickets').update({is_ai_handled:false,status:'in_progress'}).eq('id',id);
   if(cTk)cTk.is_ai_handled=false;
@@ -2482,12 +2493,7 @@ async function openTicket(id){
   document.getElementById('tk-reply').value='';
   document.getElementById('tk-ai-reply-wrap').style.display='none';
   var actEl=document.getElementById('tk-actions');
-  actEl.innerHTML=`
-    ${ticket.status!=='in_progress'?`<button class="btn bp" onclick="updateTicketStatus('in_progress')">Mark In Progress</button>`:''}
-    ${ticket.status!=='resolved'?`<button class="btn bs" onclick="updateTicketStatus('resolved')">Mark Resolved</button>`:''}
-    ${ticket.status!=='closed'?`<button class="btn bg" onclick="updateTicketStatus('closed')">Close</button>`:''}
-    ${ticket.is_ai_handled?`<button class="btn bpur" onclick="assignHuman('${id}')">👤 Assign to Human</button>`:''}
-    ${ticket.status!=='resolved'?`<button class="btn bg" onclick="getAIReply('${id}')">🤖 Get AI suggestion</button>`:''}`;
+  actEl.innerHTML=buildTicketActions(ticket);
   if(ticket.status!=='resolved'&&msgs&&msgs.length){
     var lastUser=(msgs).filter(m=>m.sender_type==='user').pop();
     if(lastUser)generateAISuggestion(lastUser.message,msgs);
@@ -2627,53 +2633,7 @@ async function processWD(status){
   closeMod('wd-bg');loadWDs();loadOverview();loadAccountant();
 }
 
-// ── ACCOUNTANT ───────────────────────────────────────────────
-async function loadAccountant(){
-  var[wds,users,chargebacks]=await Promise.all([
-    sb.from('withdrawals')
-  .select('*,users(email,country,balance,total_earned)')
-    sb.from('admin_users_view').select('id,email,username,country,balance,total_earned').order('total_earned',{ascending:false}).limit(20),
-    sb.from('chargebacks').select('*,users(email)').order('created_at',{ascending:false}).catch(()=>({data:[]}))
-  ]);
-  var wList=wds.data||[];var uList=users.data||[];chargebacksCache=chargebacks.data||[];
-  var totalPaid=wList.filter(w=>w.status==='completed').reduce((a,w)=>a+parseFloat(w.amount||0),0);
-  var pending=wList.filter(w=>w.status==='pending');
-  var pendingAmt=pending.reduce((a,w)=>a+parseFloat(w.amount||0),0);
-  var totalBal=uList.reduce((a,u)=>a+parseFloat(u.balance||0),0);
-  document.getElementById('ac-total-paid').textContent='$'+totalPaid.toFixed(2);
-  document.getElementById('ac-pending').textContent='$'+pendingAmt.toFixed(2);
-  document.getElementById('ac-chargebacks').textContent=chargebacksCache.length;
-  document.getElementById('ac-balances').textContent='$'+totalBal.toFixed(2);
-  // Chargebacks
-  var cbEl=document.getElementById('chargeback-list');
-  if(!chargebacksCache.length){cbEl.innerHTML='<div class="empty">No chargebacks recorded.</div>';}
-  else{cbEl.innerHTML=chargebacksCache.map(cb=>`<div class="chargeback-row">
-    <div style="flex:1"><strong style="font-size:12px">${cb.users?cb.users.email||'—':'—'}</strong><div style="font-size:10px;color:var(--mu)">Reason: ${cb.reason||'—'} · ${fd(cb.created_at)}</div></div>
-    <strong style="color:var(--red)">-$${parseFloat(cb.amount||0).toFixed(2)}</strong>
-    <span class="badge brd" style="margin-left:8px">Chargeback</span>
-  </div>`).join('');}
-  // WD table
-  var wTb=document.getElementById('ac-wd-tbody');
-  wTb.innerHTML=wList.slice(0,30).map(w=>`<tr>
-    <td style="font-size:11px">${w.users?w.users.email||'—':'—'}</td>
-    <td><strong style="color:${w.status==='completed'?'var(--green)':'var(--red)'}">$${parseFloat(w.amount||0).toFixed(2)}</strong></td>
-    <td>${w.method||'—'}</td>
-    <td>${stbadge(w.status)}</td>
-    <td style="font-size:11px">${fd(w.created_at)}</td>
-    <td style="font-size:11px;color:var(--mu)">${w.admin_note||'—'}</td></tr>`).join('');
-  // Top earners
-  var topTb=document.getElementById('ac-top-tbody');
-  topTb.innerHTML=uList.slice(0,15).map(u=>{
-    var country=u.country||'—';
-    return`<tr>
-      <td style="font-size:12px"><strong>${u.email||'—'}</strong><div style="font-size:10px;color:var(--mu)">@${u.username||'—'}</div></td>
-      <td><div class="country-badge">${countryFlag(country)} ${country}</div></td>
-      <td><strong style="color:var(--green)">$${parseFloat(u.balance||0).toFixed(4)}</strong></td>
-      <td>$${parseFloat(u.total_earned||0).toFixed(4)}</td>
-      <td>${(wds.data||[]).filter(w=>w.user_id===u.id&&w.status==='completed').length} completed</td></tr>`;
-  }).join('');
-}
-
+// ── CHARGEBACK + EXPORT (standalone helpers) ─────────────────
 function openChargebackModal(){
   sal('cb-alert','');
   document.getElementById('chargeback-bg').classList.add('open');
@@ -3196,11 +3156,15 @@ async function loadTicket(tk){
 
 async function updateTicketStatus(status){
   if(!cTk)return;
-  await sb.from("support_tickets").update({status,updated_at:new Date().toISOString()}).eq("id",cTk.id);
+  await sb.from('support_tickets').update({status,updated_at:new Date().toISOString()}).eq('id',cTk.id);
   cTk.status=status;
-  showToast("Ticket status updated to "+status);
-  loadTickets();
-  openTicket(cTk.id);
+  // Refresh the actions bar in the open modal
+  var actEl=document.getElementById('tk-actions');
+  if(actEl)actEl.innerHTML=buildTicketActions(cTk);
+  showToast('✅ Ticket '+status.replace(/_/g,' ')+'!');
+  loadTickets();loadOverview();
+  if(status==='closed'||status==='resolved')closeMod('ticket-bg');
+  else openTicket(cTk.id);
 }
 
 // ── goPage — add community ────────────────────────────────
@@ -3294,7 +3258,8 @@ function filterAccountantMembers(q){
 
 function updateAcSelCount(){
   var count=document.querySelectorAll('.ac-member-check:checked').length;
-  document.getElementById('ac-check-all').checked=count===allMembersCache.length;
+  var all=document.querySelectorAll('.ac-member-check').length;
+  document.getElementById('ac-check-all').checked=all>0&&count===all;
 }
 
 function toggleAllMemberChecks(val){
