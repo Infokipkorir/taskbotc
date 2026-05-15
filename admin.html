@@ -307,12 +307,63 @@ canvas{display:block}
 .country-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--mu)}
 
 /* ── WALLET / PAYMENT METHOD BADGES ─────── */
-.pm-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:8px;font-size:10px;font-weight:700;border:1px solid}
-.pm-mpesa{background:#e8f5e9;color:#1b5e20;border-color:#a5d6a7}
-.pm-binance{background:#fff8e1;color:#e65100;border-color:#ffcc80}
-.pm-paypal{background:#e3f2fd;color:#0d47a1;border-color:#90caf9}
-.pm-minipay{background:#f3e5f5;color:#6a1b9a;border-color:#ce93d8}
-.pm-other{background:var(--bg3);color:var(--mu);border-color:var(--b)}
+/* WALLET GRID */
+.wallet-info-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:12px;
+}
+
+/* CARD */
+.wallet-info-box{
+  background:#fff;
+  border-radius:14px;
+  padding:14px;
+  box-shadow:0 2px 8px rgba(0,0,0,0.05);
+}
+
+/* LABEL */
+.wib-label{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-size:14px;
+  font-weight:600;
+  color:#374151;
+  margin-bottom:10px;
+}
+
+/* VALUE */
+.wib-val{
+  font-size:24px;
+  font-weight:700;
+  color:#111827;
+}
+
+/* ICON */
+.wallet-icon{
+  width:34px;
+  height:34px;
+  border-radius:10px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:18px;
+  color:#fff;
+}
+
+/* COLORS */
+.wallet-icon.mpesa{
+  background:#16a34a;
+}
+
+.wallet-icon.binance{
+  background:#f59e0b;
+}
+
+.wallet-icon.paypal{
+  background:#2563eb;
+          }
 
 /* ── AI CONVERSATION VIEWER ─────────────── */
 .ai-conv-card{background:var(--card);border:1px solid var(--b);border-radius:var(--r2);overflow:hidden;margin-bottom:10px;box-shadow:var(--shadow)}
@@ -646,9 +697,6 @@ canvas{display:block}
             <div class="wallet-info-box"><div class="wib-label"><img src="https://www.paypalobjects.com/webstatic/icon/pp258.png" alt="PayPal" style="height:13px;vertical-align:middle;margin-right:4px"/> PayPal Requests</div><div class="wib-val" id="wd-paypal-count">—</div></div>
           </div>
 
-          <div class="card"><table><thead><tr><th>User</th><th>Amount</th><th>Method</th><th>Wallet / Account</th><th>Status</th><th>Requested</th><th>Actions</th></tr></thead>
-          <tbody id="w-tbody"><tr><td colspan="7" class="ldr">Loading…</td></tr></tbody></table></div>
-        </div>
 
         
   <!-- ══ ACCOUNTANT ══ -->
